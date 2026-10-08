@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { GeneratedEmailResult, OutreachService, DEFAULT_SERVICES } from '@/types/outreach';
+import { Company } from '@/types/company';
+import { useAuth } from '@/context/AuthContext';
 import {
   X,
   Send,
@@ -37,6 +39,13 @@ export function AddOutreachModal({
   services: initialServices,
   onServicesChange
 }: AddOutreachModalProps) {
+  const { isEmployee } = useAuth();
+  
+  // Company selection state
+  const [availableCompanies, setAvailableCompanies] = useState<Pick<Company, 'id' | 'name' | 'email'>[]>([]);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
+  
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [ccEmails, setCcEmails] = useState('');
@@ -60,6 +69,41 @@ export function AddOutreachModal({
       setServicesList(initialServices);
     }
   }, [initialServices]);
+
+  // Fetch available companies for employees
+  useEffect(() => {
+    if (isEmployee && isOpen) {
+      fetchAvailableCompanies();
+    }
+  }, [isEmployee, isOpen]);
+
+  const fetchAvailableCompanies = async () => {
+    setLoadingCompanies(true);
+    try {
+      const res = await fetch('/api/companies/for-employees');
+      const data = await res.json();
+      if (data.success) {
+        setAvailableCompanies(data.companies || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch companies:', error);
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
+
+  const handleCompanySelect = (companyId: string) => {
+    const company = availableCompanies.find(c => c.id === companyId);
+    if (company) {
+      setSelectedCompanyId(companyId);
+      setCompanyName(company.name);
+      setEmail(company.email);
+    } else {
+      setSelectedCompanyId('');
+      setCompanyName('');
+      setEmail('');
+    }
+  };
 
   const handleSaveCustomService = async () => {
     if (!customName.trim() || !customPitch.trim()) return;
@@ -142,6 +186,7 @@ export function AddOutreachModal({
   if (!isOpen) return null;
 
   const resetForm = () => {
+    setSelectedCompanyId('');
     setCompanyName('');
     setEmail('');
     setCcEmails('');
@@ -181,7 +226,11 @@ export function AddOutreachModal({
 
   const handleGenerate = async (forceDuplicate = false) => {
     if (!companyName.trim()) {
-      setError('Please enter a company name.');
+      if (isEmployee) {
+        setError('Please select a company from the dropdown.');
+      } else {
+        setError('Please enter a company name.');
+      }
       return;
     }
     if (!email.trim() || !email.includes('@')) {
@@ -254,7 +303,11 @@ export function AddOutreachModal({
 
   const handleGenerateAndSend = async () => {
     if (!companyName.trim()) {
-      setError('Please enter a company name.');
+      if (isEmployee) {
+        setError('Please select a company from the dropdown.');
+      } else {
+        setError('Please enter a company name.');
+      }
       return;
     }
     if (!email.trim() || !email.includes('@')) {
@@ -491,21 +544,77 @@ export function AddOutreachModal({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-5">
           {/* Left: Input fields */}
           <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1">
-                Company Name <span className="text-rose-400">*</span>
-              </label>
-              <div className="relative">
-                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="e.g. Acme Corp"
-                  value={companyName}
-                  onChange={e => setCompanyName(e.target.value)}
-                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                />
+            {/* Company Selection for Employees */}
+            {isEmployee && (
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Select Company <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                  <select
+                    value={selectedCompanyId}
+                    onChange={e => handleCompanySelect(e.target.value)}
+                    disabled={loadingCompanies}
+                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white focus:border-blue-500 focus:outline-none appearance-none cursor-pointer disabled:opacity-50"
+                  >
+                    <option value="">
+                      {loadingCompanies ? 'Loading companies...' : 'Choose a company to email'}
+                    </option>
+                    {availableCompanies.map(company => (
+                      <option key={company.id} value={company.id}>
+                        {company.name} ({company.email})
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                {availableCompanies.length === 0 && !loadingCompanies && (
+                  <p className="text-xs text-gray-400 mt-1">
+                    No companies available. Contact admin to add companies.
+                  </p>
+                )}
               </div>
-            </div>
+            )}
+
+            {/* Company Name Field - Show for admins or when no company selected for employees */}
+            {(!isEmployee || !selectedCompanyId) && (
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Company Name <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="e.g. Acme Corp"
+                    value={companyName}
+                    onChange={e => setCompanyName(e.target.value)}
+                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Show selected company info for employees */}
+            {isEmployee && selectedCompanyId && (
+              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-md">
+                <div className="flex items-center gap-2 text-xs">
+                  <Building2 className="w-4 h-4 text-blue-400" />
+                  <span className="text-blue-200 font-medium">Selected Company:</span>
+                  <span className="text-white">{companyName}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs mt-1">
+                  <Mail className="w-4 h-4 text-blue-400" />
+                  <span className="text-blue-200">Email:</span>
+                  <span className="text-white font-mono">{email}</span>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -519,7 +628,8 @@ export function AddOutreachModal({
                     placeholder="contact@company.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white font-mono placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                    disabled={isEmployee && selectedCompanyId !== ''}
+                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white font-mono placeholder-gray-400 focus:border-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>

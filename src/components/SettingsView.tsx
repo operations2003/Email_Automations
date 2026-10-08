@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppSettings, OutreachService, DEFAULT_SERVICES } from '@/types/outreach';
+import { CompanyManagement } from './CompanyManagement';
+import { useAuth } from '@/context/AuthContext';
 import {
   Save,
   Check,
@@ -22,7 +24,8 @@ import {
   Trash2,
   Edit2,
   RotateCcw,
-  Sparkles
+  Sparkles,
+  Building2
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -31,6 +34,7 @@ interface SettingsViewProps {
 }
 
 export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) {
+  const { isAdmin } = useAuth();
   const [formData, setFormData] = useState<AppSettings>(settings);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -872,6 +876,11 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
               </div>
             </div>
           )}
+        </div>
+
+        {/* Company Management */}
+        <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4 space-y-3.5">
+          <CompanyManagement isAdmin={isAdmin} />
         </div>
 
         {/* Submit */}
