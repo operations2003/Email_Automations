@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { OutreachCampaign, OutreachStatus, ReplyStatus } from '@/types/outreach';
 import {
   Send,
@@ -74,6 +75,7 @@ export function OutreachTable({
   statusFilter,
   setStatusFilter
 }: OutreachTableProps) {
+  const { isAdmin } = useAuth();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -440,17 +442,19 @@ export function OutreachTable({
                                   </button>
                                 )}
 
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setOpenMenuId(null);
-                                    onDelete(c.id);
-                                  }}
-                                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-400 hover:bg-[#23272f] transition-colors"
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                  Delete
-                                </button>
+                                {isAdmin && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      onDelete(c.id);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-rose-400 hover:bg-[#23272f] transition-colors"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                    Delete
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>

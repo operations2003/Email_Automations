@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import {
   Mail,
   Table2,
@@ -10,7 +11,11 @@ import {
   Plus,
   Play,
   RefreshCw,
-  Database
+  Database,
+  ShieldCheck,
+  UserCheck,
+  LogOut,
+  ChevronDown
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -30,6 +35,8 @@ export function Navbar({
   isSchedulerRunning,
   dueTodayCount
 }: NavbarProps) {
+  const { user, isAdmin, logout, switchRoleDemo } = useAuth();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [dbState, setDbState] = useState<{
     connected: boolean;
     latencyMs?: number | null;
@@ -67,13 +74,20 @@ export function Navbar({
       clearInterval(interval);
     };
   }, []);
+
+  // Ensure employee cannot remain on settings tab if active
+  useEffect(() => {
+    if (!isAdmin && activeTab === 'settings') {
+      setActiveTab('outreach');
+    }
+  }, [isAdmin, activeTab, setActiveTab]);
   return (
     <header className="sticky top-0 z-40 border-b border-[#23272f] bg-[#0d0f12]/95 backdrop-blur-xs">
       <div className="flex h-14 items-center justify-between px-4 sm:px-6 max-w-7xl mx-auto w-full">
         {/* Brand */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-semibold">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-semibold shadow-md shadow-blue-500/20">
               <Mail className="h-4 w-4" />
             </div>
             <div>
@@ -121,17 +135,19 @@ export function Navbar({
               <BarChart3 className="h-3.5 w-3.5" />
               Stats
             </button>
-            <button
-              onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                activeTab === 'settings'
-                  ? 'bg-[#23272f] text-white'
-                  : 'text-gray-400 hover:text-gray-200'
-              }`}
-            >
-              <Settings className="h-3.5 w-3.5" />
-              Settings
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  activeTab === 'settings'
+                    ? 'bg-[#23272f] text-white'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                <Settings className="h-3.5 w-3.5" />
+                Settings
+              </button>
+            )}
           </nav>
         </div>
 
@@ -194,6 +210,111 @@ export function Navbar({
             <Plus className="h-3.5 w-3.5" />
             <span>New Email</span>
           </button>
+
+          {/* User Profile & Role Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              className={`flex items-center gap-2 pl-2.5 pr-2 py-1 rounded-lg border text-xs font-medium transition-colors ${
+                isAdmin
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/15'
+                  : 'bg-blue-500/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/15'
+              }`}
+            >
+              {isAdmin ? (
+                <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
+              ) : (
+                <UserCheck className="h-3.5 w-3.5 text-blue-400" />
+              )}
+              <span className="max-w-[110px] truncate font-semibold">
+                {user?.name || (isAdmin ? 'Sheetal Bedi' : 'Employee')}
+              </span>
+              <span
+                className={`text-[9px] uppercase font-bold px-1.5 py-0.2 rounded ${
+                  isAdmin ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300'
+                }`}
+              >
+                {isAdmin ? 'ADMIN' : 'EMP'}
+              </span>
+              <ChevronDown className="h-3 w-3 opacity-60" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {userMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setUserMenuOpen(false)}
+                />
+                <div className="absolute right-0 mt-2 w-64 rounded-xl border border-[#23272f] bg-[#14171c] p-3 shadow-2xl z-50 text-xs space-y-3">
+                  <div className="border-b border-[#23272f] pb-2.5">
+                    <p className="font-semibold text-white">{user?.name || (isAdmin ? 'Sheetal Bedi' : 'Team Member')}</p>
+                    <p className="text-[11px] text-gray-400 font-mono truncate">{user?.email}</p>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span
+                        className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
+                          isAdmin
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                        }`}
+                      >
+                        {isAdmin ? '👑 Administrator' : '👤 Employee Member'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Fast Demo Role Switching */}
+                  <div className="space-y-1">
+                    <span className="text-[10px] uppercase font-semibold text-gray-500 tracking-wider">
+                      Quick Switch (Testing)
+                    </span>
+                    {isAdmin ? (
+                      <button
+                        onClick={async () => {
+                          await switchRoleDemo('employee');
+                          setUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-[#23272f] text-gray-300 text-left transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <UserCheck className="h-3.5 w-3.5 text-blue-400" />
+                          <span>Switch to Atul (Employee)</span>
+                        </div>
+                        <span className="text-[9px] text-gray-500">Employee</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          await switchRoleDemo('admin');
+                          setUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-[#23272f] text-gray-300 text-left transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
+                          <span>Switch to Sheetal Bedi</span>
+                        </div>
+                        <span className="text-[9px] text-amber-400">Admin</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="border-t border-[#23272f] pt-2">
+                    <button
+                      onClick={async () => {
+                        setUserMenuOpen(false);
+                        await logout();
+                      }}
+                      className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-rose-500/10 text-rose-400 text-left transition-colors"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </header>

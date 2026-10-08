@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSettings, updateSettings } from '@/lib/settings';
+import { getUserFromRequest } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const user = getUserFromRequest(req);
     const settings = await getSettings();
     // Mask sensitive key for display
     const maskedSettings = {
@@ -12,6 +14,12 @@ export async function GET() {
         : '',
       hasCustomKey: Boolean(settings.openAiApiKey && settings.openAiApiKey.trim().length > 10)
     };
+
+    // If employee, mask smtpPassword completely
+    if (user && user.role === 'employee' && maskedSettings.smtpPassword) {
+      maskedSettings.smtpPassword = '••••••••';
+    }
+
     return NextResponse.json({ success: true, settings: maskedSettings });
   } catch (error: unknown) {
     const err = error as Error;
@@ -21,6 +29,14 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = getUserFromRequest(req);
+    if (user && user.role !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Admin role is required to modify system settings.' },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const current = await getSettings();
 

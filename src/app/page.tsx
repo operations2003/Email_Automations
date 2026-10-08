@@ -10,9 +10,12 @@ import { SettingsView } from '@/components/SettingsView';
 import { AddOutreachModal } from '@/components/AddOutreachModal';
 import { EmailPreviewModal } from '@/components/EmailPreviewModal';
 import { HistoryModal } from '@/components/HistoryModal';
-import { CheckCircle2, AlertCircle, Info, Sparkles } from 'lucide-react';
+import { LoginScreen } from '@/components/LoginScreen';
+import { useAuth } from '@/context/AuthContext';
+import { CheckCircle2, AlertCircle, Info, Sparkles, Shield } from 'lucide-react';
 
 export default function HomePage() {
+  const { user, loading: authLoading, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState<'outreach' | 'dashboard' | 'followups' | 'settings'>('outreach');
   const [campaigns, setCampaigns] = useState<OutreachCampaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -303,6 +306,18 @@ export default function HomePage() {
     );
   }).length;
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0d0f12] text-gray-100 flex flex-col justify-center items-center">
+        <div className="h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginScreen />;
+  }
+
   return (
     <div className="min-h-screen bg-[#0d0f12] text-gray-100 flex flex-col font-sans">
       {/* Toast notification */}
@@ -401,10 +416,22 @@ export default function HomePage() {
         )}
 
         {activeTab === 'settings' && (
-          <SettingsView
-            settings={settings}
-            onUpdateSettings={handleUpdateSettings}
-          />
+          isAdmin ? (
+            <SettingsView
+              settings={settings}
+              onUpdateSettings={handleUpdateSettings}
+            />
+          ) : (
+            <div className="max-w-md mx-auto text-center py-16 space-y-4">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <Shield className="h-6 w-6" />
+              </div>
+              <h2 className="text-lg font-bold text-white">Administrator Access Required</h2>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                System settings, API secrets, and delivery credentials can only be viewed or modified by Sheetal Bedi (Admin).
+              </p>
+            </div>
+          )
         )}
       </main>
 

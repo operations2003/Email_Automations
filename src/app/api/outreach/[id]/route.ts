@@ -91,11 +91,21 @@ export async function PUT(
   }
 }
 
+import { getUserFromRequest } from '@/lib/auth';
+
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = getUserFromRequest(req);
+    if (user && user.role !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Only administrators can delete outreach targets.' },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const deleted = await deleteCampaign(id);
     if (!deleted) {
