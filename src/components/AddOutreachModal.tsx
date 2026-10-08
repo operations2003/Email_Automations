@@ -417,7 +417,7 @@ export function AddOutreachModal({
           <div>
             <h2 className="text-base font-semibold text-white tracking-tight">New Outreach Email</h2>
             <p className="text-xs text-gray-400 mt-0.5">
-              Send an email from the TaskNera team regarding our services or custom goals.
+              Personalized B2B cold outreach for AI ATS &amp; candidate screening intelligence.
             </p>
           </div>
           <button
@@ -575,7 +575,7 @@ export function AddOutreachModal({
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-medium text-gray-300">
-                  Select TaskNera Service
+                  Select Pitch Angle / Offering
                 </label>
                 <button
                   type="button"
@@ -583,7 +583,7 @@ export function AddOutreachModal({
                   className="flex items-center gap-1 text-[11px] font-medium text-blue-400 hover:text-blue-300 transition-colors"
                 >
                   <Plus className="h-3 w-3" />
-                  <span>{showAddCustom ? 'Cancel' : 'Add Custom Service'}</span>
+                  <span>{showAddCustom ? 'Cancel' : 'Add Custom Offering'}</span>
                 </button>
               </div>
 
@@ -609,7 +609,7 @@ export function AddOutreachModal({
                       <label className="block text-[10px] text-gray-400 mb-0.5">Service Name *</label>
                       <input
                         type="text"
-                        placeholder="e.g. DevOps & Cloud"
+                        placeholder="e.g. Executive Search Screening"
                         value={customName}
                         onChange={e => setCustomName(e.target.value)}
                         className="w-full rounded bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-white focus:border-blue-500 focus:outline-none"
@@ -645,7 +645,7 @@ export function AddOutreachModal({
                     <label className="block text-[10px] text-gray-400 mb-0.5">Tagline (Optional)</label>
                     <input
                       type="text"
-                      placeholder="e.g. Cloud migration, CI/CD, AWS cost audit"
+                      placeholder="e.g. AI JD-to-resume matching"
                       value={customTagline}
                       onChange={e => setCustomTagline(e.target.value)}
                       className="w-full rounded bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-white focus:border-blue-500 focus:outline-none"
@@ -656,7 +656,7 @@ export function AddOutreachModal({
                     <label className="block text-[10px] text-gray-400 mb-0.5">Email Pitch / Goal *</label>
                     <textarea
                       rows={2}
-                      placeholder="e.g. Introduce TaskNera's cloud infrastructure review and DevOps pipeline setup."
+                      placeholder="e.g. Introduce automated CV scoring to eliminate first-round review delays."
                       value={customPitch}
                       onChange={e => setCustomPitch(e.target.value)}
                       className="w-full rounded bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-white focus:border-blue-500 focus:outline-none"
@@ -795,7 +795,7 @@ export function AddOutreachModal({
                   Draft Preview
                 </span>
                 <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] text-blue-400 font-medium">
-                  TaskNera Team
+                  AI ATS Engine
                 </span>
               </div>
               <div className="flex items-center gap-2">

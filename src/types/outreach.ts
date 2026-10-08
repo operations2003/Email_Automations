@@ -100,35 +100,43 @@ export interface OutreachService {
 
 export const DEFAULT_SERVICES: OutreachService[] = [
   {
-    id: 'hireiq',
-    name: 'HireIQ (AI Screening)',
-    icon: '🎯',
-    tagline: 'JD matching & resume scoring',
-    pitch: "Introduce HireIQ, TaskNera's AI platform for instant JD-to-candidate matching and automated resume screening.",
+    id: 'pain',
+    name: 'Screening Bottleneck',
+    icon: '⚡',
+    tagline: 'Manual resume screening drag',
+    pitch: "Recruiters manually screening hundreds of CVs per JD, creating screening bottlenecks and delaying candidate shortlists.",
     isDefault: true
   },
   {
-    id: 'staffing',
-    name: 'Tech Staffing',
-    icon: '💻',
-    tagline: 'Senior devs in 48-72 hours',
-    pitch: "Offer TaskNera's on-demand tech staffing—providing pre-vetted senior developers and engineering pods within 48 to 72 hours.",
+    id: 'time',
+    name: 'Time Saving (8-10h/wk)',
+    icon: '⏱️',
+    tagline: 'Save 8-10h/week per recruiter',
+    pitch: "Automate first-level resume matching to save recruiters 8-10 hours weekly and deliver client shortlists in hours instead of days.",
     isDefault: true
   },
   {
-    id: 'software',
-    name: 'Custom Software & AI',
-    icon: '🤖',
-    tagline: 'Full-cycle product builds',
-    pitch: "Introduce TaskNera's custom software and AI development services for building scalable web, mobile, and cloud solutions.",
+    id: 'volume',
+    name: 'High-Volume Matching',
+    icon: '📈',
+    tagline: 'Large batches & pool matching',
+    pitch: "Batch screen large CV volumes and auto-rank candidate pools against mandatory job requirements.",
     isDefault: true
   },
   {
-    id: 'ats',
-    name: 'Recruiting Automation',
-    icon: '📋',
-    tagline: 'ATS & pipeline workflows',
-    pitch: "Share TaskNera's recruitment automation and ATS workflow solutions to speed up candidate pipelines.",
+    id: 'productivity',
+    name: 'Desk Capacity & Speed',
+    icon: '🚀',
+    tagline: 'Faster shortlists & consistency',
+    pitch: "Accelerate recruiter placement velocity and maintain consistent candidate evaluation scores across consultant desks.",
+    isDefault: true
+  },
+  {
+    id: 'curiosity',
+    name: 'Soft CTA Walkthrough',
+    icon: '💬',
+    tagline: '90-second live example offer',
+    pitch: "Low-friction conversation starter asking if they are open to seeing a 90-second example of automated candidate matching on a live JD.",
     isDefault: true
   }
 ];

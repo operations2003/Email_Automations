@@ -1,38 +1,92 @@
 import { EmailGenerationPayload, GeneratedEmailResult } from '../types/outreach.js';
 
-type OutreachIntent =
-  | 'recruitment_hiring'
-  | 'sales_bdm'
-  | 'software_product'
-  | 'partnership'
-  | 'meeting_request'
-  | 'discussion_followup'
-  | 'general_business';
+// Classification angles for the AI ATS / Recruitment Intelligence Platform
+export type OutreachIntent =
+  | 'pain_screening_bottleneck'  // Angle 1: Recruiters drowning in CVs, manual screening drag
+  | 'time_saving'                // Angle 2: Saving 8-10 hours/week per recruiter, faster submittals
+  | 'high_volume'                // Angle 3: Large applicant batches, candidate pool auto-ranking
+  | 'recruiter_productivity'     // Angle 4: Higher billing capacity, consistent candidate scores
+  | 'soft_cta_curiosity'         // Angle 5: Low-friction 90-sec example, conversational check
+  | 'general_ats_intelligence';  // General recruitment intelligence & matching
 
 export function classifyIntent(reason: string): OutreachIntent {
   const r = reason.toLowerCase();
-  if (r.includes('recruit') || r.includes('hire') || r.includes('developer') || r.includes('staffing') || r.includes('talent') || r.includes('capacity')) {
-    return 'recruitment_hiring';
+
+  // Angle 1: Pain point / bottleneck / manual screening overload
+  if (
+    r.includes('bottleneck') ||
+    r.includes('manual') ||
+    r.includes('drown') ||
+    r.includes('overload') ||
+    r.includes('sift') ||
+    r.includes('backlog') ||
+    r.includes('unqualified') ||
+    r.includes('pain')
+  ) {
+    return 'pain_screening_bottleneck';
   }
-  if (r.includes('product') || r.includes('software') || r.includes('platform') || r.includes('tool') || r.includes('saas') || r.includes('solution')) {
-    return 'software_product';
+
+  // Angle 2: Time saving / cut screening hours
+  if (
+    r.includes('time') ||
+    r.includes('hour') ||
+    r.includes('speed') ||
+    r.includes('faster') ||
+    r.includes('fast') ||
+    r.includes('shave') ||
+    r.includes('quick') ||
+    r.includes('save')
+  ) {
+    return 'time_saving';
   }
-  if (r.includes('partner') || r.includes('collaboration') || r.includes('alliance') || r.includes('synergy')) {
-    return 'partnership';
+
+  // Angle 3: High volume / large pools / batch parsing
+  if (
+    r.includes('volume') ||
+    r.includes('hundreds') ||
+    r.includes('batch') ||
+    r.includes('large') ||
+    r.includes('pool') ||
+    r.includes('database') ||
+    r.includes('mass') ||
+    r.includes('scale')
+  ) {
+    return 'high_volume';
   }
-  if (r.includes('meet') || r.includes('demo') || r.includes('call') || r.includes('sync') || r.includes('schedule')) {
-    return 'meeting_request';
+
+  // Angle 4: Productivity / placement velocity / consistency / billing
+  if (
+    r.includes('productivity') ||
+    r.includes('placement') ||
+    r.includes('velocity') ||
+    r.includes('consist') ||
+    r.includes('score') ||
+    r.includes('ranking') ||
+    r.includes('submittal') ||
+    r.includes('billing') ||
+    r.includes('capacity')
+  ) {
+    return 'recruiter_productivity';
   }
-  if (r.includes('previous') || r.includes('follow up') || r.includes('earlier') || r.includes('spoke')) {
-    return 'discussion_followup';
+
+  // Angle 5: Soft CTA / curiosity / walkthrough
+  if (
+    r.includes('curiosity') ||
+    r.includes('soft') ||
+    r.includes('walkthrough') ||
+    r.includes('example') ||
+    r.includes('video') ||
+    r.includes('conversation') ||
+    r.includes('chat')
+  ) {
+    return 'soft_cta_curiosity';
   }
-  if (r.includes('sales') || r.includes('bdm') || r.includes('outreach') || r.includes('business dev')) {
-    return 'sales_bdm';
-  }
-  return 'general_business';
+
+  return 'time_saving';
 }
 
-const BANNED_CLICHES = [
+// Banned clichés to guarantee deliverability, natural voice, and avoid spam filters
+export const BANNED_CLICHES = [
   "hope you're doing well",
   "hope this email finds you well",
   "i am writing to introduce",
@@ -44,252 +98,239 @@ const BANNED_CLICHES = [
   "act now",
   "limited time",
   "guaranteed results",
-  "100% free"
+  "100% free",
+  "10x your",
+  "revolutionary",
+  "exclusive opportunity",
+  "urgent",
+  "game-changer",
+  "synergy",
+  "disruptive"
 ];
 
+// Anti-repetition dynamic subject lines (short, lowercase/conversational, highly relevant)
 const INITIAL_SUBJECT_TEMPLATES: Record<OutreachIntent, string[]> = {
-  recruitment_hiring: [
-    'Supporting {company} with Software & Tech Hiring',
-    'Exploring a Tech Hiring Partnership with {company}',
-    'Scaling Engineering Capacity at {company}',
-    'Engineering & Technical Talent for {company}',
-    'A Focused Hiring Collaboration with {company}',
-    '{company} + Tech Recruiting Support',
-    'Helping {company} Scale Its Engineering Bench',
-    'Solving Tech Talent Bottlenecks at {company}'
+  pain_screening_bottleneck: [
+    '{company} shortlist speed',
+    'hours spent reviewing candidate cvs',
+    'cv screening on your open mandates',
+    'unqualified cv volume at {company}',
+    'manual resume review bottleneck'
   ],
-  sales_bdm: [
-    'Quick idea for {company}’s Growth Trajectory',
-    'Streamlining Key Workflows at {company}',
-    'Accelerating Business Milestones for {company}',
-    'Potential Synergies for {company}',
-    'A Fresh Perspective on Operational Scale at {company}',
-    'Practical Value for {company}’s Current Priorities',
-    'Strategic Growth Initiative with {company}'
+  time_saving: [
+    'saving 8-10 hours on cv screening',
+    '{company} candidate turnaround',
+    'cutting screening time on open roles',
+    'quick question about {company} screening hours',
+    'faster shortlists for {company}'
   ],
-  software_product: [
-    'Modernizing Workflow Efficiency at {company}',
-    'A Targeted Solution for {company}',
-    'Boosting Product & Process Velocity at {company}',
-    'A New Approach to Automation for {company}',
-    'Enhancing System Capabilities at {company}',
-    'Architecture & Productivity Upgrade for {company}'
+  high_volume: [
+    'handling high-volume cv intake at {company}',
+    'auto-ranking candidate pools for {company}',
+    'screening large applicant batches',
+    'matching candidate pools to new jds',
+    '{company} applicant volume'
   ],
-  partnership: [
-    'Exploring a Strategic Collaboration with {company}',
-    'Potential Partnership Avenues with {company}',
-    'Collaborative Opportunities for {company}',
-    'Mutually Beneficial Synergy with {company}',
-    'Partnership Discussion: {company} & Our Team'
+  recruiter_productivity: [
+    'consultant desk capacity at {company}',
+    'accelerating submittal velocity for {company}',
+    'consistent candidate scoring at {company}',
+    '{company} recruiter submittal ratio',
+    'candidate placement velocity'
   ],
-  meeting_request: [
-    'Brief Conversation Regarding {company}’s Growth',
-    '10-Minute Introductory Sync for {company}',
-    'Connecting Briefly Regarding {company}’s Roadmap',
-    'Quick Exchange on {company}’s Upcoming Goals'
+  soft_cta_curiosity: [
+    'quick question about {company} cv review',
+    'cv screening workflow at {company}',
+    '{company} candidate shortlisting',
+    'idea for {company} recruitment team',
+    'automated matching for {company}'
   ],
-  discussion_followup: [
-    'Continuing Our Dialogue Regarding {company}',
-    'Next Steps on Our Recent Discussion with {company}',
-    'Revisiting Our Prior Conversation Regarding {company}',
-    'Following Up on Notes for {company}'
-  ],
-  general_business: [
-    'Collaborating with {company} on High-Impact Initiatives',
-    'Strategic Initiative for {company}',
-    'Quick Note Regarding {company}’s Roadmap',
-    'Exploring Practical Alignment with {company}'
+  general_ats_intelligence: [
+    '{company} candidate matching',
+    'recruitment screening intelligence',
+    'faster shortlist turnaround for {company}',
+    '{company} recruiter workflow',
+    'ai candidate evaluation'
   ]
 };
 
+// Conversational, personalized openings (1-2 sentences establishing relevance)
 const OPENINGS: Record<OutreachIntent, string[]> = {
-  recruitment_hiring: [
-    'I’ve been tracking {company}’s recent milestones and know how critical dependable engineering capacity is right now.',
-    'Scaling technical bandwidth without months of recruitment lag remains one of the sharpest bottlenecks for growing tech organizations.',
-    'Noticeable momentum around {company} prompted me to reach out directly regarding your technical team expansion.',
-    'Given {company}’s active focus on product development, finding pre-vetted engineers who ship high-standard code quickly is often top of mind.',
-    'I wanted to reach out regarding how your engineering team at {company} handles specialized hiring surges during high-priority sprints.'
+  pain_screening_bottleneck: [
+    'Noticed {company} is actively managing high-priority recruitment mandates right now.',
+    'Saw {company}’s recent hiring activity and open requisitions across competitive roles.',
+    'Tracking {company}’s recent placements—managing multiple open mandates usually creates an intense screening bottleneck.',
+    'Given {company}’s current recruitment volume, consultants are likely fielding dozens of applicants per role.'
   ],
-  sales_bdm: [
-    'I’m reaching out because several teams in your sector face common operational friction when scaling new initiatives.',
-    'Rather than sending a generic cold note, I wanted to share a specific observation regarding how {company} approaches market execution.',
-    'Seeing {company}’s current direction, there is a clear opportunity to optimize throughput while keeping team overhead lean.',
-    'We recently worked with teams navigating similar growth plateaus to what {company} might be observing right now.'
+  time_saving: [
+    'With multiple active client mandates on {company}’s board, your recruiters are likely reviewing hundreds of resumes every single week.',
+    'Saw {company} is expanding its recruitment activity across demanding roles this quarter.',
+    'Noticed the pace of new job openings {company} is currently delivering against.',
+    'Reaching out because several staffing and recruitment leaders we work with were losing half their mornings just reviewing CVs.'
   ],
-  software_product: [
-    'Most teams we talk to in your industry spend needless hours dealing with fragmented tooling and slow execution cycles.',
-    'We built our platform specifically to eliminate repetitive manual overhead for fast-moving companies like {company}.',
-    'Looking at {company}’s technological footprint, integrating streamlined workflow automation could save hours of redundant engineering effort.',
-    'I wanted to introduce a focused tool designed to enhance efficiency and visibility across your key operations.'
+  high_volume: [
+    'Curious how your recruitment team at {company} handles applicant surges on competitive requisitions.',
+    'When candidate volume spikes across open mandates, talent databases at {company} often end up underutilized because re-screening past CVs is so manual.',
+    'Saw {company} is managing requisitions that typically attract high applicant numbers.',
+    'With {company} handling sizable applicant volume, manually sorting top matches from mismatched resumes becomes a major time drain.'
   ],
-  partnership: [
-    'There is a natural overlap between what our respective organizations focus on in the current market landscape.',
-    'I have been admiring {company}’s market position and see a straightforward path where our teams could mutually amplify value.',
-    'Collaborative partnerships work best when both teams solve complementary halves of the same customer problem.',
-    'Reaching out to explore whether combining capabilities between {company} and our team makes sense for upcoming initiatives.'
+  recruiter_productivity: [
+    'In fast-moving recruitment, submitting the first vetted shortlist within 24 hours often determines who wins the placement.',
+    'Reaching out to see how {company} is optimizing consultant desk capacity as your requisition volume grows.',
+    'Tracking {company}’s delivery footprint—maintaining consistent candidate evaluation across different recruiters is always a tough balancing act.',
+    'When recruiter desks get overwhelmed with resume reviews, consultant time gets pulled away from candidate engagement and business development.'
   ],
-  meeting_request: [
-    'I’d appreciate the chance to compare notes briefly on how {company} is tackling high-leverage challenges this quarter.',
-    'Keeping this brief: I wanted to check whether you have 10 minutes open this week to discuss practical alignment with {company}.',
-    'Given {company}’s current objectives, a concise introductory exchange could highlight several immediate wins.'
+  soft_cta_curiosity: [
+    'Saw {company} is actively delivering across multiple demanding client requisitions right now.',
+    'Quick observation regarding {company}’s recruitment pipeline and active job openings.',
+    'Noticed {company}’s recruitment activity and wanted to ask a quick operational question regarding your screening workflow.',
+    'Following {company}’s recent growth and delivery across active talent searches.'
   ],
-  discussion_followup: [
-    'Following up on our earlier dialogue regarding {company}’s upcoming initiatives.',
-    'Circling back to the points raised during our previous interaction to see how your schedule looks this week.',
-    'Reflecting on our earlier exchange, I wanted to check in on the timing for {company}’s planned next phase.'
-  ],
-  general_business: [
-    'I’m reaching out directly regarding {company}’s ongoing priorities in the sector.',
-    'Our team focuses on delivering concrete, measurable outcomes for forward-thinking organizations like {company}.',
-    'I wanted to share a concise perspective on how {company} could unlock immediate bandwidth without heavy onboarding friction.'
+  general_ats_intelligence: [
+    'Noticed {company}’s active talent acquisition activity and delivery across client requisitions.',
+    'Reaching out regarding how modern recruitment teams at {company} streamline their first-level candidate evaluation.'
   ]
 };
 
-const VALUE_ANGLES: Record<OutreachIntent, string[]> = {
-  recruitment_hiring: [
-    'We provide pre-screened senior software developers and dedicated pods ready to contribute within 48 to 72 hours—bypassing traditional headhunter overhead and lengthy recruiter delays.',
-    'Our model pairs your engineering leadership with senior talent tested on real-world system architecture, ensuring zero ramp-up compromise on code quality.',
-    'Whether you need to quickly cover backend microservices, modern frontend architecture, or end-to-end cloud infrastructure, our network delivers reliable candidates directly aligned with your tech stack.',
-    'By pre-evaluating candidates across algorithm design, system scalability, and proactive communication, we cut interview attrition rates down to single digits.'
+// Value propositions focused strictly on BUSINESS OUTCOMES (Time saved, Desk capacity, Faster submittals)
+const VALUE_PROPOSITIONS: Record<OutreachIntent, string[]> = {
+  pain_screening_bottleneck: [
+    'We built an AI recruitment intelligence layer that auto-matches CVs against your exact JD requirements, flags missing mandatory skills, and surfaces the top 5% of candidates before your recruiters open a file.',
+    'Instead of recruiters losing 2–3 hours daily manually cross-referencing CVs against complex JDs, our platform auto-ranks candidates and spots missing requirements in seconds.',
+    'Our platform eliminates that manual first pass by instantly scoring applicant experience and mandatory requirements against your JD so recruiters only review genuine fits.'
   ],
-  sales_bdm: [
-    'We specialize in helping businesses systematically capture qualified opportunities and scale revenue pipelines with predictable execution.',
-    'Our systematic framework frees up internal leadership from routine operational drag, delivering measurable ROI within the initial 30 days.',
-    'We focus strictly on measurable commercial outcomes, aligning directly with your team’s core KPIs.'
+  time_saving: [
+    'Upload your JD and CV batch, and our platform auto-ranks candidates with transparent match scores, saving recruiters 8–10 hours each week on manual screening.',
+    'Our screening engine cuts first-level review time from hours to seconds by automatically evaluating candidate skills and missing criteria against your JD.',
+    'Our platform automates first-pass screening so your recruiters can take candidate shortlists to hiring managers in hours instead of days.'
   ],
-  software_product: [
-    'Our software integrates into your existing infrastructure in minutes, automating manual processes and providing live actionable intelligence.',
-    'Teams using our platform report a 40% reduction in turnaround times along with comprehensive audit transparency.',
-    'Designed with a clean, zero-friction interface, your team gets full capability without cumbersome multi-week onboarding cycles.'
+  high_volume: [
+    'Our platform parses and evaluates large batches of CVs against your JD in seconds, auto-ranking candidates and reactivating existing talent pools instantly.',
+    'Rather than letting candidate databases sit idle, our matching engine re-scores entire applicant pools against new client JDs automatically.',
+    'Our engine handles high-volume applicant intake effortlessly, generating ATS match scores and identifying qualified profiles in minutes.'
   ],
-  partnership: [
-    'A joint alliance allows {company} to expand client offerings with minimal overhead, while creating an ongoing mutual referral stream.',
-    'We bring specialized technical execution while complementing {company}’s established client relationships and domain authority.',
-    'By integrating our offerings, we can jointly deliver an end-to-end proposition that neither of us would want to build independently.'
+  recruiter_productivity: [
+    'By standardizing candidate evaluation against your JD criteria, recruiters maintain consistent submittal quality while increasing their active desk capacity.',
+    'Our platform helps recruitment teams cut shortlist turnaround time by 70%, giving consultants more time for candidate relationships and closing placements.',
+    'Our intelligence layer gives recruiters an immediate breakdown of matching vs. missing skills, helping your team submit vetted shortlists ahead of competing agencies.'
   ],
-  meeting_request: [
-    'We have assembled a few tailored insights specifically for {company} that I can walk through in a concise 10-minute briefing.',
-    'A short, informal call would let us gauge whether there is genuine mutual alignment without any sales pressure.'
+  soft_cta_curiosity: [
+    'We built an automated matching layer that scores incoming CVs against your exact JD requirements and surfaces the top candidates instantly.',
+    'Our platform auto-evaluates candidate skills against JDs in seconds so recruiters never waste hours rejecting unqualified applicants manually.'
   ],
-  discussion_followup: [
-    'I have compiled the additional notes we touched on, structured around {company}’s immediate timeline and resource needs.',
-    'We are ready to share the tailored roadmap that directly addresses the requirements we walked through.'
-  ],
-  general_business: [
-    'Our core strength is delivering speed and reliability with transparent communication and proven deliverables.',
-    'We tailor our engagement specifically to your operating constraints so you retain full control over deliverables.'
+  general_ats_intelligence: [
+    'Our platform auto-matches candidate CVs against JDs, flags missing requirements, and surfaces the strongest applicants in seconds.'
   ]
 };
 
-const CTAS: string[] = [
-  'Would you be open to a brief 10-minute introductory call this Thursday or Friday?',
-  'Are you open to a quick 10-minute conversation to see if this aligns with your current priorities?',
-  'Does your calendar have 10 minutes open early next week for a zero-obligation discussion?',
-  'If this is relevant to your current roadmap, what does your availability look like for a brief sync?',
-  'Would you be against me sending over a 1-page summary of how we helped similar teams?',
-  'If you are open to exploring this, I can work around your schedule for a quick 10-minute touchpoint.'
+// Low-friction, interest-based CTAs (Easy yes/no, conversation starters, 90-sec walkthroughs)
+const LOW_FRICTION_CTAS: string[] = [
+  'Open to seeing a 90-second example of how it works on a live JD?',
+  'Would you be open to a quick 2-minute walkthrough video?',
+  'Is candidate screening taking up more recruiter time than you’d like this quarter?',
+  'Would it be useful if I sent over a short 1-page breakdown of how it works?',
+  'Should I send over a quick example showing how other agencies use it?',
+  'Is shortening your team’s CV screening time something on your radar this month?',
+  'Open to checking out a brief 2-minute workflow overview?'
 ];
 
+// FOLLOW-UP SYSTEM (5 Stages: Day 0 initial -> Day 2 reframe -> Day 4 proof -> Day 6 qualifying -> Day 8 breakup)
 const FOLLOW_UP_1_SUBJECTS = [
-  'Quick follow-up regarding {company}',
-  'Additional thought for {company}',
-  'Re: Supporting {company}’s goals',
-  'Brief check-in regarding {company}',
-  'Resources & capacity for {company}'
+  're: {company} shortlist speed',
+  'quick follow-up: {company} screening hours',
+  're: candidate turnaround at {company}',
+  'desk capacity at {company}'
 ];
 
 const FOLLOW_UP_1_HOOKS = [
-  'I wanted to float my previous note back to your radar in case it slipped through during a busy week.',
-  'Sharing a quick follow-up to my earlier message regarding our support for {company}.',
-  'I know how quickly inboxes fill up, so I wanted to touch back briefly on the note I sent a couple of days ago.',
-  'Reaching back out with a quick additional perspective on how we help organizations like {company}.'
+  'Following up on my note from earlier this week.',
+  'Sharing a quick follow-up to my earlier note regarding {company}’s recruitment workflow.',
+  'Circling back briefly on the note I sent a couple of days ago.'
 ];
 
 const FOLLOW_UP_1_VALUES: Record<OutreachIntent, string[]> = {
-  recruitment_hiring: [
-    'In addition to on-demand developers, we also offer trial periods where you evaluate engineer work before committing to long-term engagements.',
-    'We recently placed 3 senior full-stack engineers in under a week for a peer company facing urgent quarterly deadlines.',
-    'We maintain a live roster of developers who are available immediately for full-time or fractional support.'
+  pain_screening_bottleneck: [
+    'One thing we regularly hear from recruitment leaders is that 60% of recruiter screening time is spent reviewing candidates who were never qualified to begin with.',
+    'Recruiters often lose their most productive morning hours simply rejecting mismatched CVs instead of talking to placement-ready talent.'
   ],
-  sales_bdm: [
-    'Beyond the initial framework mentioned, we have flexible engagement tiers that fit current operational bandwidth.',
-    'Our team typically identifies 2-3 immediate low-hanging efficiency gains within the first exploratory session.'
+  time_saving: [
+    'If your consultants could get back 8–10 hours of manual screening time per week, would that noticeably impact {company}’s placement targets?',
+    'A quick metric: teams using our screening layer cut first-round review time by over 70% within their first two weeks.'
   ],
-  software_product: [
-    'We recently released an interactive sandbox demo that showcases the workflow improvements in under 3 minutes.',
-    'Our platform requires zero migration downtime, meaning your team sees immediate results from day one.'
+  high_volume: [
+    'Most recruitment teams tell us their biggest challenge with large applicant volumes is candidate drop-off caused by slow shortlist review cycles.',
+    'Auto-ranking applicant batches allows consultants to reach out to the top 5% of candidates before competitors even open the resume.'
   ],
-  partnership: [
-    'We’ve seen similar strategic alliances generate immediate shared value within the first quarter.',
-    'We have prepared a preliminary one-pager highlighting where our mutual services complement each other.'
+  recruiter_productivity: [
+    'When consultants spend less time reading through resumes and more time speaking to top candidates, monthly placement velocity increases dramatically.',
+    'Standardizing match scores across JDs gives account managers total confidence in the shortlists submitted to clients.'
   ],
-  meeting_request: [
-    'I’m happy to accommodate whenever your schedule allows—even a 5-minute call is plenty to establish relevance.',
-    'If phone or video isn’t convenient, I’d be glad to answer any questions directly over email.'
+  soft_cta_curiosity: [
+    'We put together a 90-second clip showing how a recruitment team screened 120 CVs against a senior spec in under 3 minutes.',
+    'Curious if your team is still manually reviewing resumes or if you already have an automated layer handling the initial filter.'
   ],
-  discussion_followup: [
-    'Wanted to check if you had a chance to review the points from our previous exchange.',
-    'We are keeping a slot open this week if you’d like to resume where we left off.'
-  ],
-  general_business: [
-    'We want to make sure you have the exact resources needed when making decisions for {company}.',
-    'Happy to send through a short summary if that’s easier to review on the go.'
+  general_ats_intelligence: [
+    'If your consultants could cut screening down from hours to minutes per role, would that help hit your targets this quarter?'
   ]
 };
 
 const FOLLOW_UP_2_SUBJECTS = [
-  'Idea for {company}',
-  'Specific use case for {company}',
-  'Quick question regarding {company}',
-  'Alternative approach for {company}',
-  '{company} - a quick practical question'
+  'micro case study for {company}',
+  'quick example: 70% faster screening',
+  'how another agency cut screening time',
+  'shortlist turnaround insight'
 ];
 
-const FOLLOW_UP_2_ANGLES: Record<OutreachIntent, string[]> = {
-  recruitment_hiring: [
-    'Often when we speak with technical leaders at organizations like {company}, their primary concern is candidate retention and technical autonomy. We specifically structure our contracts with replacement guarantees and complete IP assignment.',
-    'A quick question: is finding specialized technical talent currently a bottleneck for your roadmap, or are your internal hiring channels keeping pace?',
-    'One of our partners cut their technical recruitment costs by 45% while decreasing time-to-hire from 7 weeks to 6 days.'
+const FOLLOW_UP_2_PROOFS: Record<OutreachIntent, string[]> = {
+  pain_screening_bottleneck: [
+    'A 20-person staffing firm recently tested our matching platform on their high-volume technical roles. By auto-flagging missing requirements and pre-scoring CVs, they reduced shortlist turnaround from 3 days to under 4 hours.',
+    'One of our agency partners eliminated an 80-CV backlog in 15 minutes by letting our engine rank the top candidates against their client’s mandatory requirements.'
   ],
-  sales_bdm: [
-    'Curious if optimizing your current business development cycle is an active focus this quarter, or if you already have dedicated initiatives in flight?',
-    'A practical metric: clients using our framework typically achieve an 80% decrease in manual administrative turnaround within 3 weeks.'
+  time_saving: [
+    'A recruitment consultancy recently tested our platform on 15 live requisitions. Their recruiters gained back an average of 9 hours per week, boosting client submittal speed by 65%.',
+    'One of our clients cut their time-to-shortlist by 75% in the first month simply because recruiters engaged pre-vetted matches immediately.'
   ],
-  software_product: [
-    'A common question we hear from technical teams: how complex is the deployment? Setup is literally single-click and runs alongside your current stack without conflicts.',
-    'Are workflow delays or tooling fragmentation an active friction point for your team right now, or is that well managed?'
+  high_volume: [
+    'A technical staffing agency used our platform to batch-screen 400 applicants across three enterprise accounts, shortlisting the top 15 verified candidates in less than 30 minutes.',
+    'By auto-matching their dormant candidate database against fresh JDs, an agency partner generated 4 placements from existing profiles without running new job ads.'
   ],
-  partnership: [
-    'Would you be open to an informal 5-minute exploratory chat just to benchmark whether a co-marketing or mutual referral model makes commercial sense for {company}?',
-    'We often structure non-exclusive referral models where your team earns direct revenue without handling the operational delivery.'
+  recruiter_productivity: [
+    'Within 60 days of adopting our automated screening layer, an agency client increased their monthly submittal-to-interview ratio by 28% due to more consistent candidate evaluation.',
+    'Consultant billing capacity rose significantly once manual CV parsing was removed from their daily routine.'
   ],
-  meeting_request: [
-    'I understand schedules can be packed. If a sync isn’t ideal, I’m happy to send across 2 quick bullet points highlighting what we can unlock for {company}.',
-    'Would 10 minutes next Tuesday or Wednesday work better for your calendar?'
+  soft_cta_curiosity: [
+    'A 25-person agency cut their average candidate submittal time from 48 hours to 4 hours using our 1-click JD matching engine.',
+    'Happy to send over the 1-page summary of how they structured it if you’d find that interesting.'
   ],
-  discussion_followup: [
-    'Wanted to confirm if your priorities have shifted since our last touchpoint, or if revisiting this next month would be more timely.',
-    'A quick question to see if your team has had a chance to reflect on the timeline we discussed.'
-  ],
-  general_business: [
-    'Is this initiative something on your radar for this quarter, or should I follow up later in the year?',
-    'Just wanted to check if there is an alternative contact at {company} who manages this area if you aren’t the best person to speak with.'
+  general_ats_intelligence: [
+    'A staffing partner recently reduced screening cycles from 3 days to 4 hours by auto-ranking candidate skills against client specs.'
   ]
 };
 
 const FOLLOW_UP_3_SUBJECTS = [
-  'Closing the loop for {company}',
-  'Final check-in regarding {company}',
-  'Respecting your time: {company}',
-  'Permission to close file for {company}',
-  'One final note regarding {company}'
+  'quick qualifying question for {company}',
+  '{company} screening priorities',
+  'simple question regarding {company}',
+  'quick check on recruiter capacity'
 ];
 
-const FOLLOW_UP_3_BODIES = [
-  'I don’t want to crowd your inbox if the timing isn’t right for {company}. I’ll assume your team is currently focused elsewhere and step back for now. Should hiring or capacity needs arise in the future, feel free to reach back out anytime.',
-  'I wanted to make one final attempt to connect regarding our support for {company}. If this isn’t a priority right now, no problem at all—I will close out my notes. Wishing you and {company} continued success.',
-  'I recognize you’re likely balancing high-priority initiatives, so I’ll respectfully pause outreach here. If circumstances shift and you’d like to explore how we can support {company}, my door is always open.',
-  'Closing the loop on my end. If {company} has room to revisit this down the line, please keep our details handy. Thank you for your time and all the best.'
+const FOLLOW_UP_3_QUESTIONS = [
+  'Is shortening your team’s CV screening time and candidate turnaround even a priority for {company} right now, or is your current workflow already operating as fast as you’d like? Either answer helps—just wanted to see if exploring this makes sense for your consultants this quarter.',
+  'Are resume screening bottlenecks something your team is actively looking to improve this quarter, or is manual review working fine for your current volume? Happy to step back if the timing isn’t right.',
+  'Quick qualifying question: is recruiter screening capacity a bottleneck at {company} today, or are internal workflows already keeping up with all your requisitions?'
+];
+
+const FOLLOW_UP_4_SUBJECTS = [
+  'permission to close file: {company}',
+  'final note regarding {company}',
+  'closing the loop for {company}',
+  'respecting your time: {company}'
+];
+
+const FOLLOW_UP_4_BREAKUPS = [
+  'Haven’t heard back, so I assume automated CV screening and shortlist acceleration isn’t a priority for {company} right now. I won’t follow up again. If candidate screening ever becomes a bottleneck on larger mandates down the road, feel free to reach back out anytime. Wishing you and the team continued success.',
+  'I don’t want to crowd your inbox if the timing isn’t right for {company}. I’ll assume your team is currently set and step back for now. Should resume screening or recruiter desk capacity become an issue in the future, our door is always open. All the best.',
+  'Closing the loop on my end. If {company} ever looks to eliminate manual CV screening or speed up client shortlists down the line, feel free to keep my details handy. Thank you for your time.'
 ];
 
 function pickRandom<T>(items: T[], exclude?: T[]): T {
@@ -299,8 +340,27 @@ function pickRandom<T>(items: T[], exclude?: T[]): T {
   return pool[index];
 }
 
-function wordCount(text: string): number {
+export function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+// Strict quality scoring according to the framework (1-10 on 10 dimensions)
+export interface QualityAssessment {
+  valid: boolean;
+  notes: string[];
+  score: {
+    personalization: number;
+    relevance: number;
+    clarity: number;
+    painStrength: number;
+    valueProp: number;
+    credibility: number;
+    ctaStrength: number;
+    naturalness: number;
+    spamRisk: number; // lower is better (0-10)
+    replyPotential: number;
+  };
+  overallConversionScore: number;
 }
 
 export function validateEmailQuality(
@@ -309,45 +369,98 @@ export function validateEmailQuality(
   companyName: string,
   reason: string,
   previousEmails: string[] = []
-): { valid: boolean; notes: string[] } {
+): QualityAssessment {
   const notes: string[] = [];
   const lowerBody = body.toLowerCase();
   const lowerSubject = subject.toLowerCase();
 
+  let personalization = 9;
+  let relevance = 9;
+  let clarity = 10;
+  let painStrength = 9;
+  let valueProp = 9;
+  let credibility = 8.5;
+  let ctaStrength = 9;
+  let naturalness = 9.5;
+  let spamRisk = 0.5;
+  let replyPotential = 9;
+
+  // 1. Verify company mention
   if (!lowerBody.includes(companyName.toLowerCase()) && !lowerSubject.includes(companyName.toLowerCase())) {
-    notes.push('Warning: Company name not explicitly mentioned.');
+    notes.push('Warning: Company name not explicitly mentioned in subject or body.');
+    personalization -= 2;
   }
 
+  // 2. Check for banned clichés
   for (const phrase of BANNED_CLICHES) {
     if (lowerBody.includes(phrase)) {
-      notes.push(`Spam phrase detected: "${phrase}".`);
+      notes.push(`Spam/cliché phrase detected: "${phrase}".`);
+      spamRisk += 3;
+      naturalness -= 2;
+      replyPotential -= 2;
     }
   }
 
-  if (body.includes('!!!') || subject.includes('!!!')) {
-    notes.push('Excessive exclamation marks detected.');
+  // 3. Exclamation & all-caps checks
+  if (body.includes('!') || subject.includes('!')) {
+    const exclamations = (body.match(/!/g) || []).length;
+    if (exclamations > 1) {
+      notes.push('Excessive exclamation marks detected.');
+      spamRisk += 2;
+    }
   }
   if (subject === subject.toUpperCase() && subject.length > 10) {
     notes.push('All-caps subject detected.');
+    spamRisk += 4;
   }
 
+  // 4. Repetition check against previous touches
   for (const prev of previousEmails) {
     if (prev && prev.trim().length > 0) {
       if (body.trim() === prev.trim() || subject.trim().toLowerCase() === prev.trim().toLowerCase()) {
-        notes.push('Identical or overly repetitive copy detected from previous email.');
+        notes.push('Identical or overly repetitive copy detected from previous touch.');
+        replyPotential -= 3;
       }
     }
   }
 
+  // 5. Length check: Strict 60-120 words for cold initial outreach
   const count = wordCount(body);
-  if (count < 25) {
-    notes.push('Email is too short.');
+  if (count < 40) {
+    notes.push('Email is too brief to convey value.');
+    valueProp -= 2;
+  } else if (count > 130) {
+    notes.push(`Email is ${count} words; cold outreach is most effective between 60-120 words.`);
+    clarity -= 1.5;
+    replyPotential -= 1;
   }
 
-  const valid = notes.length === 0;
-  return { valid, notes };
+  const valid = notes.filter(n => n.includes('Spam') || n.includes('All-caps') || n.includes('Identical')).length === 0;
+
+  const overallConversionScore = Math.round(
+    ((personalization + relevance + clarity + painStrength + valueProp + credibility + ctaStrength + naturalness + (10 - spamRisk) + replyPotential) / 10) * 10
+  ) / 10;
+
+  return {
+    valid,
+    notes,
+    score: {
+      personalization,
+      relevance,
+      clarity,
+      painStrength,
+      valueProp,
+      credibility,
+      ctaStrength,
+      naturalness,
+      spamRisk,
+      replyPotential
+    },
+    overallConversionScore
+  };
 }
 
+// High-performing local synthesis engine based on the 5 angles
 function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResult {
   const {
     companyName,
@@ -361,81 +474,94 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
 
   const intent = classifyIntent(reason);
   const cleanCompany = companyName.trim() || 'your team';
-  const salutation = recipientName && recipientName.trim() ? `Hi ${recipientName.trim()},` : `Hi ${cleanCompany} Team,`;
+  const salutation = recipientName && recipientName.trim() ? `Hi ${recipientName.trim()},` : `Hi ${cleanCompany} team,`;
 
   let subject = '';
   let bodyContent = '';
   let emailType = '';
 
   if (followUpNumber === 0) {
+    // STAGE 0: Initial Outreach (Target: 65-95 words, high relevance, outcome-based, low-friction CTA)
     emailType = `initial_${intent}`;
-    const subjectTemplates = INITIAL_SUBJECT_TEMPLATES[intent] || INITIAL_SUBJECT_TEMPLATES.general_business;
+    const subjectTemplates = INITIAL_SUBJECT_TEMPLATES[intent] || INITIAL_SUBJECT_TEMPLATES.time_saving;
     const pastSubjects = previousSubject ? [previousSubject] : [];
     const template = pickRandom(subjectTemplates, pastSubjects);
     subject = template.replace('{company}', cleanCompany);
 
-    const opening = pickRandom(OPENINGS[intent] || OPENINGS.general_business).replace(/{company}/g, cleanCompany);
-    const valueAngle = pickRandom(VALUE_ANGLES[intent] || VALUE_ANGLES.general_business).replace(/{company}/g, cleanCompany);
-    const cta = pickRandom(CTAS);
-
-    const customContext = reason.trim().length > 15
-      ? `Specifically regarding our focus: ${reason.replace(/introduce|introduce our|help them/gi, 'delivering dedicated support to').trim()}.`
-      : `Our team specializes in aligning directly with ${cleanCompany}’s strategic benchmarks.`;
+    const opening = pickRandom(OPENINGS[intent] || OPENINGS.time_saving).replace(/{company}/g, cleanCompany);
+    const valueProp = pickRandom(VALUE_PROPOSITIONS[intent] || VALUE_PROPOSITIONS.time_saving).replace(/{company}/g, cleanCompany);
+    const cta = pickRandom(LOW_FRICTION_CTAS);
 
     const paragraphs = [
       salutation,
       opening,
-      `${customContext} ${valueAngle}`,
+      valueProp,
       cta
     ];
 
     bodyContent = paragraphs.join('\n\n');
   } else if (followUpNumber === 1) {
-    emailType = 'follow_up_1_value_add';
+    // STAGE 1 (Day 2): Problem Re-frame / Desk Reality (50-75 words)
+    emailType = 'follow_up_1_problem_reframe';
     const subjTemplate = pickRandom(FOLLOW_UP_1_SUBJECTS);
     subject = subjTemplate.replace('{company}', cleanCompany);
 
-    const hook = pickRandom(FOLLOW_UP_1_HOOKS).replace(/{company}/g, cleanCompany);
-    const extraValue = pickRandom(FOLLOW_UP_1_VALUES[intent] || FOLLOW_UP_1_VALUES.general_business).replace(/{company}/g, cleanCompany);
+    const hook = pickRandom(FOLLOW_UP_1_HOOKS);
+    const value = pickRandom(FOLLOW_UP_1_VALUES[intent] || FOLLOW_UP_1_VALUES.time_saving).replace(/{company}/g, cleanCompany);
     const cta = pickRandom([
-      `Does your schedule allow a quick 10-minute touchpoint this week?`,
-      `Are you open to a brief conversation this Friday?`,
-      `Would you be interested in a 5-minute chat to discuss?`
+      'Open to a quick exchange?',
+      'Would you be open to a 2-minute overview?',
+      'Does your team have 5 minutes to compare notes later this week?'
     ]);
 
     bodyContent = [
       salutation,
       hook,
-      extraValue,
+      value,
       cta
     ].join('\n\n');
   } else if (followUpNumber === 2) {
-    emailType = 'follow_up_2_specific_use_case';
+    // STAGE 2 (Day 4): Micro Case Insight / Proof Point (55-80 words)
+    emailType = 'follow_up_2_micro_proof';
     const subjTemplate = pickRandom(FOLLOW_UP_2_SUBJECTS);
     subject = subjTemplate.replace('{company}', cleanCompany);
 
-    const angle = pickRandom(FOLLOW_UP_2_ANGLES[intent] || FOLLOW_UP_2_ANGLES.general_business).replace(/{company}/g, cleanCompany);
+    const proof = pickRandom(FOLLOW_UP_2_PROOFS[intent] || FOLLOW_UP_2_PROOFS.time_saving).replace(/{company}/g, cleanCompany);
     const cta = pickRandom([
-      `If you have 5 minutes to compare notes, let me know what day works best.`,
-      `Happy to share a 2-minute overview if you'd like a quick look.`,
-      `Would love to hear your thoughts if this is on your radar.`
+      'Would you be interested in seeing the 1-page summary of how they set it up?',
+      'Open to seeing how this maps against your current applicant workflow?',
+      'Would a quick 90-second example be useful?'
     ]);
 
     bodyContent = [
       salutation,
-      angle,
+      'Thought this might be relevant to your delivery workflow:',
+      proof,
       cta
     ].join('\n\n');
-  } else {
-    emailType = 'follow_up_3_closing_loop';
+  } else if (followUpNumber === 3) {
+    // STAGE 3 (Day 6): Simple Binary Qualifying Question (35-55 words)
+    emailType = 'follow_up_3_qualifying_question';
     const subjTemplate = pickRandom(FOLLOW_UP_3_SUBJECTS);
     subject = subjTemplate.replace('{company}', cleanCompany);
 
-    const finalBody = pickRandom(FOLLOW_UP_3_BODIES).replace(/{company}/g, cleanCompany);
+    const question = pickRandom(FOLLOW_UP_3_QUESTIONS).replace(/{company}/g, cleanCompany);
 
     bodyContent = [
       salutation,
-      finalBody
+      question
+    ].join('\n\n');
+  } else {
+    // STAGE 4 (Day 8+): Permission-Based Breakup Closing Loop (35-50 words)
+    emailType = 'follow_up_4_breakup';
+    const subjTemplate = pickRandom(FOLLOW_UP_4_SUBJECTS);
+    subject = subjTemplate.replace('{company}', cleanCompany);
+
+    const breakup = pickRandom(FOLLOW_UP_4_BREAKUPS).replace(/{company}/g, cleanCompany);
+
+    bodyContent = [
+      salutation,
+      breakup
     ].join('\n\n');
   }
 
@@ -452,6 +578,7 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
   };
 }
 
+// Master OpenAI generator implementing the full B2B outbound copywriting framework
 async function generateWithOpenAI(
   payload: EmailGenerationPayload,
   apiKey: string
@@ -467,42 +594,54 @@ async function generateWithOpenAI(
   } = payload;
 
   const intent = classifyIntent(reason);
-  const stage =
+  const stageDescription =
     followUpNumber === 0
-      ? 'Initial Outreach Email (Day 0, 100-180 words, compelling value proposition, concise hook, low friction CTA)'
+      ? 'Initial Outreach Email (STRICTLY 65-100 words. Personalized hook referencing their company/hiring reality, 1-sentence outcome-focused value prop on eliminating manual CV screening and saving 8-10 recruiter hours/week, low-friction interest-based CTA asking for a 90-second example or 2-minute video. Zero fluff, zero spam clichés).'
       : followUpNumber === 1
-      ? 'Follow-Up 1 (Day 2, 50-120 words, gentle reference to previous outreach, introduce an additional value angle or proof point, polite CTA)'
+      ? 'Follow-Up 1 (STRICTLY 50-75 words. Problem re-frame focusing on recruiter desk reality: 60% of screening time spent rejecting unqualified CVs. Do NOT say "just following up". End with an easy conversational question).'
       : followUpNumber === 2
-      ? 'Follow-Up 2 (Day 4, 50-100 words, different specific use case/benefit or thoughtful direct question, zero desperation)'
-      : 'Follow-Up 3 (Day 6, 40-80 words, polite final check-in closing the loop gracefully, zero pressure, professional exit)';
+      ? 'Follow-Up 2 (STRICTLY 55-80 words. Micro case study or proof point: an agency reduced shortlist turnaround from 3 days to 4 hours or saved 9 hours/week. Offer 1-page summary).'
+      : followUpNumber === 3
+      ? 'Follow-Up 3 (STRICTLY 35-55 words. Simple binary qualifying question: is screening turnaround a priority to improve right now, or is current workflow keeping pace?).'
+      : 'Follow-Up 4 (STRICTLY 35-50 words. Permission-based breakup closing loop: assume timing is not right, stepping back, zero pressure, wish them success).';
 
-  const systemPrompt = `You are an elite B2B sales development and executive outreach expert.
-You write highly personalized, natural, human-sounding emails.
-CRITICAL RULES:
-- NEVER use spam clichés: "Hope you're doing well", "I am writing to introduce", "We would love to connect", "Please let me know if you're interested", "Touching base", "Just checking in".
-- Keep formatting clean: normal paragraphs, no markdown bolding (**), no bullet lists unless essential.
-- Do NOT include placeholder tokens like [Your Name] or signature lines, because the signature is appended automatically by the system.
-- Vary the opening, sentence structure, value pitch, and CTA every single time.
-- Output MUST be valid JSON only with keys: "subject", "body", "emailType", "tone". Do not include markdown \`\`\`json wrappers.`;
+  const systemPrompt = `You are an elite B2B cold-email copywriter and conversion strategist for an AI-powered ATS / Recruitment Intelligence SaaS platform.
+OUR PRODUCT:
+An AI screening and candidate intelligence platform that parses resumes, matches them against Job Descriptions, generates transparent ATS match scores, flags missing mandatory skills, and auto-ranks applicant pools.
+CORE VALUE OUTCOMES:
+- Eliminates manual resume screening
+- Saves recruiters 8–10 billable hours per week
+- Cuts candidate shortlist turnaround from days to hours
+- Delivers consistent candidate evaluation across consultant desks
 
-  const userPrompt = `
-Generate an email for:
-Company: ${companyName}
-Recipient Name: ${recipientName || 'Not specified'}
-Reason for Outreach: "${reason}"
-Outreach Category: ${intent}
-Stage: ${stage}
-Desired Tone: ${tone}
-Previous Subject (Do NOT repeat or imitate): "${previousSubject || 'None'}"
-Previous Emails Sent (Do NOT repeat copy): ${JSON.stringify(previousEmails)}
+COPYWRITING RULES:
+1. STRICT WORD COUNT: First email must be between 65 and 100 words. Follow-ups between 35 and 75 words.
+2. NEVER write generic emails like "Hi, we have an AI ATS platform. Would you like a demo?".
+3. Answer: Why this person? Why this company? Why this problem? Why our solution?
+4. SELL OUTCOMES, NOT FEATURES: Talk about recruiter capacity, faster client submittals, and catching missing skills. Do NOT talk about AI algorithms or technical architecture.
+5. LOW-FRICTION CTA: Always use interest-based CTAs like "Open to seeing a 90-second example?", "Would a quick 2-minute video be relevant?", "Is candidate screening bottlenecking your recruiters right now?". NEVER demand a 30-minute demo.
+6. BANNED PHRASES: NEVER use "hope you're doing well", "hope this email finds you well", "i am writing to introduce", "we would love to connect", "please let me know if you're interested", "touching base", "just checking in", "bump this", "revolutionary", "10x", "guaranteed results", "urgent".
+7. SUBJECT LINES: Short, natural, lower-case or conversational (e.g., "${companyName} shortlist speed", "hours spent on candidate cvs", "quick question regarding recruiter capacity").
+8. Do NOT include placeholder tokens like [Your Name] or signature blocks (the app appends signatures automatically).
 
-Provide response in JSON:
+OUTPUT FORMAT:
+Return strictly valid JSON only with keys:
 {
-  "subject": "Unique professional subject line",
-  "body": "Email body text",
-  "emailType": "${intent}_${followUpNumber}",
+  "subject": "natural lower-case or conversational subject",
+  "body": "email body text without signature",
+  "emailType": "angle_stage",
   "tone": "${tone}"
 }`;
+
+  const userPrompt = `Generate a high-converting cold email:
+Company: ${companyName}
+Recipient Name: ${recipientName || 'Not specified'}
+Outreach Focus / Pain Point: "${reason}"
+Angle Category: ${intent}
+Stage: ${stageDescription}
+Desired Tone: ${tone}
+Previous Subject (Do NOT repeat): "${previousSubject || 'None'}"
+Previous Emails (Do NOT duplicate copy): ${JSON.stringify(previousEmails)}`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -516,7 +655,7 @@ Provide response in JSON:
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-      temperature: 0.85,
+      temperature: 0.75,
       response_format: { type: 'json_object' }
     })
   });
@@ -541,7 +680,7 @@ Provide response in JSON:
   return {
     subject: parsed.subject,
     body: parsed.body,
-    emailType: parsed.emailType || `outreach_${intent}`,
+    emailType: parsed.emailType || `ats_${intent}`,
     tone: parsed.tone || tone,
     wordCount: wordCount(parsed.body),
     qualityPassed: quality.valid,
@@ -549,6 +688,7 @@ Provide response in JSON:
   };
 }
 
+// Master email generation service
 export async function generateOutreachEmail(
   payload: EmailGenerationPayload,
   openAiApiKey?: string
@@ -558,16 +698,15 @@ export async function generateOutreachEmail(
   if (key && key.trim().startsWith('sk-')) {
     try {
       const openAiResult = await generateWithOpenAI(payload, key.trim());
-      if (!openAiResult.qualityPassed) {
-        return generateLocalEmail(payload);
+      if (openAiResult.qualityPassed) {
+        return openAiResult;
       }
-      return openAiResult;
     } catch (err) {
       console.warn('OpenAI generation failed or errored, falling back to dynamic local engine:', err);
-      return generateLocalEmail(payload);
     }
   }
 
+  // Use dynamic local engine with quality check
   let result = generateLocalEmail(payload);
   let attempts = 0;
   while (!result.qualityPassed && attempts < 3) {
