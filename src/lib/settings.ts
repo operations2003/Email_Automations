@@ -9,9 +9,9 @@ const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 export const DEFAULT_SETTINGS: AppSettings = {
   senderName: 'Swati Verma',
   senderEmail: 'swati@tasknera.com',
-  defaultCc: 'sales@mycompany.com',
+  defaultCc: 'team@tasknera.com',
   companyName: 'TaskNera Solutions',
-  emailSignature: `Best regards,\nSwati Verma\nBusiness Development & Partnerships\nTaskNera Solutions\nDirect: +1 (555) 349-8821 | https://tasknera.io`,
+  emailSignature: `Best regards,\nSwati Verma\nTaskNera Solutions\nhttps://tasknera.io | swati@tasknera.com`,
   aiTone: 'Professional',
   followUpIntervalDays: 2,
   maxFollowUps: 3,

@@ -1,21 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { OutreachCampaign, GeneratedEmailResult } from '@/types/outreach';
+import { GeneratedEmailResult } from '@/types/outreach';
 import {
   X,
-  Sparkles,
   Send,
   RefreshCw,
   AlertTriangle,
-  CheckCircle2,
-  FileEdit,
-  ArrowRight,
-  ShieldCheck,
   Building2,
   Mail,
-  Users,
-  FileText
+  FileText,
+  User,
+  Globe,
+  PenTool
 } from 'lucide-react';
 
 interface AddOutreachModalProps {
@@ -33,13 +30,13 @@ export function AddOutreachModal({
 }: AddOutreachModalProps) {
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
-  const [ccEmails, setCcEmails] = useState('sales@mycompany.com');
+  const [ccEmails, setCcEmails] = useState('');
   const [reason, setReason] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [companyWebsite, setCompanyWebsite] = useState('');
-  const [notes, setNotes] = useState('');
+  const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  // AI Generated output state
+  // Generated draft state
   const [generatedResult, setGeneratedResult] = useState<GeneratedEmailResult | null>(null);
   const [subject, setSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
@@ -48,7 +45,6 @@ export function AddOutreachModal({
   // Status flags
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Duplicate warning state
@@ -63,11 +59,11 @@ export function AddOutreachModal({
   const resetForm = () => {
     setCompanyName('');
     setEmail('');
-    setCcEmails('sales@mycompany.com');
+    setCcEmails('');
     setReason('');
+    setSelectedService(null);
     setRecipientName('');
     setCompanyWebsite('');
-    setNotes('');
     setGeneratedResult(null);
     setSubject('');
     setEmailBody('');
@@ -78,15 +74,15 @@ export function AddOutreachModal({
 
   const handleGenerate = async (forceDuplicate = false) => {
     if (!companyName.trim()) {
-      setError('Please provide a Company Name.');
+      setError('Please enter a company name.');
       return;
     }
     if (!email.trim() || !email.includes('@')) {
-      setError('Please provide a valid recipient email address.');
+      setError('Please enter a valid email address.');
       return;
     }
     if (!reason.trim()) {
-      setError('Please provide a Reason for Email.');
+      setError('Please enter why you want to email them.');
       return;
     }
 
@@ -94,40 +90,38 @@ export function AddOutreachModal({
     setIsGenerating(true);
 
     try {
-      // Step 1: Create campaign record first (with duplicate check)
       const createRes = await fetch('/api/outreach', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          companyName,
-          email,
-          ccEmails,
-          reason,
-          recipientName,
-          companyWebsite,
-          notes,
-          forceCreate: forceDuplicate
+          companyName: companyName.trim(),
+          email: email.trim(),
+          ccEmails: ccEmails.trim(),
+          reason: reason.trim(),
+          recipientName: recipientName.trim(),
+          companyWebsite: companyWebsite.trim(),
+          forceDuplicate
         })
       });
 
       const createData = await createRes.json();
 
-      if (!createRes.ok) {
-        if (createData.isDuplicate) {
-          setDuplicateWarning({
-            existingId: createData.existingId,
-            existingCompany: createData.existingCompany,
-            message: createData.message
-          });
-          setIsGenerating(false);
-          return;
-        }
-        throw new Error(createData.error || 'Failed to create campaign');
+      if (createRes.status === 409 && createData.duplicate) {
+        setDuplicateWarning({
+          existingId: createData.existingCampaignId,
+          existingCompany: createData.existingCompany,
+          message: createData.message
+        });
+        setIsGenerating(false);
+        return;
       }
 
-      const campaign: OutreachCampaign = createData.campaign;
+      if (!createRes.ok) {
+        throw new Error(createData.error || 'Could not save details');
+      }
 
-      // Step 2: Trigger AI Generation
+      const campaign = createData.campaign;
+
       const genRes = await fetch(`/api/outreach/${campaign.id}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -135,7 +129,9 @@ export function AddOutreachModal({
       });
 
       const genData = await genRes.json();
-      if (!genRes.ok) throw new Error(genData.error || 'Failed to generate email');
+      if (!genRes.ok) {
+        throw new Error(genData.error || 'Could not write email');
+      }
 
       setGeneratedResult(genData.generated);
       setSubject(genData.generated.subject);
@@ -154,7 +150,6 @@ export function AddOutreachModal({
     setError(null);
 
     try {
-      // Look up campaign ID or run client-side generator request
       const res = await fetch('/api/outreach?q=' + encodeURIComponent(email));
       const data = await res.json();
       const campaign = data.campaigns?.[0];
@@ -187,7 +182,7 @@ export function AddOutreachModal({
       const data = await res.json();
       const campaign = data.campaigns?.[0];
 
-      if (!campaign) throw new Error('Campaign not found');
+      if (!campaign) throw new Error('Email record not found');
 
       const sendRes = await fetch(`/api/outreach/${campaign.id}/send`, {
         method: 'POST',
@@ -200,7 +195,7 @@ export function AddOutreachModal({
       });
 
       const sendData = await sendRes.json();
-      if (!sendRes.ok) throw new Error(sendData.error || 'Failed to send email');
+      if (!sendRes.ok) throw new Error(sendData.error || 'Could not send email');
 
       onSuccess();
       resetForm();
@@ -220,63 +215,64 @@ export function AddOutreachModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="relative w-full max-w-4xl rounded-2xl border border-slate-800 bg-slate-950 p-6 shadow-2xl my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="relative w-full max-w-4xl rounded-xl border border-[#23272f] bg-[#14171c] p-6 shadow-2xl my-8">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">Add New Outreach Target</h2>
-              <p className="text-xs text-slate-400">
-                AI generates a professional personalized email & prepares 3 automated follow-ups.
-              </p>
-            </div>
+        <div className="flex items-center justify-between border-b border-[#23272f] pb-4">
+          <div>
+            <h2 className="text-base font-semibold text-white tracking-tight">New Outreach Email</h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Send an email from the TaskNera team regarding our services or custom goals.
+            </p>
           </div>
           <button
             onClick={() => {
               resetForm();
               onClose();
             }}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            className="rounded-md p-1.5 text-gray-400 hover:bg-[#23272f] hover:text-white transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Duplicate warning modal overlay */}
+        {/* Duplicate warning */}
         {duplicateWarning && (
-          <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+          <div className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold text-amber-300">Contact Already Exists</h4>
-                <p className="text-xs text-amber-200/80 mt-1">{duplicateWarning.message}</p>
-                <div className="mt-3 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-1 text-xs">
+                <p className="font-semibold text-amber-300">This email was already added</p>
+                <p className="text-gray-300">
+                  {duplicateWarning.message} for{' '}
+                  <strong className="text-white">{duplicateWarning.existingCompany}</strong>.
+                </p>
+                <div className="flex gap-2 pt-2">
                   <button
+                    type="button"
                     onClick={() => {
                       onSelectExisting(duplicateWarning.existingId);
                       resetForm();
                       onClose();
                     }}
-                    className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-amber-400"
+                    className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white font-medium"
                   >
-                    View Existing Campaign
+                    Open Existing
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
                       setDuplicateWarning(null);
                       handleGenerate(true);
                     }}
-                    className="rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700"
+                    className="px-3 py-1.5 rounded-md border border-[#23272f] hover:bg-[#23272f] text-gray-300"
                   >
-                    Create New Campaign Anyway
+                    Create anyway
                   </button>
                   <button
+                    type="button"
                     onClick={() => setDuplicateWarning(null)}
-                    className="rounded-lg px-3 py-1.5 text-xs text-slate-400 hover:text-white"
+                    className="px-3 py-1.5 rounded-md text-gray-400 hover:text-gray-200"
                   >
                     Cancel
                   </button>
@@ -286,220 +282,283 @@ export function AddOutreachModal({
           </div>
         )}
 
+        {/* Error message */}
         {error && (
-          <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
-            {error}
+          <div className="mt-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300 flex items-center justify-between">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="text-rose-400 hover:text-rose-200">
+              <X className="h-3.5 w-3.5" />
+            </button>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          {/* Left Column: Input Form */}
+        {/* Form Body */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-5">
+          {/* Left: Input fields */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-gray-300 mb-1">
                 Company Name <span className="text-rose-400">*</span>
               </label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="e.g. Acme Technologies or SIXT"
+                  placeholder="e.g. Acme Corp"
                   value={companyName}
                   onChange={e => setCompanyName(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-800 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Recipient Email <span className="text-rose-400">*</span>
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
-                <input
-                  type="email"
-                  placeholder="e.g. hr@acme.com or sumit@sixt.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-800 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
-                />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Email Address <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                  <input
+                    type="email"
+                    placeholder="contact@company.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white font-mono placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Keep in CC
-              </label>
-              <div className="relative">
-                <Users className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  CC (Optional)
+                </label>
                 <input
                   type="text"
-                  placeholder="e.g. sales@mycompany.com, team@tasknera.com"
+                  placeholder="team@mycompany.com"
                   value={ccEmails}
                   onChange={e => setCcEmails(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-800 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono"
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-3 text-xs text-white font-mono placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Person&apos;s Name (Optional)
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="e.g. John Doe"
+                    value={recipientName}
+                    onChange={e => setRecipientName(e.target.value)}
+                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Website (Optional)
+                </label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="acme.com"
+                    value={companyWebsite}
+                    onChange={e => setCompanyWebsite(e.target.value)}
+                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Reason for Email <span className="text-rose-400">*</span>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-medium text-gray-300">
+                  Select TaskNera Service
+                </label>
+                <span className="text-[10px] text-gray-400">Click to fill goal</span>
+              </div>
+
+              {/* Service presets */}
+              <div className="grid grid-cols-2 gap-1.5 mb-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedService('hireiq');
+                    setReason("Introduce HireIQ, TaskNera's AI platform for instant JD-to-candidate matching and automated resume screening.");
+                  }}
+                  className={`flex flex-col text-left p-2 rounded-md border transition-all ${
+                    selectedService === 'hireiq'
+                      ? 'border-blue-500 bg-blue-500/10'
+                      : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-blue-500/40'
+                  }`}
+                >
+                  <span className="text-xs font-medium text-blue-400">🎯 HireIQ (AI Screening)</span>
+                  <span className="text-[10px] text-gray-400 mt-0.5">JD matching & resume scoring</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedService('staffing');
+                    setReason("Offer TaskNera's on-demand tech staffing—providing pre-vetted senior developers and engineering pods within 48 to 72 hours.");
+                  }}
+                  className={`flex flex-col text-left p-2 rounded-md border transition-all ${
+                    selectedService === 'staffing'
+                      ? 'border-emerald-500 bg-emerald-500/10'
+                      : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-emerald-500/40'
+                  }`}
+                >
+                  <span className="text-xs font-medium text-emerald-400">💻 Tech Staffing</span>
+                  <span className="text-[10px] text-gray-400 mt-0.5">Senior devs in 48-72 hours</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedService('software');
+                    setReason("Introduce TaskNera's custom software and AI development services for building scalable web, mobile, and cloud solutions.");
+                  }}
+                  className={`flex flex-col text-left p-2 rounded-md border transition-all ${
+                    selectedService === 'software'
+                      ? 'border-purple-500 bg-purple-500/10'
+                      : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-purple-500/40'
+                  }`}
+                >
+                  <span className="text-xs font-medium text-purple-400">🤖 Custom Software & AI</span>
+                  <span className="text-[10px] text-gray-400 mt-0.5">Full-cycle product builds</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedService('ats');
+                    setReason("Share TaskNera's recruitment automation and ATS workflow solutions to speed up candidate pipelines.");
+                  }}
+                  className={`flex flex-col text-left p-2 rounded-md border transition-all ${
+                    selectedService === 'ats'
+                      ? 'border-amber-500 bg-amber-500/10'
+                      : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-amber-500/40'
+                  }`}
+                >
+                  <span className="text-xs font-medium text-amber-400">📋 Recruiting Automation</span>
+                  <span className="text-[10px] text-gray-400 mt-0.5">ATS & pipeline workflows</span>
+                </button>
+              </div>
+
+              <label className="block text-xs font-medium text-gray-300 mb-1">
+                Why are you emailing them? <span className="text-rose-400">*</span>
               </label>
               <div className="relative">
-                <FileText className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                <FileText className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
                 <textarea
-                  rows={3}
-                  placeholder='e.g. "Introduce our recruitment services and discuss how we can help them hire software developers."'
+                  rows={2}
+                  placeholder="e.g. Introduce HireIQ or see if they need help hiring software developers."
                   value={reason}
-                  onChange={e => setReason(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-slate-800 py-2 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                />
-              </div>
-              <p className="text-[11px] text-slate-500 mt-1">
-                The reason drives AI personalization, intent classification, and non-generic angles.
-              </p>
-            </div>
-
-            {/* Optional Collapsible Fields */}
-            <div className="pt-2 border-t border-slate-800/80 grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                  Recipient Name (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Sumit Sharma"
-                  value={recipientName}
-                  onChange={e => setRecipientName(e.target.value)}
-                  className="w-full rounded-lg bg-slate-900 border border-slate-800 py-1.5 px-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                  Company Website (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. https://sixt.com"
-                  value={companyWebsite}
-                  onChange={e => setCompanyWebsite(e.target.value)}
-                  className="w-full rounded-lg bg-slate-900 border border-slate-800 py-1.5 px-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  onChange={e => {
+                    setReason(e.target.value);
+                  }}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                 />
               </div>
             </div>
 
-            {/* Primary Generate Button */}
             {!generatedResult && (
               <button
                 type="button"
                 onClick={() => handleGenerate(false)}
                 disabled={isGenerating}
-                className="w-full mt-3 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3 px-4 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 hover:from-indigo-500 hover:to-violet-500 transition-all disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-1.5 rounded-md bg-blue-600 hover:bg-blue-500 py-2.5 px-4 text-xs font-medium text-white transition-colors disabled:opacity-50"
               >
                 {isGenerating ? (
                   <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    Synthesizing Unique AI Email...
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                    <span>Writing draft...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4" />
-                    Generate AI Email & Follow-Up Sequence
+                    <PenTool className="h-3.5 w-3.5" />
+                    <span>Write Email Draft</span>
                   </>
                 )}
               </button>
             )}
           </div>
 
-          {/* Right Column: AI Live Preview */}
-          <div className="flex flex-col rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
-              <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-                AI Generated Output
-              </span>
+          {/* Right: Draft preview */}
+          <div className="flex flex-col rounded-lg border border-[#23272f] bg-[#0d0f12] p-4">
+            <div className="flex items-center justify-between border-b border-[#23272f] pb-2.5 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-300">
+                  Draft Preview
+                </span>
+                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] text-blue-400 font-medium">
+                  TaskNera Team
+                </span>
+              </div>
               {generatedResult && (
-                <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
-                    <ShieldCheck className="h-3 w-3" />
-                    Quality Checked
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-mono">
-                    {generatedResult.wordCount} words
-                  </span>
-                </div>
+                <span className="text-[11px] text-gray-400 font-mono">
+                  {generatedResult.wordCount} words
+                </span>
               )}
             </div>
 
             {generatedResult ? (
               <div className="flex-1 flex flex-col space-y-3">
-                {/* Subject Field */}
                 <div>
-                  <span className="block text-[11px] font-medium text-slate-400 mb-1">Subject:</span>
+                  <label className="block text-[11px] text-gray-400 mb-1">Subject</label>
                   {isEditing ? (
                     <input
                       type="text"
                       value={subject}
                       onChange={e => setSubject(e.target.value)}
-                      className="w-full rounded-lg bg-slate-950 border border-indigo-500/50 p-2 text-xs font-medium text-indigo-300 focus:outline-none"
+                      className="w-full rounded-md bg-[#14171c] border border-[#23272f] p-2 text-xs font-medium text-white focus:outline-none"
                     />
                   ) : (
-                    <div className="rounded-lg bg-slate-950 p-2.5 text-xs font-semibold text-indigo-300 border border-slate-800">
+                    <div className="rounded-md bg-[#14171c] p-2 text-xs font-medium text-gray-200 border border-[#23272f]">
                       {subject}
                     </div>
                   )}
                 </div>
 
-                {/* Email Body */}
                 <div className="flex-1 flex flex-col">
-                  <span className="block text-[11px] font-medium text-slate-400 mb-1">Email Body:</span>
+                  <label className="block text-[11px] text-gray-400 mb-1">Body</label>
                   {isEditing ? (
                     <textarea
                       rows={8}
                       value={emailBody}
                       onChange={e => setEmailBody(e.target.value)}
-                      className="w-full flex-1 rounded-lg bg-slate-950 border border-indigo-500/50 p-2.5 text-xs text-slate-200 focus:outline-none font-sans whitespace-pre-line"
+                      className="w-full flex-1 rounded-md bg-[#14171c] border border-[#23272f] p-2 text-xs text-gray-200 focus:outline-none whitespace-pre-line"
                     />
                   ) : (
-                    <div className="flex-1 rounded-lg bg-slate-950 p-3 text-xs text-slate-300 border border-slate-800 whitespace-pre-line leading-relaxed overflow-y-auto max-h-[220px]">
+                    <div className="flex-1 rounded-md bg-[#14171c] p-3 text-xs text-gray-300 border border-[#23272f] whitespace-pre-line leading-relaxed overflow-y-auto max-h-[220px]">
                       {emailBody}
                     </div>
                   )}
                 </div>
 
-                {/* Automation notice */}
-                <div className="rounded-lg bg-indigo-950/20 border border-indigo-500/20 p-2.5 text-[11px] text-indigo-300/90">
-                  <p className="font-semibold flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-indigo-400" />
-                    Automated 3-Stage Follow-Up Sequence Configured:
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
-                    Day 0: Initial • Day 2: Follow-Up 1 • Day 4: Follow-Up 2 • Day 6: Final Loop. Stops instantly if recipient replies!
-                  </p>
-                </div>
-
-                {/* Actions row */}
-                <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800">
-                  <div className="flex items-center gap-2">
+                <div className="pt-2 flex items-center justify-between gap-2 border-t border-[#23272f]">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={handleRegenerate}
                       disabled={isGenerating}
-                      className="flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
-                      title="Generate a completely different variation"
+                      className="px-2.5 py-1 rounded-md border border-[#23272f] text-xs text-gray-300 hover:bg-[#23272f] transition-colors"
                     >
-                      <RefreshCw className={`h-3 w-3 ${isGenerating ? 'animate-spin' : ''}`} />
-                      Regenerate
+                      Try Another Version
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsEditing(!isEditing)}
-                      className="flex items-center gap-1 rounded-lg bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                      className="px-2.5 py-1 rounded-md border border-[#23272f] text-xs text-gray-300 hover:bg-[#23272f] transition-colors"
                     >
-                      <FileEdit className="h-3 w-3" />
-                      {isEditing ? 'Done Editing' : 'Edit'}
+                      {isEditing ? 'Done' : 'Edit'}
                     </button>
                   </div>
 
@@ -507,34 +566,28 @@ export function AddOutreachModal({
                     <button
                       type="button"
                       onClick={handleSaveDraft}
-                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200"
+                      className="px-3 py-1 text-xs text-gray-400 hover:text-white"
                     >
-                      Save Draft
+                      Save as Draft
                     </button>
                     <button
                       type="button"
                       onClick={handleSendEmail}
                       disabled={isSending}
-                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white shadow-md shadow-emerald-600/30 hover:bg-emerald-500 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1 text-xs font-medium text-white transition-colors disabled:opacity-50"
                     >
-                      {isSending ? (
-                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Send className="h-3.5 w-3.5" />
-                      )}
-                      Send Email & Schedule
+                      <Send className="h-3 w-3" />
+                      <span>{isSending ? 'Sending...' : 'Send Email'}</span>
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-3">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-                <h4 className="text-sm font-semibold text-slate-300">Awaiting Target Information</h4>
-                <p className="text-xs text-slate-500 max-w-xs mt-1">
-                  Fill in the company details and click "Generate AI Email" to synthesize a unique, personalized pitch.
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-gray-400 text-xs">
+                <FileText className="h-8 w-8 text-gray-400 mb-2 stroke-[1.5]" />
+                <p className="text-gray-300 font-medium">Your draft will show here</p>
+                <p className="text-gray-400 mt-1 max-w-xs">
+                  Fill in the details on the left and click &quot;Write Email Draft&quot;.
                 </p>
               </div>
             )}

@@ -96,21 +96,21 @@ export default function HomePage() {
       if (data.success) {
         const processed = data.report.processedCount;
         if (processed > 0) {
-          showToast(`Scheduler executed: ${processed} follow-up email(s) dispatched!`, 'success');
+          showToast(`Sent ${processed} due follow-up email(s)!`, 'success');
         } else {
-          showToast('Scheduler check complete: No follow-up emails currently due.', 'info');
+          showToast('All caught up! No follow-ups are due right now.', 'info');
         }
         await fetchCampaigns();
       }
     } catch (err) {
       console.error(err);
-      showToast('Scheduler execution failed', 'error');
+      showToast('Could not run follow-ups', 'error');
     } finally {
       setIsSchedulerRunning(false);
     }
   };
 
-  // Periodic background scheduler check (every 30 seconds)
+  // Periodic background check (every 30 seconds)
   useEffect(() => {
     fetchCampaigns();
     fetchSettings();
@@ -121,7 +121,7 @@ export default function HomePage() {
         .then(data => {
           if (data.success && data.report.processedCount > 0) {
             fetchCampaigns();
-            showToast(`Auto-Scheduler: ${data.report.processedCount} due follow-up(s) sent!`, 'success');
+            showToast(`Sent ${data.report.processedCount} due follow-up(s).`, 'success');
           }
         })
         .catch(() => {});
@@ -133,7 +133,7 @@ export default function HomePage() {
   // Handle single campaign generation
   const handleGenerate = async (campaign: OutreachCampaign) => {
     try {
-      showToast(`Generating unique AI email for ${campaign.companyName}...`, 'info');
+      showToast(`Writing email for ${campaign.companyName}...`, 'info');
       const res = await fetch(`/api/outreach/${campaign.id}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -141,7 +141,7 @@ export default function HomePage() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`AI email generated for ${campaign.companyName}!`, 'success');
+        showToast(`Email draft ready!`, 'success');
         await fetchCampaigns();
         setPreviewCampaign(data.campaign);
         setPreviewStage('initial');
@@ -149,14 +149,14 @@ export default function HomePage() {
       }
     } catch (err) {
       console.error(err);
-      showToast('Generation failed', 'error');
+      showToast('Could not write email', 'error');
     }
   };
 
   // Handle regenerate
   const handleRegenerate = async (campaign: OutreachCampaign) => {
     try {
-      showToast(`Regenerating fresh variation for ${campaign.companyName}...`, 'info');
+      showToast(`Writing a new version for ${campaign.companyName}...`, 'info');
       const res = await fetch(`/api/outreach/${campaign.id}/regenerate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -164,7 +164,7 @@ export default function HomePage() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast('Fresh subject and email variation generated!', 'success');
+        showToast('New version ready!', 'success');
         await fetchCampaigns();
         setPreviewCampaign(data.campaign);
         setPreviewStage('initial');
@@ -172,7 +172,7 @@ export default function HomePage() {
       }
     } catch (err) {
       console.error(err);
-      showToast('Regeneration failed', 'error');
+      showToast('Could not write new version', 'error');
     }
   };
 
@@ -187,12 +187,19 @@ export default function HomePage() {
       });
       const data = await res.json();
       if (data.success) {
-        showToast(`Initial outreach sent! Follow-Up 1 scheduled for +2 days.`, 'success');
+        if (data.delivery?.provider === 'simulated_sandbox') {
+          showToast(`Saved in Sandbox mode. Set up Gmail/SMTP in Settings to send real emails.`, 'info');
+        } else {
+          showToast(`Email sent! Next follow-up is scheduled.`, 'success');
+        }
         await fetchCampaigns();
+      } else {
+        showToast(data.error || 'Could not send email', 'error');
       }
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to send email', 'error');
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error(error);
+      showToast(error.message || 'Could not send email', 'error');
     }
   };
 
@@ -297,18 +304,18 @@ export default function HomePage() {
   }).length;
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+    <div className="min-h-screen bg-[#0d0f12] text-gray-100 flex flex-col font-sans">
       {/* Toast notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/95 px-4 py-3 shadow-2xl text-xs backdrop-blur-md animate-in fade-in slide-in-from-bottom-3 duration-300">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg border border-[#23272f] bg-[#14171c] px-4 py-2.5 shadow-xl text-xs">
           {toastMessage.type === 'success' ? (
             <CheckCircle2 className="h-4 w-4 text-emerald-400" />
           ) : toastMessage.type === 'error' ? (
             <AlertCircle className="h-4 w-4 text-rose-400" />
           ) : (
-            <Info className="h-4 w-4 text-indigo-400" />
+            <Info className="h-4 w-4 text-blue-400" />
           )}
-          <span className="font-medium text-slate-200">{toastMessage.text}</span>
+          <span className="font-medium text-gray-200">{toastMessage.text}</span>
         </div>
       )}
 
@@ -323,7 +330,7 @@ export default function HomePage() {
       />
 
       {/* Main App Content */}
-      <main className="flex-1 p-4 sm:p-6 max-w-[1920px] mx-auto w-full">
+      <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full">
         {activeTab === 'outreach' && (
           <OutreachTable
             campaigns={campaigns}

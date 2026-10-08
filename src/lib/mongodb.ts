@@ -31,7 +31,7 @@ export async function getMongoClient(): Promise<MongoClient | null> {
           serverSelectionTimeoutMS: 5000,
           connectTimeoutMS: 10000,
         });
-        global._mongoClientPromise = client.connect().catch((err) => {
+        global._mongoClientPromise = client.connect().catch((err: unknown) => {
           global._mongoClientPromise = undefined;
           throw err;
         });
@@ -43,7 +43,7 @@ export async function getMongoClient(): Promise<MongoClient | null> {
           serverSelectionTimeoutMS: 5000,
           connectTimeoutMS: 10000,
         });
-        clientPromise = client.connect().catch((err) => {
+        clientPromise = client.connect().catch((err: unknown) => {
           clientPromise = null;
           throw err;
         });
@@ -93,7 +93,7 @@ export async function checkDbHealth(dbName = 'tasknera'): Promise<{
       connected: true,
       latencyMs: Date.now() - startTime,
       database: dbName,
-      collections: cols.map(c => c.name)
+      collections: cols.map((c: { name: string }) => c.name)
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Database ping failed';
