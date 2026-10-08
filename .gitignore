@@ -30,8 +30,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files
+.env
+.env.local
+.env*.local
+!.env.example
 
 # vercel
 .vercel
@@ -43,4 +46,4 @@ next-env.d.ts
 # local database and keys
 /data/*.json
 !/data/*.example.json
-test-e2e.mjs
+
