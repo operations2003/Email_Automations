@@ -439,8 +439,15 @@ export default function HomePage() {
       <AddOutreachModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+        services={settings?.services}
+        onServicesChange={newServices => {
+          if (settings) {
+            setSettings({ ...settings, services: newServices });
+          }
+        }}
         onSuccess={() => {
           fetchCampaigns();
+          fetchSettings();
           showToast('Campaign created and email processed successfully!', 'success');
         }}
         onSelectExisting={id => {

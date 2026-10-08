@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { AppSettings } from '@/types/outreach';
+import { AppSettings, DEFAULT_SERVICES } from '@/types/outreach';
 import { getDb } from './mongodb';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -17,6 +17,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   maxFollowUps: 3,
   provider: 'simulated',
   openAiApiKey: process.env.OPENAI_API_KEY || '',
+  services: DEFAULT_SERVICES
 };
 
 export async function getSettings(): Promise<AppSettings> {
@@ -27,7 +28,8 @@ export async function getSettings(): Promise<AppSettings> {
       const doc = await col.findOne({ key: 'global_app_settings' });
       if (doc) {
         const { _id, key, ...rest } = doc as any;
-        return { ...DEFAULT_SETTINGS, ...rest };
+        const services = rest.services && rest.services.length > 0 ? rest.services : DEFAULT_SERVICES;
+        return { ...DEFAULT_SETTINGS, ...rest, services };
       } else {
         // initialize default settings in MongoDB
         await col.insertOne({ key: 'global_app_settings', ...DEFAULT_SETTINGS });
@@ -43,7 +45,8 @@ export async function getSettings(): Promise<AppSettings> {
     await fs.mkdir(DATA_DIR, { recursive: true });
     const data = await fs.readFile(SETTINGS_FILE, 'utf-8');
     const parsed = JSON.parse(data);
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    const services = parsed.services && parsed.services.length > 0 ? parsed.services : DEFAULT_SERVICES;
+    return { ...DEFAULT_SETTINGS, ...parsed, services };
   } catch {
     try {
       await fs.mkdir(DATA_DIR, { recursive: true });

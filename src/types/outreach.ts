@@ -89,6 +89,50 @@ export interface OutreachCampaign {
   history: EmailHistoryEvent[];
 }
 
+export interface OutreachService {
+  id: string;
+  name: string;
+  icon?: string;
+  tagline?: string;
+  pitch: string;
+  isDefault?: boolean;
+}
+
+export const DEFAULT_SERVICES: OutreachService[] = [
+  {
+    id: 'hireiq',
+    name: 'HireIQ (AI Screening)',
+    icon: '🎯',
+    tagline: 'JD matching & resume scoring',
+    pitch: "Introduce HireIQ, TaskNera's AI platform for instant JD-to-candidate matching and automated resume screening.",
+    isDefault: true
+  },
+  {
+    id: 'staffing',
+    name: 'Tech Staffing',
+    icon: '💻',
+    tagline: 'Senior devs in 48-72 hours',
+    pitch: "Offer TaskNera's on-demand tech staffing—providing pre-vetted senior developers and engineering pods within 48 to 72 hours.",
+    isDefault: true
+  },
+  {
+    id: 'software',
+    name: 'Custom Software & AI',
+    icon: '🤖',
+    tagline: 'Full-cycle product builds',
+    pitch: "Introduce TaskNera's custom software and AI development services for building scalable web, mobile, and cloud solutions.",
+    isDefault: true
+  },
+  {
+    id: 'ats',
+    name: 'Recruiting Automation',
+    icon: '📋',
+    tagline: 'ATS & pipeline workflows',
+    pitch: "Share TaskNera's recruitment automation and ATS workflow solutions to speed up candidate pipelines.",
+    isDefault: true
+  }
+];
+
 export interface AppSettings {
   senderName: string;
   senderEmail: string;
@@ -106,6 +150,7 @@ export interface AppSettings {
   smtpPass?: string;
   smtpSecure?: boolean;
   resendApiKey?: string;
+  services?: OutreachService[];
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -119,6 +164,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   maxFollowUps: 3,
   provider: 'simulated',
   openAiApiKey: '',
+  services: DEFAULT_SERVICES
 };
 
 export interface EmailGenerationPayload {

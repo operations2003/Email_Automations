@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { AppSettings } from '@/types/outreach';
+import { AppSettings, OutreachService, DEFAULT_SERVICES } from '@/types/outreach';
 import {
   Save,
   Check,
@@ -16,7 +16,13 @@ import {
   Info,
   Server,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Briefcase,
+  Plus,
+  Trash2,
+  Edit2,
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -44,6 +50,108 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
   const [testEmailTo, setTestEmailTo] = useState('');
   const [testingEmail, setTestingEmail] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Custom Services state
+  const [showAddService, setShowAddService] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [serviceForm, setServiceForm] = useState<{
+    name: string;
+    icon: string;
+    tagline: string;
+    pitch: string;
+  }>({
+    name: '',
+    icon: '🚀',
+    tagline: '',
+    pitch: ''
+  });
+
+  const currentServices: OutreachService[] =
+    formData.services && formData.services.length > 0
+      ? formData.services
+      : DEFAULT_SERVICES;
+
+  const handleStartAddService = () => {
+    setEditingServiceId(null);
+    setServiceForm({
+      name: '',
+      icon: '🚀',
+      tagline: '',
+      pitch: ''
+    });
+    setShowAddService(true);
+  };
+
+  const handleStartEditService = (service: OutreachService) => {
+    setEditingServiceId(service.id);
+    setServiceForm({
+      name: service.name,
+      icon: service.icon || '🚀',
+      tagline: service.tagline || '',
+      pitch: service.pitch
+    });
+    setShowAddService(true);
+  };
+
+  const handleCancelServiceForm = () => {
+    setShowAddService(false);
+    setEditingServiceId(null);
+    setServiceForm({
+      name: '',
+      icon: '🚀',
+      tagline: '',
+      pitch: ''
+    });
+  };
+
+  const handleSaveService = () => {
+    if (!serviceForm.name.trim() || !serviceForm.pitch.trim()) {
+      return;
+    }
+
+    if (editingServiceId) {
+      const updated = currentServices.map(s =>
+        s.id === editingServiceId
+          ? {
+              ...s,
+              name: serviceForm.name.trim(),
+              icon: serviceForm.icon.trim() || '🚀',
+              tagline: serviceForm.tagline.trim(),
+              pitch: serviceForm.pitch.trim()
+            }
+          : s
+      );
+      setFormData(prev => ({ ...prev, services: updated }));
+    } else {
+      const newService: OutreachService = {
+        id: 'srv_' + Math.random().toString(36).substring(2, 9),
+        name: serviceForm.name.trim(),
+        icon: serviceForm.icon.trim() || '🚀',
+        tagline: serviceForm.tagline.trim(),
+        pitch: serviceForm.pitch.trim(),
+        isDefault: false
+      };
+      setFormData(prev => ({
+        ...prev,
+        services: [...currentServices, newService]
+      }));
+    }
+
+    handleCancelServiceForm();
+  };
+
+  const handleDeleteService = (id: string) => {
+    const updated = currentServices.filter(s => s.id !== id);
+    setFormData(prev => ({ ...prev, services: updated }));
+    if (editingServiceId === id) {
+      handleCancelServiceForm();
+    }
+  };
+
+  const handleResetServices = () => {
+    setFormData(prev => ({ ...prev, services: DEFAULT_SERVICES }));
+    handleCancelServiceForm();
+  };
 
   useEffect(() => {
     setFormData(settings);
@@ -506,6 +614,194 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                 <option value="Persuasive">Persuasive</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        {/* Custom Services & Offerings */}
+        <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4 space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider flex items-center gap-2">
+                <Briefcase className="h-3.5 w-3.5 text-blue-400" />
+                Services & Offerings
+              </h3>
+              <p className="text-[11px] text-gray-400 mt-0.5">
+                Customize the TaskNera services and offerings available when composing outreach emails.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleResetServices}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[#23272f] hover:bg-[#1a1f26] text-gray-400 hover:text-gray-200 text-xs transition-colors"
+                title="Reset to default TaskNera services"
+              >
+                <RotateCcw className="h-3 w-3" />
+                <span>Reset Defaults</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleStartAddService}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
+              >
+                <Plus className="h-3 w-3" />
+                <span>Add Service</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Inline Add / Edit Form */}
+          {showAddService && (
+            <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-3.5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-blue-400 flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {editingServiceId ? 'Edit Service' : 'Add New Service'}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCancelServiceForm}
+                  className="text-xs text-gray-400 hover:text-gray-200"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                <div className="md:col-span-2">
+                  <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                    Service Name <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. DevOps & Cloud Consulting"
+                    value={serviceForm.name}
+                    onChange={e => setServiceForm({ ...serviceForm, name: e.target.value })}
+                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                    Icon / Emoji
+                  </label>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      maxLength={4}
+                      placeholder="🚀"
+                      value={serviceForm.icon}
+                      onChange={e => setServiceForm({ ...serviceForm, icon: e.target.value })}
+                      className="w-14 rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 text-center text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                    />
+                    <div className="flex items-center gap-1 overflow-x-auto text-xs">
+                      {['🎯', '💻', '🤖', '📋', '🚀', '⚡', '☁️', '🛡️'].map(emoji => (
+                        <button
+                          key={emoji}
+                          type="button"
+                          onClick={() => setServiceForm({ ...serviceForm, icon: emoji })}
+                          className="px-1.5 py-1 rounded hover:bg-[#23272f] text-xs transition-colors"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                  Short Tagline
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Cloud migration, CI/CD, and AWS cost reduction"
+                  value={serviceForm.tagline}
+                  onChange={e => setServiceForm({ ...serviceForm, tagline: e.target.value })}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                  Outreach Goal / Email Pitch <span className="text-rose-400">*</span>
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Introduce TaskNera's cloud architecture review and DevOps pipeline setup for engineering teams."
+                  value={serviceForm.pitch}
+                  onChange={e => setServiceForm({ ...serviceForm, pitch: e.target.value })}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                />
+                <span className="text-[10px] text-gray-400">
+                  This pitch text will be filled into the outreach goal and guide the email writer.
+                </span>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleCancelServiceForm}
+                  className="px-3 py-1 rounded-md border border-[#23272f] hover:bg-[#23272f] text-gray-300 text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveService}
+                  disabled={!serviceForm.name.trim() || !serviceForm.pitch.trim()}
+                  className="px-3 py-1 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium disabled:opacity-50"
+                >
+                  {editingServiceId ? 'Update Service' : 'Add to Services'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Current Services List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {currentServices.map(service => (
+              <div
+                key={service.id}
+                className="group relative flex flex-col justify-between p-3 rounded-lg border border-[#23272f] bg-[#0d0f12] hover:border-gray-600 transition-all"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{service.icon || '💼'}</span>
+                      <div>
+                        <h4 className="text-xs font-semibold text-white">{service.name}</h4>
+                        {service.tagline && (
+                          <p className="text-[10px] text-blue-400 font-medium">{service.tagline}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => handleStartEditService(service)}
+                        className="p-1 rounded hover:bg-[#23272f] text-gray-400 hover:text-gray-200"
+                        title="Edit service"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteService(service.id)}
+                        className="p-1 rounded hover:bg-rose-500/10 text-gray-400 hover:text-rose-400"
+                        title="Delete service"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-relaxed bg-[#14171c] p-2 rounded border border-[#23272f]/60 mt-1">
+                    {service.pitch}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

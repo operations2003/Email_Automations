@@ -30,14 +30,14 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
-    if (user && user.role !== 'admin') {
+    const body = await req.json();
+    const isOnlyServices = Object.keys(body).length === 1 && 'services' in body;
+    if (user && user.role !== 'admin' && !isOnlyServices) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized: Admin role is required to modify system settings.' },
         { status: 403 }
       );
     }
-
-    const body = await req.json();
     const current = await getSettings();
 
     // If user provided a masked key or empty, preserve existing if not explicitly changed

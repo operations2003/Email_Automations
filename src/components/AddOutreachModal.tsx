@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { GeneratedEmailResult } from '@/types/outreach';
+import React, { useState, useEffect } from 'react';
+import { GeneratedEmailResult, OutreachService, DEFAULT_SERVICES } from '@/types/outreach';
 import {
   X,
   Send,
@@ -14,7 +14,10 @@ import {
   Globe,
   PenTool,
   Copy,
-  Check
+  Check,
+  Plus,
+  Sparkles,
+  Briefcase
 } from 'lucide-react';
 
 interface AddOutreachModalProps {
@@ -22,13 +25,17 @@ interface AddOutreachModalProps {
   onClose: () => void;
   onSuccess: () => void;
   onSelectExisting: (id: string) => void;
+  services?: OutreachService[];
+  onServicesChange?: (newServices: OutreachService[]) => void;
 }
 
 export function AddOutreachModal({
   isOpen,
   onClose,
   onSuccess,
-  onSelectExisting
+  onSelectExisting,
+  services: initialServices,
+  onServicesChange
 }: AddOutreachModalProps) {
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,6 +44,79 @@ export function AddOutreachModal({
   const [recipientName, setRecipientName] = useState('');
   const [companyWebsite, setCompanyWebsite] = useState('');
   const [selectedService, setSelectedService] = useState<string | null>(null);
+
+  // Dynamic Services state
+  const [servicesList, setServicesList] = useState<OutreachService[]>(
+    initialServices && initialServices.length > 0 ? initialServices : DEFAULT_SERVICES
+  );
+  const [showAddCustom, setShowAddCustom] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [customTagline, setCustomTagline] = useState('');
+  const [customPitch, setCustomPitch] = useState('');
+  const [customIcon, setCustomIcon] = useState('🚀');
+
+  useEffect(() => {
+    if (initialServices && initialServices.length > 0) {
+      setServicesList(initialServices);
+    }
+  }, [initialServices]);
+
+  const handleSaveCustomService = async () => {
+    if (!customName.trim() || !customPitch.trim()) return;
+
+    const newService: OutreachService = {
+      id: 'srv_' + Math.random().toString(36).substring(2, 9),
+      name: customName.trim(),
+      icon: customIcon.trim() || '🚀',
+      tagline: customTagline.trim(),
+      pitch: customPitch.trim(),
+      isDefault: false
+    };
+
+    const updated = [...servicesList, newService];
+    setServicesList(updated);
+    setSelectedService(newService.id);
+    setReason(newService.pitch);
+    setShowAddCustom(false);
+    setCustomName('');
+    setCustomTagline('');
+    setCustomPitch('');
+    setCustomIcon('🚀');
+
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ services: updated })
+      });
+      if (onServicesChange) {
+        onServicesChange(updated);
+      }
+    } catch (err) {
+      console.error('Failed to save custom service:', err);
+    }
+  };
+
+  const handleDeleteCustomService = async (serviceId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = servicesList.filter(s => s.id !== serviceId);
+    setServicesList(updated);
+    if (selectedService === serviceId) {
+      setSelectedService(null);
+    }
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ services: updated })
+      });
+      if (onServicesChange) {
+        onServicesChange(updated);
+      }
+    } catch (err) {
+      console.error('Failed to delete service:', err);
+    }
+  };
 
   // Generated draft state
   const [generatedResult, setGeneratedResult] = useState<GeneratedEmailResult | null>(null);
@@ -407,74 +487,153 @@ export function AddOutreachModal({
                 <label className="text-xs font-medium text-gray-300">
                   Select TaskNera Service
                 </label>
-                <span className="text-[10px] text-gray-400">Click to fill goal</span>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCustom(!showAddCustom)}
+                  className="flex items-center gap-1 text-[11px] font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  <Plus className="h-3 w-3" />
+                  <span>{showAddCustom ? 'Cancel' : 'Add Custom Service'}</span>
+                </button>
               </div>
 
-              {/* Service presets */}
-              <div className="grid grid-cols-2 gap-1.5 mb-2.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedService('hireiq');
-                    setReason("Introduce HireIQ, TaskNera's AI platform for instant JD-to-candidate matching and automated resume screening.");
-                  }}
-                  className={`flex flex-col text-left p-2 rounded-md border transition-all ${
-                    selectedService === 'hireiq'
-                      ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-blue-500/40'
-                  }`}
-                >
-                  <span className="text-xs font-medium text-blue-400">🎯 HireIQ (AI Screening)</span>
-                  <span className="text-[10px] text-gray-400 mt-0.5">JD matching & resume scoring</span>
-                </button>
+              {/* Inline Custom Service Creator */}
+              {showAddCustom && (
+                <div className="mb-2.5 rounded-lg border border-blue-500/30 bg-blue-500/5 p-3 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-blue-400 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Create Custom Offering
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCustom(false)}
+                      className="text-xs text-gray-400 hover:text-gray-200"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedService('staffing');
-                    setReason("Offer TaskNera's on-demand tech staffing—providing pre-vetted senior developers and engineering pods within 48 to 72 hours.");
-                  }}
-                  className={`flex flex-col text-left p-2 rounded-md border transition-all ${
-                    selectedService === 'staffing'
-                      ? 'border-emerald-500 bg-emerald-500/10'
-                      : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-emerald-500/40'
-                  }`}
-                >
-                  <span className="text-xs font-medium text-emerald-400">💻 Tech Staffing</span>
-                  <span className="text-[10px] text-gray-400 mt-0.5">Senior devs in 48-72 hours</span>
-                </button>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-2">
+                      <label className="block text-[10px] text-gray-400 mb-0.5">Service Name *</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. DevOps & Cloud"
+                        value={customName}
+                        onChange={e => setCustomName(e.target.value)}
+                        className="w-full rounded bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-0.5">Icon</label>
+                      <div className="flex gap-1">
+                        <input
+                          type="text"
+                          maxLength={4}
+                          value={customIcon}
+                          onChange={e => setCustomIcon(e.target.value)}
+                          className="w-9 rounded bg-[#0d0f12] border border-[#23272f] py-1 text-center text-xs text-white focus:border-blue-500 focus:outline-none"
+                        />
+                        <div className="flex items-center gap-0.5 text-xs">
+                          {['🎯', '💻', '🤖', '📋', '🚀', '⚡'].map(emoji => (
+                            <button
+                              key={emoji}
+                              type="button"
+                              onClick={() => setCustomIcon(emoji)}
+                              className="px-1 py-0.5 rounded hover:bg-[#23272f] text-xs"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedService('software');
-                    setReason("Introduce TaskNera's custom software and AI development services for building scalable web, mobile, and cloud solutions.");
-                  }}
-                  className={`flex flex-col text-left p-2 rounded-md border transition-all ${
-                    selectedService === 'software'
-                      ? 'border-purple-500 bg-purple-500/10'
-                      : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-purple-500/40'
-                  }`}
-                >
-                  <span className="text-xs font-medium text-purple-400">🤖 Custom Software & AI</span>
-                  <span className="text-[10px] text-gray-400 mt-0.5">Full-cycle product builds</span>
-                </button>
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-0.5">Tagline (Optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Cloud migration, CI/CD, AWS cost audit"
+                      value={customTagline}
+                      onChange={e => setCustomTagline(e.target.value)}
+                      className="w-full rounded bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedService('ats');
-                    setReason("Share TaskNera's recruitment automation and ATS workflow solutions to speed up candidate pipelines.");
-                  }}
-                  className={`flex flex-col text-left p-2 rounded-md border transition-all ${
-                    selectedService === 'ats'
-                      ? 'border-amber-500 bg-amber-500/10'
-                      : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-amber-500/40'
-                  }`}
-                >
-                  <span className="text-xs font-medium text-amber-400">📋 Recruiting Automation</span>
-                  <span className="text-[10px] text-gray-400 mt-0.5">ATS & pipeline workflows</span>
-                </button>
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-0.5">Email Pitch / Goal *</label>
+                    <textarea
+                      rows={2}
+                      placeholder="e.g. Introduce TaskNera's cloud infrastructure review and DevOps pipeline setup."
+                      value={customPitch}
+                      onChange={e => setCustomPitch(e.target.value)}
+                      className="w-full rounded bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCustom(false)}
+                      className="px-2.5 py-1 text-xs text-gray-400 hover:text-white"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveCustomService}
+                      disabled={!customName.trim() || !customPitch.trim()}
+                      className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white disabled:opacity-50"
+                    >
+                      Save & Select
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Dynamic Service Buttons */}
+              <div className="grid grid-cols-2 gap-1.5 mb-2.5 max-h-48 overflow-y-auto pr-0.5">
+                {servicesList.map(service => {
+                  const isSelected = selectedService === service.id;
+                  return (
+                    <div
+                      key={service.id}
+                      onClick={() => {
+                        setSelectedService(service.id);
+                        setReason(service.pitch);
+                      }}
+                      className={`group relative flex flex-col text-left p-2 rounded-md border cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-500/10'
+                          : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-blue-500/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-xs font-medium text-white flex items-center gap-1.5 truncate">
+                          <span>{service.icon || '💼'}</span>
+                          <span className="truncate">{service.name}</span>
+                        </span>
+                        {!service.isDefault && (
+                          <button
+                            type="button"
+                            onClick={e => handleDeleteCustomService(service.id, e)}
+                            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-rose-400 p-0.5 rounded transition-opacity"
+                            title="Remove service"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                      {service.tagline && (
+                        <span className="text-[10px] text-gray-400 mt-0.5 truncate">
+                          {service.tagline}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               <label className="block text-xs font-medium text-gray-300 mb-1">
