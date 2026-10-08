@@ -880,7 +880,31 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
 
         {/* Company Management */}
         <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4 space-y-3.5">
-          <CompanyManagement isAdmin={isAdmin} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-200">Company Management</h3>
+            </div>
+            {isAdmin ? (
+              <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <Plus className="w-4 h-4" />
+                Add Company
+              </button>
+            ) : (
+              <span className="text-xs text-gray-400">Admin access required</span>
+            )}
+          </div>
+          <div className="text-sm text-gray-300">
+            {isAdmin ? (
+              <p>Manage companies that employees can select for outreach campaigns.</p>
+            ) : (
+              <p>Companies will appear in your outreach form once added by admin.</p>
+            )}
+          </div>
+          {/* Company Management Component */}
+          <div className="border-t border-[#23272f] pt-3">
+            <CompanyManagement isAdmin={isAdmin} />
+          </div>
         </div>
 
         {/* Submit */}
