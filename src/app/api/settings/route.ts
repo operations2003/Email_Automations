@@ -15,9 +15,9 @@ export async function GET(req: NextRequest) {
       hasCustomKey: Boolean(settings.openAiApiKey && settings.openAiApiKey.trim().length > 10)
     };
 
-    // If employee, mask smtpPassword completely
-    if (user && user.role === 'employee' && maskedSettings.smtpPassword) {
-      maskedSettings.smtpPassword = '••••••••';
+    // If employee, mask smtpPass completely
+    if (user && user.role === 'employee' && maskedSettings.smtpPass) {
+      maskedSettings.smtpPass = '••••••••';
     }
 
     return NextResponse.json({ success: true, settings: maskedSettings });
