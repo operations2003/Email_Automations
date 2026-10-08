@@ -137,6 +137,7 @@ export function AddOutreachModal({
   } | null>(null);
 
   const [isCopied, setIsCopied] = useState(false);
+  const [currentCampaignId, setCurrentCampaignId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -155,6 +156,7 @@ export function AddOutreachModal({
     setDuplicateWarning(null);
     setIsEditing(false);
     setIsCopied(false);
+    setCurrentCampaignId(null);
   };
 
   const handleCopyMail = async () => {
@@ -226,6 +228,7 @@ export function AddOutreachModal({
       }
 
       const campaign = createData.campaign;
+      setCurrentCampaignId(campaign.id);
 
       const genRes = await fetch(`/api/outreach/${campaign.id}/generate`, {
         method: 'POST',
@@ -249,18 +252,102 @@ export function AddOutreachModal({
     }
   };
 
+  const handleGenerateAndSend = async () => {
+    if (!companyName.trim()) {
+      setError('Please enter a company name.');
+      return;
+    }
+    if (!email.trim() || !email.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (!reason.trim()) {
+      setError('Please enter why you want to email them.');
+      return;
+    }
+
+    setError(null);
+    setIsSending(true);
+
+    try {
+      // 1. Create outreach target
+      const createRes = await fetch('/api/outreach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: companyName.trim(),
+          email: email.trim(),
+          ccEmails: ccEmails.trim(),
+          reason: reason.trim(),
+          recipientName: recipientName.trim(),
+          companyWebsite: companyWebsite.trim(),
+          forceDuplicate: false
+        })
+      });
+
+      const createData = await createRes.json();
+      if (createRes.status === 409 && createData.duplicate) {
+        setDuplicateWarning({
+          existingId: createData.existingCampaignId,
+          existingCompany: createData.existingCompany,
+          message: createData.message
+        });
+        setIsSending(false);
+        return;
+      }
+      if (!createRes.ok) throw new Error(createData.error || 'Could not save company');
+
+      const campaign = createData.campaign;
+      setCurrentCampaignId(campaign.id);
+
+      // 2. Generate email
+      const genRes = await fetch(`/api/outreach/${campaign.id}/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: 'initial' })
+      });
+      const genData = await genRes.json();
+      if (!genRes.ok) throw new Error(genData.error || 'Could not write email');
+
+      // 3. Send email immediately via configured SMTP (operations@tasknera.com)
+      const sendRes = await fetch(`/api/outreach/${campaign.id}/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stage: 'initial',
+          subject: genData.generated.subject,
+          body: genData.generated.body
+        })
+      });
+      const sendData = await sendRes.json();
+      if (!sendRes.ok) throw new Error(sendData.error || 'Could not send email');
+
+      onSuccess();
+      resetForm();
+      onClose();
+    } catch (err: unknown) {
+      const e = err as Error;
+      setError(e.message);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleRegenerate = async () => {
     if (!companyName || !reason) return;
     setIsGenerating(true);
     setError(null);
 
     try {
-      const res = await fetch('/api/outreach?q=' + encodeURIComponent(email));
-      const data = await res.json();
-      const campaign = data.campaigns?.[0];
+      let targetId = currentCampaignId;
+      if (!targetId) {
+        const res = await fetch('/api/outreach?q=' + encodeURIComponent(email));
+        const data = await res.json();
+        targetId = data.campaigns?.[0]?.id;
+      }
 
-      if (campaign) {
-        const regenRes = await fetch(`/api/outreach/${campaign.id}/regenerate`, {
+      if (targetId) {
+        const regenRes = await fetch(`/api/outreach/${targetId}/regenerate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ stage: 'initial' })
@@ -283,13 +370,16 @@ export function AddOutreachModal({
     setError(null);
 
     try {
-      const res = await fetch('/api/outreach?q=' + encodeURIComponent(email));
-      const data = await res.json();
-      const campaign = data.campaigns?.[0];
+      let targetId = currentCampaignId;
+      if (!targetId) {
+        const res = await fetch('/api/outreach?q=' + encodeURIComponent(email));
+        const data = await res.json();
+        targetId = data.campaigns?.[0]?.id;
+      }
 
-      if (!campaign) throw new Error('Email record not found');
+      if (!targetId) throw new Error('Email record not found');
 
-      const sendRes = await fetch(`/api/outreach/${campaign.id}/send`, {
+      const sendRes = await fetch(`/api/outreach/${targetId}/send`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -654,24 +744,46 @@ export function AddOutreachModal({
             </div>
 
             {!generatedResult && (
-              <button
-                type="button"
-                onClick={() => handleGenerate(false)}
-                disabled={isGenerating}
-                className="w-full flex items-center justify-center gap-1.5 rounded-md bg-blue-600 hover:bg-blue-500 py-2.5 px-4 text-xs font-medium text-white transition-colors disabled:opacity-50"
-              >
-                {isGenerating ? (
-                  <>
-                    <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                    <span>Writing draft...</span>
-                  </>
-                ) : (
-                  <>
-                    <PenTool className="h-3.5 w-3.5" />
-                    <span>Write Email Draft</span>
-                  </>
-                )}
-              </button>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleGenerate(false)}
+                  disabled={isGenerating || isSending}
+                  className="flex items-center justify-center gap-1.5 rounded-md border border-[#23272f] bg-[#14171c] hover:bg-[#1f242d] py-2.5 px-3 text-xs font-medium text-gray-200 transition-colors disabled:opacity-50"
+                >
+                  {isGenerating ? (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      <span>Writing draft...</span>
+                    </>
+                  ) : (
+                    <>
+                      <PenTool className="h-3.5 w-3.5 text-blue-400" />
+                      <span>Draft & Review</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleGenerateAndSend}
+                  disabled={isGenerating || isSending}
+                  className="flex items-center justify-center gap-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 py-2.5 px-3 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-sm"
+                  title="Automatically write draft and send email immediately"
+                >
+                  {isSending ? (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-3.5 w-3.5" />
+                      <span>⚡ Auto-Send Now</span>
+                    </>
+                  )}
+                </button>
+              </div>
             )}
           </div>
 

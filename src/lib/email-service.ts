@@ -51,20 +51,34 @@ export async function sendOutreachEmail(
       }
     });
 
-    const info = await transporter.sendMail({
-      from: `"${settings.senderName || 'Outreach'}" <${settings.smtpUser || settings.senderEmail}>`,
-      to: payload.to,
-      cc: payload.cc ? payload.cc.split(',').map(s => s.trim()).filter(Boolean) : undefined,
-      subject: payload.subject,
-      text: fullBody
-    });
+    try {
+      const info = await transporter.sendMail({
+        from: `"${settings.senderName || 'TaskNera Operations'}" <${settings.smtpUser || settings.senderEmail}>`,
+        to: payload.to,
+        cc: payload.cc ? payload.cc.split(',').map(s => s.trim()).filter(Boolean) : undefined,
+        subject: payload.subject,
+        text: fullBody
+      });
 
-    return {
-      success: true,
-      messageId: info.messageId || messageId,
-      deliveredAt: now,
-      provider: 'smtp'
-    };
+      return {
+        success: true,
+        messageId: info.messageId || messageId,
+        deliveredAt: now,
+        provider: 'smtp'
+      };
+    } catch (err: unknown) {
+      const e = err as Error;
+      if (
+        e.message.includes('535') ||
+        e.message.includes('BadCredentials') ||
+        e.message.includes('Username and Password not accepted')
+      ) {
+        throw new Error(
+          'Google Workspace rejected the password. Google accounts require a 16-character Google App Password (not your regular account password) for automated email sending. Please generate an App Password at https://myaccount.google.com/apppasswords and enter it in Settings.'
+        );
+      }
+      throw e;
+    }
   }
 
   // 2. Resend API Provider

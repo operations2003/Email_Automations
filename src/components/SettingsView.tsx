@@ -436,10 +436,10 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                 </div>
               </div>
 
-              <div className="rounded-md bg-[#0d0f12] p-2.5 text-[11px] text-gray-400 flex items-start gap-2 border border-[#23272f]">
+              <div className="rounded-md bg-blue-500/10 p-2.5 text-[11px] text-blue-200 flex items-start gap-2 border border-blue-500/20">
                 <Info className="h-3.5 w-3.5 text-blue-400 shrink-0 mt-0.5" />
                 <span>
-                  Tip for Gmail: Create an <strong>App Password</strong> in your Google Account &gt; Security &gt; 2-Step Verification &gt; App Passwords.
+                  <strong>Google Workspace (@tasknera.com) & Gmail Requirement:</strong> Google requires a 16-character <strong>App Password</strong> (e.g. <code>abcd efgh ijkl mnop</code>) for automated SMTP email sending. If your password is not accepted, generate an App Password at <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="underline text-blue-300 font-medium">myaccount.google.com/apppasswords</a> and paste it above.
                 </span>
               </div>
             </div>
