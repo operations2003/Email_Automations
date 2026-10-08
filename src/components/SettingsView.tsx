@@ -6,14 +6,12 @@ import {
   Settings as SettingsIcon,
   Save,
   Check,
-  Shield,
   Key,
   Mail,
   User,
-  Building2,
   Clock,
-  Sparkles,
-  RefreshCw
+  RefreshCw,
+  Database
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -26,10 +24,46 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [customApiKey, setCustomApiKey] = useState('');
+  const [testingDb, setTestingDb] = useState(false);
+  const [dbResult, setDbResult] = useState<{
+    tested: boolean;
+    connected: boolean;
+    latencyMs?: number | null;
+    databaseName?: string;
+    collections?: string[];
+    campaignsCount?: number;
+    error?: string;
+  } | null>(null);
 
   useEffect(() => {
     setFormData(settings);
   }, [settings]);
+
+  const testDatabase = async () => {
+    setTestingDb(true);
+    try {
+      const res = await fetch('/api/health');
+      const data = await res.json();
+      setDbResult({
+        tested: true,
+        connected: Boolean(data?.database?.connected),
+        latencyMs: data?.database?.latencyMs,
+        databaseName: data?.database?.databaseName,
+        collections: data?.database?.collections,
+        campaignsCount: data?.database?.campaignsCount,
+        error: data?.database?.error
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Network error testing database';
+      setDbResult({
+        tested: true,
+        connected: false,
+        error: message
+      });
+    } finally {
+      setTestingDb(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -273,6 +307,85 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Database Connectivity & Persistence Section */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <Database className="h-4 w-4 text-emerald-400" />
+              Database Connectivity & Storage
+            </h3>
+            <button
+              type="button"
+              onClick={testDatabase}
+              disabled={testingDb}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-medium transition-colors disabled:opacity-50"
+            >
+              {testingDb ? (
+                <RefreshCw className="h-3.5 w-3.5 animate-spin text-emerald-400" />
+              ) : (
+                <Database className="h-3.5 w-3.5 text-emerald-400" />
+              )}
+              Test Connection
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400">Primary Database</span>
+              <p className="font-semibold text-slate-200">MongoDB Atlas</p>
+              <p className="text-[10px] text-slate-500 font-mono">cluster0.2ba7uww.mongodb.net</p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400">Database Name</span>
+              <p className="font-semibold text-slate-200 font-mono">tasknera</p>
+              <p className="text-[10px] text-slate-500">Dual-layer auto fallback to local JSON</p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <span className="text-[10px] uppercase font-bold text-slate-400">Active Persistence</span>
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-400 font-medium">Automatic Cloud Sync</span>
+              </div>
+              <p className="text-[10px] text-slate-500">Live data writes to MongoDB with offline protection</p>
+            </div>
+          </div>
+
+          {dbResult?.tested && (
+            <div
+              className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
+                dbResult.connected
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    dbResult.connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                  }`}
+                />
+                <div>
+                  <p className="font-semibold">
+                    {dbResult.connected
+                      ? `Successfully connected to MongoDB Atlas (${dbResult.databaseName || 'tasknera'})`
+                      : 'MongoDB connection offline. Utilizing local JSON filesystem storage.'}
+                  </p>
+                  <p className="text-[11px] opacity-80 mt-0.5">
+                    {dbResult.connected
+                      ? `Latency: ${dbResult.latencyMs ?? 0}ms • Collections: ${dbResult.collections?.join(', ') || 'none'} • Campaigns: ${dbResult.campaignsCount ?? 0}`
+                      : `Details: ${dbResult.error || 'Server selection timeout'}`}
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-900/50">
+                {dbResult.connected ? 'Verified' : 'Fallback'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Submit Button */}

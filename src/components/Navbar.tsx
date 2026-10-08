@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table2,
   BarChart3,
@@ -10,7 +10,8 @@ import {
   Play,
   Sparkles,
   RefreshCw,
-  MailCheck
+  MailCheck,
+  Database
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -30,6 +31,43 @@ export function Navbar({
   isSchedulerRunning,
   dueTodayCount
 }: NavbarProps) {
+  const [dbState, setDbState] = useState<{
+    connected: boolean;
+    latencyMs?: number | null;
+    databaseName?: string;
+    loading: boolean;
+  }>({ connected: false, loading: true });
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchHealth = async () => {
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          if (mounted) {
+            setDbState({
+              connected: Boolean(data?.database?.connected),
+              latencyMs: data?.database?.latencyMs,
+              databaseName: data?.database?.databaseName || 'tasknera',
+              loading: false
+            });
+          }
+        }
+      } catch {
+        if (mounted) {
+          setDbState(prev => ({ ...prev, connected: false, loading: false }));
+        }
+      }
+    };
+
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 25000);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, []);
   return (
     <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
@@ -104,6 +142,42 @@ export function Navbar({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2.5">
+          {/* Database Connectivity Badge */}
+          <div
+            title={
+              dbState.loading
+                ? 'Connecting to MongoDB Atlas...'
+                : dbState.connected
+                ? `Connected to MongoDB Atlas (${dbState.databaseName || 'tasknera'}${dbState.latencyMs !== undefined && dbState.latencyMs !== null ? ` • ${dbState.latencyMs}ms` : ''})`
+                : 'MongoDB Atlas offline — Local filesystem cache active'
+            }
+            className={`hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+              dbState.loading
+                ? 'bg-slate-800/60 border-slate-700 text-slate-400'
+                : dbState.connected
+                ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400 shadow-sm shadow-emerald-500/10'
+                : 'bg-amber-500/10 border-amber-500/25 text-amber-400'
+            }`}
+          >
+            <Database className="h-3.5 w-3.5" />
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                dbState.loading
+                  ? 'bg-slate-400 animate-pulse'
+                  : dbState.connected
+                  ? 'bg-emerald-400 animate-pulse'
+                  : 'bg-amber-400'
+              }`}
+            />
+            <span>
+              {dbState.loading
+                ? 'DB Connecting...'
+                : dbState.connected
+                ? 'MongoDB Atlas'
+                : 'Local Sync'}
+            </span>
+          </div>
+
           {/* Scheduler status badge */}
           <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>

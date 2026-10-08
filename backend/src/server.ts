@@ -29,12 +29,23 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/scheduler', schedulerRouter);
 app.use('/api/webhooks', webhooksRouter);
 
-// Health check
-app.get('/health', (_req, res) => {
+import { checkBackendDbHealth } from './services/mongodb.js';
+
+// Health check with real database connectivity check
+app.get('/health', async (_req, res) => {
+  const dbHealth = await checkBackendDbHealth();
   res.json({
-    status: 'ok',
+    status: dbHealth.connected ? 'ok' : 'degraded',
     service: 'AutoReach AI Backend Engine',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    database: {
+      provider: 'MongoDB Atlas',
+      connected: dbHealth.connected,
+      latencyMs: dbHealth.latencyMs ?? null,
+      databaseName: dbHealth.database,
+      collections: dbHealth.collections || [],
+      error: dbHealth.error || null
+    }
   });
 });
 

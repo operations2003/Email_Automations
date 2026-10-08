@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:db": "node test-mongo.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.53.0",
+    "mongodb": "^7.7.0",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
