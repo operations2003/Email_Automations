@@ -12,7 +12,9 @@ import {
   FileText,
   User,
   Globe,
-  PenTool
+  PenTool,
+  Copy,
+  Check
 } from 'lucide-react';
 
 interface AddOutreachModalProps {
@@ -54,6 +56,8 @@ export function AddOutreachModal({
     message: string;
   } | null>(null);
 
+  const [isCopied, setIsCopied] = useState(false);
+
   if (!isOpen) return null;
 
   const resetForm = () => {
@@ -70,6 +74,27 @@ export function AddOutreachModal({
     setError(null);
     setDuplicateWarning(null);
     setIsEditing(false);
+    setIsCopied(false);
+  };
+
+  const handleCopyMail = async () => {
+    if (!emailBody) return;
+    try {
+      const fullContent = subject ? `Subject: ${subject}\n\n${emailBody}` : emailBody;
+      await navigator.clipboard.writeText(fullContent);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch {
+      // Fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = subject ? `Subject: ${subject}\n\n${emailBody}` : emailBody;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
   };
 
   const handleGenerate = async (forceDuplicate = false) => {
@@ -502,11 +527,33 @@ export function AddOutreachModal({
                   TaskNera Team
                 </span>
               </div>
-              {generatedResult && (
-                <span className="text-[11px] text-gray-400 font-mono">
-                  {generatedResult.wordCount} words
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {generatedResult && (
+                  <button
+                    type="button"
+                    onClick={handleCopyMail}
+                    className="flex items-center gap-1 rounded bg-[#1c2128] hover:bg-[#23272f] border border-[#2b303b] px-2 py-0.5 text-[11px] text-gray-300 hover:text-white transition-colors cursor-pointer"
+                    title="Copy full email (subject + body)"
+                  >
+                    {isCopied ? (
+                      <>
+                        <Check className="h-3 w-3 text-emerald-400" />
+                        <span className="text-emerald-400 font-medium">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3 text-gray-400" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                {generatedResult && (
+                  <span className="text-[11px] text-gray-400 font-mono">
+                    {generatedResult.wordCount} words
+                  </span>
+                )}
+              </div>
             </div>
 
             {generatedResult ? (
@@ -559,6 +606,24 @@ export function AddOutreachModal({
                       className="px-2.5 py-1 rounded-md border border-[#23272f] text-xs text-gray-300 hover:bg-[#23272f] transition-colors"
                     >
                       {isEditing ? 'Done' : 'Edit'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyMail}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-md border border-[#23272f] text-xs text-gray-300 hover:bg-[#23272f] hover:text-white transition-colors cursor-pointer"
+                      title="Copy full email to clipboard"
+                    >
+                      {isCopied ? (
+                        <>
+                          <Check className="h-3 w-3 text-emerald-400" />
+                          <span className="text-emerald-400 font-medium">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3" />
+                          <span>Copy Mail</span>
+                        </>
+                      )}
                     </button>
                   </div>
 

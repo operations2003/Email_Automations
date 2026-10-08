@@ -8,7 +8,8 @@ import {
   RefreshCw,
   FileEdit,
   Check,
-  Clock
+  Clock,
+  Copy
 } from 'lucide-react';
 
 interface EmailPreviewModalProps {
@@ -37,6 +38,7 @@ export function EmailPreviewModal({
   const [isSending, setIsSending] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
     setActiveStage(initialStage);
@@ -115,6 +117,25 @@ export function EmailPreviewModal({
       setFeedback(`Error: ${e.message}`);
     } finally {
       setIsRegenerating(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!body) return;
+    try {
+      const fullText = subject ? `Subject: ${subject}\n\n${body}` : body;
+      await navigator.clipboard.writeText(fullText);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch {
+      const textarea = document.createElement('textarea');
+      textarea.value = subject ? `Subject: ${subject}\n\n${body}` : body;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
     }
   };
 
@@ -306,6 +327,24 @@ export function EmailPreviewModal({
             >
               <FileEdit className="h-3 w-3 inline mr-1" />
               {isEditing ? 'Done' : 'Edit'}
+            </button>
+            <button
+              onClick={handleCopy}
+              disabled={!body}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[#23272f] text-xs text-gray-300 hover:bg-[#23272f] hover:text-white transition-colors cursor-pointer disabled:opacity-40"
+              title="Copy subject and body to clipboard"
+            >
+              {isCopied ? (
+                <>
+                  <Check className="h-3 w-3 text-emerald-400" />
+                  <span className="text-emerald-400 font-medium">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3 w-3" />
+                  <span>Copy Mail</span>
+                </>
+              )}
             </button>
           </div>
 

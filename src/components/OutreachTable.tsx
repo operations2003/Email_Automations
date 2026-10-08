@@ -423,6 +423,23 @@ export function OutreachTable({
                                   </button>
                                 )}
 
+                                {c.initialEmailBody && (
+                                  <button
+                                    type="button"
+                                    onClick={e => {
+                                      setOpenMenuId(null);
+                                      const text = c.initialSubject
+                                        ? `Subject: ${c.initialSubject}\n\n${c.initialEmailBody}`
+                                        : c.initialEmailBody;
+                                      copyToClipboard(text, `mail_${c.id}`, e);
+                                    }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-200 hover:bg-[#23272f] transition-colors"
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                    Copy Mail
+                                  </button>
+                                )}
+
                                 <button
                                   type="button"
                                   onClick={() => {
