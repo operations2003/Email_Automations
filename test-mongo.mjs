@@ -65,35 +65,13 @@ async function main() {
 
     // 3. Inspect campaigns collection
     const campaignsCol = db.collection('campaigns');
-    let campaignsCount = await campaignsCol.countDocuments();
+    const campaignsCount = await campaignsCol.countDocuments();
     console.log(`📊 "campaigns" count: ${campaignsCount}`);
-
-    // If campaigns collection is empty, sync from local outreach.json
-    const outreachFilePath = path.resolve(process.cwd(), 'data', 'outreach.json');
-    if (campaignsCount === 0 && fs.existsSync(outreachFilePath)) {
-      console.log('📥 Seeding MongoDB Atlas "campaigns" from local data/outreach.json...');
-      const localData = JSON.parse(fs.readFileSync(outreachFilePath, 'utf8'));
-      if (Array.isArray(localData) && localData.length > 0) {
-        await campaignsCol.insertMany(localData);
-        campaignsCount = await campaignsCol.countDocuments();
-        console.log(`✅ Successfully seeded ${campaignsCount} campaigns into MongoDB Atlas!`);
-      }
-    }
 
     // 4. Inspect settings collection
     const settingsCol = db.collection('settings');
-    let settingsCount = await settingsCol.countDocuments();
+    const settingsCount = await settingsCol.countDocuments();
     console.log(`⚙️ "settings" count: ${settingsCount}`);
-
-    // If settings collection is empty, sync from local settings.json
-    const settingsFilePath = path.resolve(process.cwd(), 'data', 'settings.json');
-    if (settingsCount === 0 && fs.existsSync(settingsFilePath)) {
-      console.log('📥 Seeding MongoDB Atlas "settings" from local data/settings.json...');
-      const localSettings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf8'));
-      await settingsCol.insertOne({ key: 'global_app_settings', ...localSettings });
-      settingsCount = await settingsCol.countDocuments();
-      console.log(`✅ Successfully seeded settings into MongoDB Atlas!`);
-    }
 
     // 5. Test write and read validation
     console.log('⏳ Testing read/write operations...');
