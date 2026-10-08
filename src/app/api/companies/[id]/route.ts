@@ -6,7 +6,7 @@ import { UpdateCompanyRequest } from '@/types/company';
 // PUT /api/companies/[id] - Update a company
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = getUserFromRequest(req);
@@ -17,7 +17,7 @@ export async function PUT(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body: UpdateCompanyRequest = await req.json();
 
     // Validate email format if provided
@@ -66,7 +66,7 @@ export async function PUT(
 // DELETE /api/companies/[id] - Soft delete a company
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = getUserFromRequest(req);
@@ -77,7 +77,7 @@ export async function DELETE(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     await deleteCompany(id);
 
     return NextResponse.json({

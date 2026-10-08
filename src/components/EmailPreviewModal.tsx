@@ -155,9 +155,16 @@ export function EmailPreviewModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#23272f] pb-4">
           <div>
-            <h3 className="text-base font-semibold text-white tracking-tight">
-              {campaign.companyName}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-white tracking-tight">
+                {campaign.companyName}
+              </h3>
+              {campaign.mailTopic && (
+                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-400 border border-blue-500/20">
+                  {campaign.mailTopic}
+                </span>
+              )}
+            </div>
             <p className="text-xs text-gray-400 mt-0.5">
               Why emailing: {campaign.reason}
             </p>

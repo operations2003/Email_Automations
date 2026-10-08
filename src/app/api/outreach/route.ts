@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
           c.companyName.toLowerCase().includes(query) ||
           c.email.toLowerCase().includes(query) ||
           c.reason.toLowerCase().includes(query) ||
+          (c.mailTopic && c.mailTopic.toLowerCase().includes(query)) ||
           c.initialSubject.toLowerCase().includes(query)
       );
     }
@@ -73,11 +74,13 @@ export async function POST(req: NextRequest) {
       companyName,
       email,
       ccEmails = '',
+      mailTopic = '',
       reason,
       recipientName = '',
       companyWebsite = '',
       notes = '',
-      forceCreate = false
+      forceCreate = false,
+      forceDuplicate = false
     } = body;
 
     // Validate inputs
@@ -87,17 +90,21 @@ export async function POST(req: NextRequest) {
     if (!email || !email.trim() || !email.includes('@')) {
       return NextResponse.json({ success: false, error: 'A valid email address is required.' }, { status: 400 });
     }
-    if (!reason || !reason.trim()) {
-      return NextResponse.json({ success: false, error: 'Reason for Email is required.' }, { status: 400 });
-    }
+
+    const defaultReason = mailTopic
+      ? `Outreach regarding ${mailTopic}`
+      : 'AI candidate screening & automated resume matching to eliminate recruiter review bottlenecks and save 8-10 hours/week.';
+    const finalReason = (reason && reason.trim()) ? reason.trim() : defaultReason;
 
     // Duplicate check
     const existing = await findCampaignByEmail(email);
-    if (existing && !forceCreate) {
+    if (existing && !forceCreate && !forceDuplicate) {
       return NextResponse.json(
         {
           success: false,
           isDuplicate: true,
+          duplicate: true,
+          existingCampaignId: existing.id,
           existingId: existing.id,
           existingCompany: existing.companyName,
           message: `This contact (${email}) already exists in your outreach list under "${existing.companyName}".`
@@ -114,7 +121,8 @@ export async function POST(req: NextRequest) {
       companyName: companyName.trim(),
       email: email.trim(),
       ccEmails: ccEmails.trim(),
-      reason: reason.trim(),
+      mailTopic: mailTopic ? mailTopic.trim() : '',
+      reason: finalReason,
       recipientName: recipientName.trim(),
       companyWebsite: companyWebsite.trim(),
       notes: notes.trim(),

@@ -31,6 +31,7 @@ router.get('/', async (req: Request, res: Response) => {
           c.companyName.toLowerCase().includes(query) ||
           c.email.toLowerCase().includes(query) ||
           c.reason.toLowerCase().includes(query) ||
+          (c.mailTopic && c.mailTopic.toLowerCase().includes(query)) ||
           c.initialSubject.toLowerCase().includes(query)
       );
     }
@@ -78,6 +79,7 @@ router.post('/', async (req: Request, res: Response) => {
       companyName,
       email,
       ccEmails = '',
+      mailTopic = '',
       reason,
       recipientName = '',
       companyWebsite = '',
@@ -91,9 +93,11 @@ router.post('/', async (req: Request, res: Response) => {
     if (!email || !email.trim() || !email.includes('@')) {
       return res.status(400).json({ success: false, error: 'A valid email address is required.' });
     }
-    if (!reason || !reason.trim()) {
-      return res.status(400).json({ success: false, error: 'Reason for Email is required.' });
-    }
+
+    const defaultReason = mailTopic
+      ? `Outreach regarding ${mailTopic}`
+      : 'AI candidate screening & automated resume matching to eliminate recruiter review bottlenecks and save 8-10 hours/week.';
+    const finalReason = (reason && reason.trim()) ? reason.trim() : defaultReason;
 
     const existing = await findCampaignByEmail(email);
     if (existing && !forceCreate) {
@@ -114,7 +118,8 @@ router.post('/', async (req: Request, res: Response) => {
       companyName: companyName.trim(),
       email: email.trim(),
       ccEmails: ccEmails.trim(),
-      reason: reason.trim(),
+      mailTopic: mailTopic ? mailTopic.trim() : '',
+      reason: finalReason,
       recipientName: recipientName.trim(),
       companyWebsite: companyWebsite.trim(),
       notes: notes.trim(),
@@ -259,6 +264,7 @@ router.post('/:id/generate', async (req: Request, res: Response) => {
         companyName: campaign.companyName,
         recipientEmail: campaign.email,
         ccEmails: campaign.ccEmails,
+        mailTopic: req.body.mailTopic || campaign.mailTopic,
         reason: campaign.reason,
         recipientName: campaign.recipientName,
         companyWebsite: campaign.companyWebsite,
@@ -348,6 +354,7 @@ router.post('/:id/regenerate', async (req: Request, res: Response) => {
         companyName: campaign.companyName,
         recipientEmail: campaign.email,
         ccEmails: campaign.ccEmails,
+        mailTopic: req.body.mailTopic || campaign.mailTopic,
         reason: campaign.reason,
         recipientName: campaign.recipientName,
         companyWebsite: campaign.companyWebsite,

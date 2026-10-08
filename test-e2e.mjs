@@ -34,7 +34,8 @@ async function run() {
       email: 'cto@hyperscale.test',
       ccEmails: 'sales@mycompany.com',
       reason: 'Explore recruitment partnership for backend software developers',
-      recipientName: 'Alex Vance'
+      recipientName: 'Alex Vance',
+      forceDuplicate: true
     })
   });
   const createData = await createRes.json();

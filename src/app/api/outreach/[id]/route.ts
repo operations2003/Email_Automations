@@ -38,6 +38,7 @@ export async function PUT(
     if (updates.companyName !== undefined) campaign.companyName = updates.companyName;
     if (updates.email !== undefined) campaign.email = updates.email;
     if (updates.ccEmails !== undefined) campaign.ccEmails = updates.ccEmails;
+    if (updates.mailTopic !== undefined) campaign.mailTopic = updates.mailTopic;
     if (updates.reason !== undefined) campaign.reason = updates.reason;
     if (updates.recipientName !== undefined) campaign.recipientName = updates.recipientName;
     if (updates.companyWebsite !== undefined) campaign.companyWebsite = updates.companyWebsite;

@@ -58,6 +58,11 @@ export function HistoryModal({ campaign, isOpen, onClose }: HistoryModalProps) {
               <span className="font-mono text-xs text-gray-400">
                 ({campaign.email})
               </span>
+              {campaign.mailTopic && (
+                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-400 border border-blue-500/20">
+                  {campaign.mailTopic}
+                </span>
+              )}
             </div>
             <p className="text-xs text-gray-400 mt-0.5">
               Status: <span className="text-gray-200 font-medium">{campaign.status}</span> · Reply: <span className="text-emerald-400 font-medium">{campaign.replyStatus}</span>

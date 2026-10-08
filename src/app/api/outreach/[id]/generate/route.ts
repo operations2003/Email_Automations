@@ -49,6 +49,7 @@ export async function POST(
         companyName: campaign.companyName,
         recipientEmail: campaign.email,
         ccEmails: campaign.ccEmails,
+        mailTopic: body.mailTopic || campaign.mailTopic,
         reason: campaign.reason,
         recipientName: campaign.recipientName,
         companyWebsite: campaign.companyWebsite,

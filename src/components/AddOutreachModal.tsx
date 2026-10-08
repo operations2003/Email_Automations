@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { GeneratedEmailResult, OutreachService, DEFAULT_SERVICES } from '@/types/outreach';
+import { GeneratedEmailResult, OutreachService } from '@/types/outreach';
 import { Company } from '@/types/company';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -17,9 +17,7 @@ import {
   PenTool,
   Copy,
   Check,
-  Plus,
-  Sparkles,
-  Briefcase
+  Tag
 } from 'lucide-react';
 
 interface AddOutreachModalProps {
@@ -49,26 +47,19 @@ export function AddOutreachModal({
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [ccEmails, setCcEmails] = useState('');
+  const [mailTopic, setMailTopic] = useState('recruitment services');
   const [reason, setReason] = useState('');
   const [recipientName, setRecipientName] = useState('');
   const [companyWebsite, setCompanyWebsite] = useState('');
-  const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  // Dynamic Services state
-  const [servicesList, setServicesList] = useState<OutreachService[]>(
-    initialServices && initialServices.length > 0 ? initialServices : DEFAULT_SERVICES
-  );
-  const [showAddCustom, setShowAddCustom] = useState(false);
-  const [customName, setCustomName] = useState('');
-  const [customTagline, setCustomTagline] = useState('');
-  const [customPitch, setCustomPitch] = useState('');
-  const [customIcon, setCustomIcon] = useState('🚀');
-
-  useEffect(() => {
-    if (initialServices && initialServices.length > 0) {
-      setServicesList(initialServices);
-    }
-  }, [initialServices]);
+  // Pre-configured pitches tailored for each mail topic category
+  const DEFAULT_TOPIC_PITCHES: Record<string, string> = {
+    'VCS': 'Version control systems (VCS), repository governance, CI/CD pipeline automation, and engineering workflow speed.',
+    'recruitment services': 'End-to-end recruitment services, specialized talent acquisition, and fast shortlist delivery for key open mandates.',
+    'software solutions': 'Custom software solutions, enterprise application development, cloud engineering, and technical architecture.',
+    'ATS + CRM app': 'Integrated ATS + CRM app to streamline candidate sourcing, pipeline tracking, and client relationship management in one platform.',
+    'HRMS + CRm': 'Integrated HRMS + CRM platform uniting human resource management, employee records, attendance, and client relations.'
+  };
 
   // Fetch available companies for employees
   useEffect(() => {
@@ -105,63 +96,6 @@ export function AddOutreachModal({
     }
   };
 
-  const handleSaveCustomService = async () => {
-    if (!customName.trim() || !customPitch.trim()) return;
-
-    const newService: OutreachService = {
-      id: 'srv_' + Math.random().toString(36).substring(2, 9),
-      name: customName.trim(),
-      icon: customIcon.trim() || '🚀',
-      tagline: customTagline.trim(),
-      pitch: customPitch.trim(),
-      isDefault: false
-    };
-
-    const updated = [...servicesList, newService];
-    setServicesList(updated);
-    setSelectedService(newService.id);
-    setReason(newService.pitch);
-    setShowAddCustom(false);
-    setCustomName('');
-    setCustomTagline('');
-    setCustomPitch('');
-    setCustomIcon('🚀');
-
-    try {
-      await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ services: updated })
-      });
-      if (onServicesChange) {
-        onServicesChange(updated);
-      }
-    } catch (err) {
-      console.error('Failed to save custom service:', err);
-    }
-  };
-
-  const handleDeleteCustomService = async (serviceId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const updated = servicesList.filter(s => s.id !== serviceId);
-    setServicesList(updated);
-    if (selectedService === serviceId) {
-      setSelectedService(null);
-    }
-    try {
-      await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ services: updated })
-      });
-      if (onServicesChange) {
-        onServicesChange(updated);
-      }
-    } catch (err) {
-      console.error('Failed to delete service:', err);
-    }
-  };
-
   // Generated draft state
   const [generatedResult, setGeneratedResult] = useState<GeneratedEmailResult | null>(null);
   const [subject, setSubject] = useState('');
@@ -190,8 +124,8 @@ export function AddOutreachModal({
     setCompanyName('');
     setEmail('');
     setCcEmails('');
+    setMailTopic('recruitment services');
     setReason('');
-    setSelectedService(null);
     setRecipientName('');
     setCompanyWebsite('');
     setGeneratedResult(null);
@@ -237,10 +171,15 @@ export function AddOutreachModal({
       setError('Please enter a valid email address.');
       return;
     }
-    if (!reason.trim()) {
-      setError('Please enter why you want to email them.');
+    if (!mailTopic && !reason.trim()) {
+      setError('Please select a Mail Topic or enter outreach context.');
       return;
     }
+
+    const topicPitch = mailTopic ? DEFAULT_TOPIC_PITCHES[mailTopic] || mailTopic : '';
+    const effectiveReason = reason.trim()
+      ? (mailTopic ? `[${mailTopic}] ${reason.trim()}` : reason.trim())
+      : (topicPitch || 'AI candidate screening & automated resume matching to eliminate recruiter review bottlenecks and save 8-10 hours/week.');
 
     setError(null);
     setIsGenerating(true);
@@ -253,7 +192,8 @@ export function AddOutreachModal({
           companyName: companyName.trim(),
           email: email.trim(),
           ccEmails: ccEmails.trim(),
-          reason: reason.trim(),
+          mailTopic: mailTopic.trim(),
+          reason: effectiveReason,
           recipientName: recipientName.trim(),
           companyWebsite: companyWebsite.trim(),
           forceDuplicate
@@ -282,7 +222,7 @@ export function AddOutreachModal({
       const genRes = await fetch(`/api/outreach/${campaign.id}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stage: 'initial' })
+        body: JSON.stringify({ stage: 'initial', mailTopic: mailTopic.trim() })
       });
 
       const genData = await genRes.json();
@@ -314,10 +254,15 @@ export function AddOutreachModal({
       setError('Please enter a valid email address.');
       return;
     }
-    if (!reason.trim()) {
-      setError('Please enter why you want to email them.');
+    if (!mailTopic && !reason.trim()) {
+      setError('Please select a Mail Topic or enter outreach context.');
       return;
     }
+
+    const topicPitch = mailTopic ? DEFAULT_TOPIC_PITCHES[mailTopic] || mailTopic : '';
+    const effectiveReason = reason.trim()
+      ? (mailTopic ? `[${mailTopic}] ${reason.trim()}` : reason.trim())
+      : (topicPitch || 'AI candidate screening & automated resume matching to eliminate recruiter review bottlenecks and save 8-10 hours/week.');
 
     setError(null);
     setIsSending(true);
@@ -331,7 +276,8 @@ export function AddOutreachModal({
           companyName: companyName.trim(),
           email: email.trim(),
           ccEmails: ccEmails.trim(),
-          reason: reason.trim(),
+          mailTopic: mailTopic.trim(),
+          reason: effectiveReason,
           recipientName: recipientName.trim(),
           companyWebsite: companyWebsite.trim(),
           forceDuplicate: false
@@ -357,7 +303,7 @@ export function AddOutreachModal({
       const genRes = await fetch(`/api/outreach/${campaign.id}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stage: 'initial' })
+        body: JSON.stringify({ stage: 'initial', mailTopic: mailTopic.trim() })
       });
       const genData = await genRes.json();
       if (!genRes.ok) throw new Error(genData.error || 'Could not write email');
@@ -387,7 +333,7 @@ export function AddOutreachModal({
   };
 
   const handleRegenerate = async () => {
-    if (!companyName || !reason) return;
+    if (!companyName) return;
     setIsGenerating(true);
     setError(null);
 
@@ -682,172 +628,82 @@ export function AddOutreachModal({
               </div>
             </div>
 
+            {/* Mail Topic (Category) */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-medium text-gray-300">
-                  Select Pitch Angle / Offering
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-gray-300">
+                  Mail Topic <span className="text-rose-400">*</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setShowAddCustom(!showAddCustom)}
-                  className="flex items-center gap-1 text-[11px] font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                {mailTopic && (
+                  <span className="text-[10px] text-blue-400 font-medium">
+                    Active: {mailTopic}
+                  </span>
+                )}
+              </div>
+              <div className="relative">
+                <Tag className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <select
+                  value={mailTopic}
+                  onChange={e => setMailTopic(e.target.value)}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-8 text-xs text-white focus:border-blue-500 focus:outline-none appearance-none cursor-pointer"
                 >
-                  <Plus className="h-3 w-3" />
-                  <span>{showAddCustom ? 'Cancel' : 'Add Custom Offering'}</span>
-                </button>
+                  <option value="">Choose a mail topic...</option>
+                  <option value="VCS">VCS</option>
+                  <option value="recruitment services">recruitment services</option>
+                  <option value="software solutions">software solutions</option>
+                  <option value="ATS + CRM app">ATS + CRM app</option>
+                  <option value="HRMS + CRm">HRMS + CRm</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
 
-              {/* Inline Custom Service Creator */}
-              {showAddCustom && (
-                <div className="mb-2.5 rounded-lg border border-blue-500/30 bg-blue-500/5 p-3 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-blue-400 flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Create Custom Offering
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddCustom(false)}
-                      className="text-xs text-gray-400 hover:text-gray-200"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="col-span-2">
-                      <label className="block text-[10px] text-gray-400 mb-0.5">Service Name *</label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Executive Search Screening"
-                        value={customName}
-                        onChange={e => setCustomName(e.target.value)}
-                        className="w-full rounded bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-gray-400 mb-0.5">Icon</label>
-                      <div className="flex gap-1">
-                        <input
-                          type="text"
-                          maxLength={4}
-                          value={customIcon}
-                          onChange={e => setCustomIcon(e.target.value)}
-                          className="w-9 rounded bg-[#0d0f12] border border-[#23272f] py-1 text-center text-xs text-white focus:border-blue-500 focus:outline-none"
-                        />
-                        <div className="flex items-center gap-0.5 text-xs">
-                          {['🎯', '💻', '🤖', '📋', '🚀', '⚡'].map(emoji => (
-                            <button
-                              key={emoji}
-                              type="button"
-                              onClick={() => setCustomIcon(emoji)}
-                              className="px-1 py-0.5 rounded hover:bg-[#23272f] text-xs"
-                            >
-                              {emoji}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-0.5">Tagline (Optional)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. AI JD-to-resume matching"
-                      value={customTagline}
-                      onChange={e => setCustomTagline(e.target.value)}
-                      className="w-full rounded bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] text-gray-400 mb-0.5">Email Pitch / Goal *</label>
-                    <textarea
-                      rows={2}
-                      placeholder="e.g. Introduce automated CV scoring to eliminate first-round review delays."
-                      value={customPitch}
-                      onChange={e => setCustomPitch(e.target.value)}
-                      className="w-full rounded bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-0.5">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddCustom(false)}
-                      className="px-2.5 py-1 text-xs text-gray-400 hover:text-white"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSaveCustomService}
-                      disabled={!customName.trim() || !customPitch.trim()}
-                      className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 text-xs font-medium text-white disabled:opacity-50"
-                    >
-                      Save & Select
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Dynamic Service Buttons */}
-              <div className="grid grid-cols-2 gap-1.5 mb-2.5 max-h-48 overflow-y-auto pr-0.5">
-                {servicesList.map(service => {
-                  const isSelected = selectedService === service.id;
+              {/* Quick-select topic pills */}
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {[
+                  'VCS',
+                  'recruitment services',
+                  'software solutions',
+                  'ATS + CRM app',
+                  'HRMS + CRm'
+                ].map(topic => {
+                  const isSelected = mailTopic === topic;
                   return (
-                    <div
-                      key={service.id}
-                      onClick={() => {
-                        setSelectedService(service.id);
-                        setReason(service.pitch);
-                      }}
-                      className={`group relative flex flex-col text-left p-2 rounded-md border cursor-pointer transition-all ${
+                    <button
+                      key={topic}
+                      type="button"
+                      onClick={() => setMailTopic(topic)}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-500/10'
-                          : 'border-[#23272f] bg-[#14171c] hover:bg-[#1c2128] hover:border-blue-500/40'
+                          ? 'bg-blue-600 text-white shadow-xs border border-blue-500 font-semibold'
+                          : 'bg-[#14171c] text-gray-300 border border-[#23272f] hover:text-white hover:border-gray-500'
                       }`}
                     >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="text-xs font-medium text-white flex items-center gap-1.5 truncate">
-                          <span>{service.icon || '💼'}</span>
-                          <span className="truncate">{service.name}</span>
-                        </span>
-                        {!service.isDefault && (
-                          <button
-                            type="button"
-                            onClick={e => handleDeleteCustomService(service.id, e)}
-                            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-rose-400 p-0.5 rounded transition-opacity"
-                            title="Remove service"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        )}
-                      </div>
-                      {service.tagline && (
-                        <span className="text-[10px] text-gray-400 mt-0.5 truncate">
-                          {service.tagline}
-                        </span>
-                      )}
-                    </div>
+                      {topic}
+                    </button>
                   );
                 })}
               </div>
+            </div>
 
+            <div>
               <label className="block text-xs font-medium text-gray-300 mb-1">
-                Why are you emailing them? <span className="text-rose-400">*</span>
+                Outreach Context / Notes (Optional)
               </label>
               <div className="relative">
                 <FileText className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
                 <textarea
                   rows={2}
-                  placeholder="e.g. Introduce HireIQ or see if they need help hiring software developers."
+                  placeholder={
+                    mailTopic
+                      ? `Optional custom notes for ${mailTopic} (AI automatically customizes pitch for this topic)`
+                      : "e.g. Any custom notes (Optional - AI automatically applies angle & intelligence)"
+                  }
                   value={reason}
-                  onChange={e => {
-                    setReason(e.target.value);
-                  }}
+                  onChange={e => setReason(e.target.value)}
                   className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -904,8 +760,8 @@ export function AddOutreachModal({
                 <span className="text-xs font-medium text-gray-300">
                   Draft Preview
                 </span>
-                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] text-blue-400 font-medium">
-                  AI ATS Engine
+                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] text-blue-400 font-medium border border-blue-500/20">
+                  {mailTopic || 'AI Engine'}
                 </span>
               </div>
               <div className="flex items-center gap-2">

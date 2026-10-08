@@ -1,16 +1,33 @@
 import { EmailGenerationPayload, GeneratedEmailResult } from '../types/outreach.js';
 
-// Classification angles for the AI ATS / Recruitment Intelligence Platform
+// Classification angles for the AI Outreach & Platform Solutions
 export type OutreachIntent =
   | 'pain_screening_bottleneck'  // Angle 1: Recruiters drowning in CVs, manual screening drag
   | 'time_saving'                // Angle 2: Saving 8-10 hours/week per recruiter, faster submittals
   | 'high_volume'                // Angle 3: Large applicant batches, candidate pool auto-ranking
   | 'recruiter_productivity'     // Angle 4: Higher billing capacity, consistent candidate scores
   | 'soft_cta_curiosity'         // Angle 5: Low-friction 90-sec example, conversational check
-  | 'general_ats_intelligence';  // General recruitment intelligence & matching
+  | 'general_ats_intelligence'   // General recruitment intelligence & matching
+  | 'vcs'                        // Topic: VCS (Version Control Systems / Engineering Workflows)
+  | 'recruitment_services'       // Topic: Recruitment Services (Full-cycle talent acquisition & staffing)
+  | 'software_solutions'         // Topic: Software Solutions (Custom engineering & digital products)
+  | 'ats_crm'                    // Topic: ATS + CRM app (Unified candidate tracking & client CRM)
+  | 'hrms_crm';                  // Topic: HRMS + CRm (Integrated HR management & customer CRM)
 
-export function classifyIntent(reason: string): OutreachIntent {
+export function classifyIntent(reason: string, mailTopic?: string): OutreachIntent {
+  const t = (mailTopic || '').toLowerCase();
+  if (t.includes('vcs')) return 'vcs';
+  if (t.includes('recruitment')) return 'recruitment_services';
+  if (t.includes('software')) return 'software_solutions';
+  if (t.includes('ats')) return 'ats_crm';
+  if (t.includes('hrms')) return 'hrms_crm';
+
   const r = reason.toLowerCase();
+  if (r.includes('vcs') || r.includes('version control') || r.includes('repository')) return 'vcs';
+  if (r.includes('recruitment services') || r.includes('staffing services') || r.includes('talent acquisition')) return 'recruitment_services';
+  if (r.includes('software solution') || r.includes('custom software') || r.includes('software engineering')) return 'software_solutions';
+  if (r.includes('ats + crm') || r.includes('ats and crm') || (r.includes('ats') && r.includes('crm'))) return 'ats_crm';
+  if (r.includes('hrms + crm') || r.includes('hrms and crm') || r.includes('hrms')) return 'hrms_crm';
 
   // Angle 1: Pain point / bottleneck / manual screening overload
   if (
@@ -151,6 +168,41 @@ const INITIAL_SUBJECT_TEMPLATES: Record<OutreachIntent, string[]> = {
     'faster shortlist turnaround for {company}',
     '{company} recruiter workflow',
     'ai candidate evaluation'
+  ],
+  vcs: [
+    '{company} code review & VCS workflow',
+    'streamlining version control at {company}',
+    '{company} repository governance & dev velocity',
+    'quick question regarding {company} engineering workflow',
+    'VCS & deployment speed for {company}'
+  ],
+  recruitment_services: [
+    'talent acquisition & recruitment for {company}',
+    'hiring pipeline for {company}',
+    'sourcing top candidates for {company}',
+    'quick note regarding {company} open roles',
+    'dedicated recruitment support for {company}'
+  ],
+  software_solutions: [
+    'custom software solutions for {company}',
+    'engineering capacity & software delivery at {company}',
+    'accelerating {company} software roadmap',
+    'modernizing applications for {company}',
+    'scalable software development for {company}'
+  ],
+  ats_crm: [
+    'unified ATS + CRM for {company}',
+    'streamlining candidate & client pipeline at {company}',
+    'eliminating siloed ATS & CRM tools at {company}',
+    'all-in-one ATS + CRM app for {company}',
+    '{company} recruitment & client workflow'
+  ],
+  hrms_crm: [
+    'integrated HRMS + CRM for {company}',
+    'connecting internal HR and external CRM at {company}',
+    'all-in-one HRMS + CRM platform for {company}',
+    '{company} employee & client management workflow',
+    'streamlining HR operations & CRM for {company}'
   ]
 };
 
@@ -189,6 +241,36 @@ const OPENINGS: Record<OutreachIntent, string[]> = {
   general_ats_intelligence: [
     'Noticed {company}’s active talent acquisition activity and delivery across client requisitions.',
     'Reaching out regarding how modern recruitment teams at {company} streamline their first-level candidate evaluation.'
+  ],
+  vcs: [
+    'Noticed {company}’s engineering team is shipping rapidly and scaling active codebases.',
+    'Tracking {company}’s tech footprint—managing multi-branch version control and code review cycles often slows release speed.',
+    'Saw the pace of technical releases at {company} and wanted to reach out regarding your development workflow.',
+    'Reaching out to see how {company} currently optimizes its version control and engineering pipelines.'
+  ],
+  recruitment_services: [
+    'Noticed {company} is actively scaling and searching for high-impact talent across critical roles.',
+    'Saw {company}’s open mandates—sourcing specialized, pre-vetted professionals quickly is often a huge bottleneck.',
+    'Tracking {company}’s hiring goals this quarter and wanted to share how we help fill specialized roles.',
+    'Reaching out regarding {company}’s talent acquisition and specialist recruitment pipeline.'
+  ],
+  software_solutions: [
+    'Following {company}’s recent tech initiatives and product expansion across your core systems.',
+    'Noticed {company} is tackling ambitious product goals—scaling software engineering capacity is always a key priority.',
+    'Reaching out regarding {company}’s software architecture and application delivery roadmap.',
+    'Saw {company}’s ongoing digital development and wanted to share how we accelerate custom software delivery.'
+  ],
+  ats_crm: [
+    'Noticed {company} manages both candidate acquisition and client relationships across active recruitment pipelines.',
+    'Managing separate tools for applicant tracking and client CRM often leads to duplicate data entry and missed follow-ups at {company}.',
+    'Reaching out to see how {company} currently bridges the gap between candidate sourcing and client account management.',
+    'Tracking {company}’s business operations—unifying ATS candidate flow with CRM client deals saves hours of administrative drag.'
+  ],
+  hrms_crm: [
+    'Tracking {company}’s organizational growth—coordinating internal HR operations alongside customer relationship management often requires juggling too many systems.',
+    'Saw {company} is expanding operations, where having disconnected HRMS and CRM tools creates administrative overhead.',
+    'Reaching out regarding how {company} centralizes employee management and customer operations.',
+    'Notice how rapidly {company} is expanding—unifying human resources and client CRM in one platform eliminates duplicate software spend.'
   ]
 };
 
@@ -220,6 +302,31 @@ const VALUE_PROPOSITIONS: Record<OutreachIntent, string[]> = {
   ],
   general_ats_intelligence: [
     'Our platform auto-matches candidate CVs against JDs, flags missing requirements, and surfaces the strongest applicants in seconds.'
+  ],
+  vcs: [
+    'We help engineering teams optimize their VCS pipelines, automate code review checks, and eliminate merge bottlenecks so developers ship features 40% faster.',
+    'Our version control workflow solutions integrate directly into your repositories to enforce code quality, automate pull request triage, and accelerate sprint releases.',
+    'We eliminate engineering deployment drag by streamlining branch management, automated linting, and VCS pipeline coordination across your developer teams.'
+  ],
+  recruitment_services: [
+    'Our recruitment services deliver rigorously vetted, role-ready candidate shortlists within 48 to 72 hours, saving your team weeks of manual talent search.',
+    'We manage full-cycle candidate sourcing, technical screening, and initial interviewing so your hiring managers only spend time talking to top-tier finalists.',
+    'Our specialized recruitment practice connects {company} with top-percentile passive candidates across engineering, product, and leadership roles.'
+  ],
+  software_solutions: [
+    'We build robust, high-performance software solutions—from modern web and mobile apps to resilient cloud backends—tailored to {company}’s exact business needs.',
+    'Our engineering teams partner with businesses to architect, build, and scale custom software systems with enterprise-grade quality and rapid sprint turnarounds.',
+    'We help teams bridge technical bandwidth gaps, modernizing legacy systems and delivering production-grade applications on time and within budget.'
+  ],
+  ats_crm: [
+    'Our ATS + CRM app unifies candidate pipelines and client deal tracking into a single pane of glass, eliminating double-entry and keeping recruiters and BD consultants in sync.',
+    'With our all-in-one ATS + CRM platform, your team can track applicants from sourcing to placement while managing client contracts and outreach seamlessly.',
+    'Our integrated platform automates resume parsing, candidate stages, and client communication in one workspace, cutting operational overhead in half.'
+  ],
+  hrms_crm: [
+    'Our unified HRMS + CRM platform connects end-to-end human resource operations (onboarding, attendance, payroll) with full CRM capabilities in one unified dashboard.',
+    'We eliminate the friction of fragmented software by integrating employee lifecycle management directly with client and project tracking.',
+    'Our platform gives leadership a 360-degree view of team productivity, internal workforce operations, and customer pipeline management without paying for multiple SaaS tools.'
   ]
 };
 
@@ -271,6 +378,26 @@ const FOLLOW_UP_1_VALUES: Record<OutreachIntent, string[]> = {
   ],
   general_ats_intelligence: [
     'If your consultants could cut screening down from hours to minutes per role, would that help hit your targets this quarter?'
+  ],
+  vcs: [
+    'One pattern we regularly see across engineering teams is that up to 30% of developer sprint time is lost to merge conflicts and manual code review bottlenecks.',
+    'Optimizing branch governance and pull request velocity helps development teams ship reliable code with significantly less friction.'
+  ],
+  recruitment_services: [
+    'When high-priority positions stay vacant for weeks, internal engineering and business roadmaps slip—our dedicated recruitment service eliminates that lag.',
+    'Directly sourcing pre-vetted specialists ensures your hiring leads only interview candidates ready to accept offers.'
+  ],
+  software_solutions: [
+    'Many companies face aggressive delivery schedules where dedicated software solutions and specialized engineering bandwidth make all the difference.',
+    'Our agile engineering model provides turnkey software development without the overhead and ramp-up delay of traditional agency contracts.'
+  ],
+  ats_crm: [
+    'When candidate data lives in one tool and client deals live in another, consultants waste hours duplicating data and losing candidate-client context.',
+    'Unifying candidate sourcing with client relationship management ensures that every placement conversation is backed by live account history.'
+  ],
+  hrms_crm: [
+    'Managing employee records, leave, and payroll in one silo while tracking customer projects in another creates administrative fragmentation.',
+    'Connecting internal HRMS workflows with client CRM gives operations teams full transparency over workforce resource allocation and client billing.'
   ]
 };
 
@@ -304,6 +431,26 @@ const FOLLOW_UP_2_PROOFS: Record<OutreachIntent, string[]> = {
   ],
   general_ats_intelligence: [
     'A staffing partner recently reduced screening cycles from 3 days to 4 hours by auto-ranking candidate skills against client specs.'
+  ],
+  vcs: [
+    'An engineering organization recently streamlined their repository pipelines with our VCS workflows, reducing pull request review cycles from 48 hours to under 6 hours.',
+    'One of our tech partners eliminated release deployment blockers by automating branch checks and repository workflows directly in their VCS.'
+  ],
+  recruitment_services: [
+    'A fast-growing technology company filled 4 hard-to-hire senior technical roles within 18 days through our dedicated candidate sourcing service.',
+    'Our recruitment team helped an enterprise partner cut their average time-to-hire from 6 weeks to 14 days with zero sacrifice in talent quality.'
+  ],
+  software_solutions: [
+    'We partnered with a client to design and launch an enterprise web application in just 8 weeks, helping them beat their market launch deadline by a month.',
+    'Our team modernized a legacy architecture for a SaaS platform, reducing infrastructure latency by 45% and eliminating system crashes.'
+  ],
+  ats_crm: [
+    'A 30-person agency transitioned to our unified ATS + CRM app, saving 6 hours per consultant weekly and increasing submittal-to-placement rates by 22%.',
+    'By consolidating separate applicant tracking and sales CRM systems, our partner reduced SaaS tool spend by 40% while streamlining placement delivery.'
+  ],
+  hrms_crm: [
+    'A mid-sized services company consolidated their HR administration and customer tracking onto our HRMS + CRM platform, cutting administrative time by 50%.',
+    'Our integrated platform enabled a 60-person organization to automate employee onboarding and client project staffing within a single portal.'
   ]
 };
 
@@ -465,6 +612,7 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
   const {
     companyName,
     reason,
+    mailTopic,
     recipientName,
     previousSubject,
     previousEmails = [],
@@ -472,7 +620,7 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
     tone = 'Professional',
   } = payload;
 
-  const intent = classifyIntent(reason);
+  const intent = classifyIntent(reason, mailTopic);
   const cleanCompany = companyName.trim() || 'your team';
   const salutation = recipientName && recipientName.trim() ? `Hi ${recipientName.trim()},` : `Hi ${cleanCompany} team,`;
 
@@ -586,6 +734,7 @@ async function generateWithOpenAI(
   const {
     companyName,
     reason,
+    mailTopic,
     recipientName,
     previousSubject,
     previousEmails = [],
@@ -593,36 +742,50 @@ async function generateWithOpenAI(
     tone = 'Professional'
   } = payload;
 
-  const intent = classifyIntent(reason);
+  const intent = classifyIntent(reason, mailTopic);
   const stageDescription =
     followUpNumber === 0
-      ? 'Initial Outreach Email (STRICTLY 65-100 words. Personalized hook referencing their company/hiring reality, 1-sentence outcome-focused value prop on eliminating manual CV screening and saving 8-10 recruiter hours/week, low-friction interest-based CTA asking for a 90-second example or 2-minute video. Zero fluff, zero spam clichés).'
+      ? 'Initial Outreach Email (STRICTLY 65-100 words. Personalized hook referencing their company/hiring reality, 1-sentence outcome-focused value prop on eliminating bottlenecks and saving time/cost, low-friction interest-based CTA asking for a 90-second example or 2-minute video. Zero fluff, zero spam clichés).'
       : followUpNumber === 1
-      ? 'Follow-Up 1 (STRICTLY 50-75 words. Problem re-frame focusing on recruiter desk reality: 60% of screening time spent rejecting unqualified CVs. Do NOT say "just following up". End with an easy conversational question).'
+      ? 'Follow-Up 1 (STRICTLY 50-75 words. Problem re-frame focusing on operational reality and common friction points. Do NOT say "just following up". End with an easy conversational question).'
       : followUpNumber === 2
-      ? 'Follow-Up 2 (STRICTLY 55-80 words. Micro case study or proof point: an agency reduced shortlist turnaround from 3 days to 4 hours or saved 9 hours/week. Offer 1-page summary).'
+      ? 'Follow-Up 2 (STRICTLY 55-80 words. Micro case study or proof point: a client achieved measurable turnaround or efficiency improvement. Offer 1-page summary).'
       : followUpNumber === 3
-      ? 'Follow-Up 3 (STRICTLY 35-55 words. Simple binary qualifying question: is screening turnaround a priority to improve right now, or is current workflow keeping pace?).'
+      ? 'Follow-Up 3 (STRICTLY 35-55 words. Simple binary qualifying question: is this area a priority to improve right now, or is current workflow keeping pace?).'
       : 'Follow-Up 4 (STRICTLY 35-50 words. Permission-based breakup closing loop: assume timing is not right, stepping back, zero pressure, wish them success).';
 
-  const systemPrompt = `You are an elite B2B cold-email copywriter and conversion strategist for an AI-powered ATS / Recruitment Intelligence SaaS platform.
-OUR PRODUCT:
-An AI screening and candidate intelligence platform that parses resumes, matches them against Job Descriptions, generates transparent ATS match scores, flags missing mandatory skills, and auto-ranks applicant pools.
-CORE VALUE OUTCOMES:
-- Eliminates manual resume screening
-- Saves recruiters 8–10 billable hours per week
-- Cuts candidate shortlist turnaround from days to hours
-- Delivers consistent candidate evaluation across consultant desks
+  const systemPrompt = `You are an elite B2B cold-email copywriter and conversion strategist for a modern solutions and software provider.
+
+OUR CORE PRODUCT OFFERINGS & VALUE ANGLES KNOWLEDGE BASE:
+When generating outreach emails and follow-ups, dynamically leverage the most relevant angle(s) according to the selected Mail Topic:
+
+1. VCS (Version Control Systems & Engineering Workflows):
+   - Focus: Streamlining Git repository governance, automated CI/CD branch checks, pull request velocity, eliminating merge bottlenecks, accelerating sprint releases.
+
+2. recruitment services (Talent Acquisition & Staffing):
+   - Focus: Delivering pre-vetted, high-impact candidate shortlists within 48-72 hours, specialized technical/executive searches, cutting time-to-hire, eliminating recruiter bandwidth bottlenecks.
+
+3. software solutions (Custom Software & Product Engineering):
+   - Focus: Custom web/mobile/cloud engineering, enterprise digital transformation, scalable API backends, modernizing legacy systems, agile sprint delivery.
+
+4. ATS + CRM app (Unified Applicant Tracking & Client CRM):
+   - Focus: Single-pane-of-glass platform connecting candidate talent pools with client business deals, eliminating double-entry across disjointed tools, syncing recruiters and account managers.
+
+5. HRMS + CRm (Integrated HR Management & CRM Platform):
+   - Focus: Unifying employee lifecycle management (onboarding, attendance, payroll) with client project and relationship management, eliminating multi-SaaS software sprawl and administrative overhead.
+
+6. Screening Bottleneck & Time Saving:
+   - Focus: Auto-matches CVs against exact JD criteria, flags missing mandatory skills, saves recruiters 8-10 hours weekly.
 
 COPYWRITING RULES:
 1. STRICT WORD COUNT: First email must be between 65 and 100 words. Follow-ups between 35 and 75 words.
-2. NEVER write generic emails like "Hi, we have an AI ATS platform. Would you like a demo?".
+2. NEVER write generic emails like "Hi, we have a platform. Would you like a demo?".
 3. Answer: Why this person? Why this company? Why this problem? Why our solution?
-4. SELL OUTCOMES, NOT FEATURES: Talk about recruiter capacity, faster client submittals, and catching missing skills. Do NOT talk about AI algorithms or technical architecture.
-5. LOW-FRICTION CTA: Always use interest-based CTAs like "Open to seeing a 90-second example?", "Would a quick 2-minute video be relevant?", "Is candidate screening bottlenecking your recruiters right now?". NEVER demand a 30-minute demo.
-6. BANNED PHRASES: NEVER use "hope you're doing well", "hope this email finds you well", "i am writing to introduce", "we would love to connect", "please let me know if you're interested", "touching base", "just checking in", "bump this", "revolutionary", "10x", "guaranteed results", "urgent".
-7. SUBJECT LINES: Short, natural, lower-case or conversational (e.g., "${companyName} shortlist speed", "hours spent on candidate cvs", "quick question regarding recruiter capacity").
-8. Do NOT include placeholder tokens like [Your Name] or signature blocks (the app appends signatures automatically).
+4. SELL OUTCOMES, NOT FEATURES: Talk about capacity, speed, cost efficiency, and developer/recruiter output.
+5. LOW-FRICTION CTA: Always use interest-based CTAs like "Open to seeing a 90-second example?", "Would a quick 2-minute video be relevant?". NEVER demand a 30-minute demo.
+6. BANNED PHRASES: NEVER use "hope you're doing well", "hope this email finds you well", "i am writing to introduce", "we would love to connect", "touching base", "just checking in", "bump this", "revolutionary", "urgent".
+7. SUBJECT LINES: Short, natural, lower-case or conversational.
+8. Do NOT include placeholder tokens like [Your Name] or signature blocks.
 
 OUTPUT FORMAT:
 Return strictly valid JSON only with keys:
@@ -636,6 +799,7 @@ Return strictly valid JSON only with keys:
   const userPrompt = `Generate a high-converting cold email:
 Company: ${companyName}
 Recipient Name: ${recipientName || 'Not specified'}
+Mail Topic / Category: ${mailTopic || 'General'}
 Outreach Focus / Pain Point: "${reason}"
 Angle Category: ${intent}
 Stage: ${stageDescription}

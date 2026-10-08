@@ -211,7 +211,7 @@ export function OutreachTable({
               <tr className="bg-[#101318] text-gray-400 font-medium text-[11px] border-b border-[#23272f]">
                 <th className="py-2.5 px-4 w-[220px]">Company & Contact</th>
                 <th className="py-2.5 px-4 w-[220px]">Email</th>
-                <th className="py-2.5 px-4 min-w-[200px]">Why emailing</th>
+                <th className="py-2.5 px-4 min-w-[220px]">Topic & Context</th>
                 <th className="py-2.5 px-4 w-[160px]">Status</th>
                 <th className="py-2.5 px-4 w-[180px]">Next Step</th>
                 <th className="py-2.5 px-4 min-w-[220px]">Subject</th>
@@ -295,11 +295,18 @@ export function OutreachTable({
                         )}
                       </td>
 
-                      {/* Why emailing */}
+                      {/* Topic & Context */}
                       <td className="py-3 px-4">
-                        <span className="text-gray-300 line-clamp-1 text-xs" title={c.reason}>
-                          {c.reason}
-                        </span>
+                        <div className="flex flex-col gap-1 max-w-xs">
+                          {c.mailTopic && (
+                            <span className="inline-flex items-center w-fit rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-400 border border-blue-500/20">
+                              {c.mailTopic}
+                            </span>
+                          )}
+                          <span className="text-gray-300 line-clamp-1 text-xs" title={c.reason}>
+                            {c.reason}
+                          </span>
+                        </div>
                       </td>
 
                       {/* Status */}

@@ -50,6 +50,7 @@ export interface OutreachCampaign {
   companyName: string;
   email: string;
   ccEmails: string;
+  mailTopic?: string;
   reason: string;
   recipientName?: string;
   companyWebsite?: string;
@@ -119,10 +120,21 @@ export const DEFAULT_SETTINGS: AppSettings = {
   openAiApiKey: '',
 };
 
+export const MAIL_TOPICS = [
+  'VCS',
+  'recruitment services',
+  'software solutions',
+  'ATS + CRM app',
+  'HRMS + CRm'
+] as const;
+
+export type MailTopic = (typeof MAIL_TOPICS)[number];
+
 export interface EmailGenerationPayload {
   companyName: string;
   recipientEmail: string;
   ccEmails?: string;
+  mailTopic?: string;
   reason: string;
   recipientName?: string;
   companyWebsite?: string;
