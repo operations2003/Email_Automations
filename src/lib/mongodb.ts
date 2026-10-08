@@ -40,8 +40,8 @@ export async function getMongoClient(): Promise<MongoClient | null> {
     } else {
       if (!clientPromise) {
         client = new MongoClient(uri, {
-          serverSelectionTimeoutMS: 5000,
-          connectTimeoutMS: 10000,
+          serverSelectionTimeoutMS: 2500,
+          connectTimeoutMS: 5000,
         });
         clientPromise = client.connect().catch((err: unknown) => {
           clientPromise = null;
