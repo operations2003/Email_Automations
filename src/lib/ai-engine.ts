@@ -1,6 +1,33 @@
 import { EmailGenerationPayload, GeneratedEmailResult } from '@/types/outreach';
 
-// Classification angles for the AI Outreach & Platform Solutions
+// BANNED_CLICHES constant for quality validation
+const BANNED_CLICHES = [
+  'hope this email finds you well',
+  'hope you\'re doing well', 
+  'i hope you are well',
+  'touching base',
+  'just checking in',
+  'bumping this to the top',
+  'circling back',
+  'following up on my previous email',
+  'i am writing to introduce',
+  'we would love to connect',
+  'revolutionary',
+  'game-changing', 
+  'industry-leading',
+  'cutting-edge',
+  'best-in-class',
+  'world-class',
+  '10x',
+  'guaranteed results',
+  'urgent',
+  'act now',
+  'limited time',
+  'i wanted to reach out to you',
+  'i trust this email finds you',
+  'dear sir/madam',
+  'to whom it may concern'
+];
 export type OutreachIntent =
   | 'pain_screening_bottleneck'  // Angle 1: Recruiters drowning in CVs, manual screening drag
   | 'time_saving'                // Angle 2: Saving 8-10 hours/week per recruiter, faster submittals
