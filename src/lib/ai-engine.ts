@@ -1,4 +1,5 @@
 import { EmailGenerationPayload, GeneratedEmailResult } from '@/types/outreach';
+import { optimizeSubjectForDeliverability } from './email-service';
 
 // BANNED_CLICHES constant for quality validation
 export const BANNED_CLICHES = [
@@ -228,7 +229,8 @@ export function selectVariant(items: string[], seedKey: string = ''): string {
   return items[index];
 }
 
-// Generates professional alternative subject lines (Direct, Value-Focused, Conversational)
+// Generates ultra-simple, deliverability-optimized subject lines (Direct, Simple, Conversational)
+// Kept strictly to 2-4 words, natural sentence case/lowercase, zero marketing hype.
 export function generateSubjectLineVariations(
   company: string,
   intent: OutreachIntent,
@@ -238,85 +240,85 @@ export function generateSubjectLineVariations(
   const cleanComp = company.trim() || 'your team';
   const seed = seedKey || `${cleanComp}_${intent}`;
 
-  // Natural, contextual subject lines based on intent
+  // Ultra-simple 2-4 word subject lines engineered for primary inbox placement
   const subjectTemplates = {
     vcs: {
-      primary: [`Customer support for ${cleanComp}`, `Supporting ${cleanComp}'s customers`, `${cleanComp} customer service`, `Quick question regarding ${cleanComp}'s support`],
-      direct: [`Customer support team for ${cleanComp}`, `VCS for ${cleanComp}`, `Customer service support`, `${cleanComp} support team / VCS`],
-      valueFocused: [`Reduce support workload at ${cleanComp}`, `Scale customer service for ${cleanComp}`, `Customer support that grows with you`],
-      conversational: [`Quick question about customer support`, `Helping with customer inquiries`, `Customer service at ${cleanComp}`, `Quick question regarding ${cleanComp}`]
+      primary: [`quick question - ${cleanComp}`, `support for ${cleanComp}`, `${cleanComp} customer support`, `quick question`],
+      direct: [`${cleanComp} / support`, `customer support for ${cleanComp}`, `${cleanComp} support team`],
+      valueFocused: [`support team - ${cleanComp}`, `${cleanComp} support`, `customer support`],
+      conversational: [`quick question`, `question for ${cleanComp}`, `quick question - support`]
     },
     recruitment_services: {
-      primary: [`Hiring support for ${cleanComp}`, `Recruitment help for ${cleanComp}`, `${cleanComp} talent acquisition`],
-      direct: [`End-to-end recruitment for ${cleanComp}`, `Hiring team for ${cleanComp}`, `Recruitment services`],
-      valueFocused: [`Streamline hiring at ${cleanComp}`, `Faster recruitment for ${cleanComp}`, `Scale your hiring process`],
-      conversational: [`Question about your hiring process`, `Helping with recruitment`, `Hiring at ${cleanComp}`]
+      primary: [`hiring at ${cleanComp}`, `recruitment for ${cleanComp}`, `quick question - ${cleanComp}`, `${cleanComp} hiring`],
+      direct: [`${cleanComp} / recruiting`, `hiring support - ${cleanComp}`, `recruitment team`],
+      valueFocused: [`recruitment for ${cleanComp}`, `${cleanComp} hiring`, `hiring support`],
+      conversational: [`quick question`, `question about hiring`, `quick question - ${cleanComp}`]
     },
     software_solutions: {
-      primary: [`HR technology for ${cleanComp}`, `Streamlining operations at ${cleanComp}`, `${cleanComp} workflow automation`],
-      direct: [`HR tech solutions for ${cleanComp}`, `Digital solutions for ${cleanComp}`, `HR software integration`],
-      valueFocused: [`Connect your HR systems`, `Automate workflows at ${cleanComp}`, `Integrated HR platform`],
-      conversational: [`Quick question about HR systems`, `Connecting your operations`, `HR technology at ${cleanComp}`]
+      primary: [`quick question - ${cleanComp}`, `operations at ${cleanComp}`, `hr systems - ${cleanComp}`, `${cleanComp} operations`],
+      direct: [`${cleanComp} / hr tools`, `operations support - ${cleanComp}`, `hr systems`],
+      valueFocused: [`hr operations - ${cleanComp}`, `operations at ${cleanComp}`, `${cleanComp} operations`],
+      conversational: [`quick question`, `question about operations`, `quick question - ${cleanComp}`]
     },
     ats_crm: {
-      primary: [`Resume screening for ${cleanComp}`, `HireIQ for ${cleanComp}`, `Candidate evaluation help`],
-      direct: [`ATS + CRM for ${cleanComp}`, `Automated resume screening`, `Recruitment intelligence`],
-      valueFocused: [`Save time screening candidates`, `Faster candidate evaluation`, `Rank resumes automatically`],
-      conversational: [`Question about resume screening`, `Candidate evaluation process`, `Screening resumes at ${cleanComp}`]
+      primary: [`hiring at ${cleanComp}`, `resume screening - ${cleanComp}`, `quick question - ${cleanComp}`, `${cleanComp} recruiting`],
+      direct: [`${cleanComp} / recruiting`, `screening at ${cleanComp}`, `candidate screening`],
+      valueFocused: [`screening for ${cleanComp}`, `recruiting support`, `resume screening`],
+      conversational: [`quick question`, `screening resumes at ${cleanComp}`, `hiring question`]
     },
     hrms_crm: {
-      primary: [`Employee management for ${cleanComp}`, `HRMS for ${cleanComp}`, `HR system integration`],
-      direct: [`HRMS + CRM integration`, `Employee lifecycle management`, `HR management system`],
-      valueFocused: [`Streamline employee operations`, `Connect HR and client data`, `Integrated employee management`],
-      conversational: [`Question about HR management`, `Employee systems at ${cleanComp}`, `HR operations help`]
+      primary: [`quick question - ${cleanComp}`, `hr operations - ${cleanComp}`, `employee systems - ${cleanComp}`, `${cleanComp} hr`],
+      direct: [`${cleanComp} / hr operations`, `hr management`, `employee operations`],
+      valueFocused: [`hr operations - ${cleanComp}`, `${cleanComp} systems`, `internal operations`],
+      conversational: [`quick question`, `quick question - ${cleanComp}`, `operations question`]
     },
     pain_screening_bottleneck: {
-      primary: [`Resume screening for ${cleanComp}`, `Candidate evaluation help`, `${cleanComp} hiring process`],
-      direct: [`Automated resume screening`, `Candidate screening solution`, `Resume evaluation platform`],
-      valueFocused: [`Save hours on resume screening`, `Faster candidate shortlisting`, `Streamline your hiring`],
-      conversational: [`Question about screening resumes`, `Hiring workflow at ${cleanComp}`, `Candidate evaluation process`]
+      primary: [`resume screening - ${cleanComp}`, `screening at ${cleanComp}`, `quick question - ${cleanComp}`],
+      direct: [`${cleanComp} / recruiting`, `candidate screening`, `screening resumes`],
+      valueFocused: [`screening for ${cleanComp}`, `recruiting support`, `resume screening`],
+      conversational: [`quick question`, `hiring at ${cleanComp}`, `quick question - ${cleanComp}`]
     },
     high_volume: {
-      primary: [`High-volume hiring for ${cleanComp}`, `Batch candidate processing`, `Scale your recruitment`],
-      direct: [`High-volume recruitment solution`, `Bulk candidate screening`, `Large-scale hiring support`],
-      valueFocused: [`Process more candidates faster`, `Scale hiring efficiently`, `Handle candidate volume`],
-      conversational: [`Question about hiring volume`, `Managing candidate flow`, `Recruitment capacity at ${cleanComp}`]
+      primary: [`hiring at ${cleanComp}`, `recruitment for ${cleanComp}`, `quick question - ${cleanComp}`],
+      direct: [`${cleanComp} / recruiting`, `hiring support`, `recruiting capacity`],
+      valueFocused: [`recruitment for ${cleanComp}`, `hiring for ${cleanComp}`, `recruiting team`],
+      conversational: [`quick question`, `hiring question`, `quick question - ${cleanComp}`]
     },
     recruiter_productivity: {
-      primary: [`Recruiting efficiency for ${cleanComp}`, `Faster hiring process`, `Recruiter productivity`],
-      direct: [`Recruitment efficiency platform`, `Hiring acceleration tools`, `Recruiter workflow optimization`],
-      valueFocused: [`Boost recruiting productivity`, `Faster candidate placement`, `Streamline recruiter workflow`],
-      conversational: [`Question about recruiting efficiency`, `Hiring speed at ${cleanComp}`, `Recruiter workflow help`]
+      primary: [`hiring at ${cleanComp}`, `recruitment for ${cleanComp}`, `quick question - ${cleanComp}`],
+      direct: [`${cleanComp} / recruiting`, `recruiting support`, `hiring team`],
+      valueFocused: [`recruitment for ${cleanComp}`, `${cleanComp} hiring`, `hiring support`],
+      conversational: [`quick question`, `quick question - ${cleanComp}`, `hiring question`]
     },
     time_saving: {
-      primary: [`Save hiring time at ${cleanComp}`, `Faster recruitment process`, `Time-efficient hiring`],
-      direct: [`Recruitment time optimization`, `Hiring efficiency solution`, `Accelerated candidate screening`],
-      valueFocused: [`Cut screening time by 70%`, `Hours saved on hiring`, `Faster time-to-hire`],
-      conversational: [`Question about hiring time`, `Recruitment efficiency`, `Speeding up your process`]
+      primary: [`hiring at ${cleanComp}`, `quick question - ${cleanComp}`, `recruitment for ${cleanComp}`],
+      direct: [`${cleanComp} / recruiting`, `hiring support`, `screening at ${cleanComp}`],
+      valueFocused: [`hiring for ${cleanComp}`, `recruitment support`, `${cleanComp} hiring`],
+      conversational: [`quick question`, `quick question - ${cleanComp}`, `hiring question`]
     },
     soft_cta_curiosity: {
-      primary: [`Quick question for ${cleanComp}`, `Something for ${cleanComp}`, `Thought this might help`],
-      direct: [`Business solution for ${cleanComp}`, `Operational support`, `Growth solution`],
-      valueFocused: [`Streamline operations at ${cleanComp}`, `Efficiency improvement`, `Operational optimization`],
-      conversational: [`Quick question`, `Helping with operations`, `Business question for ${cleanComp}`]
+      primary: [`quick question - ${cleanComp}`, `quick question`, `intro - ${cleanComp}`, `question for ${cleanComp}`],
+      direct: [`intro - ${cleanComp}`, `${cleanComp} / intro`, `quick question`],
+      valueFocused: [`support for ${cleanComp}`, `intro - ${cleanComp}`, `quick question`],
+      conversational: [`quick question`, `intro`, `question for ${cleanComp}`]
     }
   };
 
   // Default fallback
   const defaultTemplates = {
-    primary: [`Support for ${cleanComp}`, `Quick question for ${cleanComp}`, `Helping ${cleanComp} scale`],
-    direct: [`Business solutions for ${cleanComp}`, `Operational support`, `Growth solutions`],
-    valueFocused: [`Streamline operations at ${cleanComp}`, `Scale efficiently`, `Operational efficiency`],
-    conversational: [`Quick question`, `Helping with operations`, `Business question`]
+    primary: [`quick question - ${cleanComp}`, `quick question`, `support for ${cleanComp}`, `intro - ${cleanComp}`],
+    direct: [`${cleanComp} / support`, `intro - ${cleanComp}`, `quick question`],
+    valueFocused: [`support for ${cleanComp}`, `${cleanComp} support`, `quick question`],
+    conversational: [`quick question`, `intro`, `question for ${cleanComp}`]
   };
 
   const templates = (subjectTemplates as Record<string, any>)[intent] || defaultTemplates;
 
   return {
-    primary: selectVariant(templates.primary, seed + '_p'),
-    direct: selectVariant(templates.direct, seed + '_d'),
-    valueFocused: selectVariant(templates.valueFocused, seed + '_v'),
-    conversational: selectVariant(templates.conversational, seed + '_c')
+    primary: optimizeSubjectForDeliverability(selectVariant(templates.primary, seed + '_p'), 'initial', cleanComp),
+    direct: optimizeSubjectForDeliverability(selectVariant(templates.direct, seed + '_d'), 'initial', cleanComp),
+    valueFocused: optimizeSubjectForDeliverability(selectVariant(templates.valueFocused, seed + '_v'), 'initial', cleanComp),
+    conversational: optimizeSubjectForDeliverability(selectVariant(templates.conversational, seed + '_c'), 'initial', cleanComp)
   };
 }
 
@@ -366,13 +368,23 @@ export function validateEmailQuality(
     }
   }
 
-  // 3. Exclamation & all-caps checks
-  const exclamations = (body.match(/!/g) || []).length;
+  // 3. Subject deliverability & formatting checks
+  const exclamations = (body.match(/!/g) || []).length + (subject.match(/!/g) || []).length;
   if (exclamations > 1) {
     notes.push('Excessive exclamation marks detected.');
   }
-  if (subject === subject.toUpperCase() && subject.length > 10) {
+  if (subject === subject.toUpperCase() && subject.length > 8) {
     notes.push('All-caps subject line detected.');
+  }
+  const cleanSubjWords = subject.replace(/^(re:\s*)+/i, '').trim().split(/\s+/).filter(Boolean).length;
+  if (cleanSubjWords > 5) {
+    notes.push(`Subject line has ${cleanSubjWords} words; aim for 2-4 words for optimal inbox deliverability.`);
+  }
+  for (const phrase of BANNED_CLICHES) {
+    if (lowerSubject.includes(phrase)) {
+      notes.push(`Spam phrase detected in subject: "${phrase}".`);
+      foundSpam = true;
+    }
   }
 
   // 4. Word count check: Professional B2B standards
@@ -508,7 +520,29 @@ export function analyzeSpamRisk(subject: string, body: string): SpamRiskAssessme
     recommendations.push('Write subject lines in standard sentence case.');
   }
 
-  // 4. Repetitive template fingerprinting check
+  // 4. Subject deliverability & brevity check
+  const subjWords = lowerSub.replace(/^(re:\s*)+/i, '').trim().split(/\s+/).filter(Boolean).length;
+  if (subjWords > 5) {
+    score += 15;
+    flags.push(`Subject line is ${subjWords} words (aim for 2-4 words for primary inbox placement).`);
+    recommendations.push('Keep subject line ultra-simple (2-4 words) like "quick question" or "support for Company" to maximize inbox delivery.');
+  }
+  if (subject && /[?!]/.test(subject)) {
+    score += 15;
+    flags.push('Punctuation (! or ?) detected in subject line.');
+    recommendations.push('Avoid question marks or exclamation marks in subject lines to stay out of promotional tabs.');
+  }
+  const subjectSpamBuzzwords = ['streamline', 'solution', 'scale', 'boost', 'supercharge', 'revolutionary', 'optimize', 'discount', 'free'];
+  for (const buzz of subjectSpamBuzzwords) {
+    if (lowerSub.includes(buzz)) {
+      score += 20;
+      flags.push(`Marketing buzzword in subject line: "${buzz}".`);
+      recommendations.push('Remove sales/marketing buzzwords from subject line to avoid spam filters.');
+      break;
+    }
+  }
+
+  // 5. Repetitive template fingerprinting check
   if (
     lowerBody.includes('disconnected tools and manual administration frequently create bottlenecks') &&
     lowerSub.includes('digital hr & workflow automation')
@@ -567,8 +601,19 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
 
   const greeting = selectVariant(greetings, seed + '_greet');
   const subjects = generateSubjectLineVariations(cleanCompany, intent, mailTopic, seed);
-  const subject = subjects.primary;
-  const alternativeSubjects = [subjects.direct, subjects.valueFocused, subjects.conversational];
+  let subject = subjects.primary;
+  let alternativeSubjects = [subjects.direct, subjects.valueFocused, subjects.conversational];
+
+  if (followUpNumber > 0) {
+    const rawPrev = (previousSubject || '').trim();
+    const cleanBase = rawPrev.replace(/^(re:\s*)+/i, '').trim() || subjects.primary.replace(/^(re:\s*)+/i, '');
+    subject = `Re: ${cleanBase}`;
+    alternativeSubjects = [
+      `Re: ${cleanBase}`,
+      `Re: ${subjects.direct.replace(/^(re:\s*)+/i, '')}`,
+      `Re: ${subjects.conversational.replace(/^(re:\s*)+/i, '')}`
+    ];
+  }
 
   let bodyContent = '';
   let emailType = '';
@@ -858,6 +903,13 @@ STRICT GUIDELINES:
 - Natural paragraph breaks with double newlines
 - One clear, conversational call-to-action
 
+STRICT SUBJECT LINE RULES (CRITICAL FOR INBOX PLACEMENT):
+- The subject line MUST be ultra-simple: strictly 2 to 4 words (maximum 5 words). Short subjects land in the Primary Inbox; long/salesy subjects trigger spam and promotional tabs.
+- Use natural lowercase or sentence case (e.g. "quick question", "quick question - ${cleanCompany}", "support for ${cleanCompany}", "hiring at ${cleanCompany}").
+- NEVER use marketing buzzwords or spam triggers: avoid "streamline", "boost", "scale", "solution", "cutting-edge", "revolutionary", "optimize", "guaranteed", "save", "free", numbers, percentages (%), exclamation marks (!), or question marks (?).
+- Never sound like an ad or sales pitch. Real human emails use plain, brief subjects.
+- For follow-ups (followUpNumber > 0): The subject MUST strictly be "Re: <original subject>" to thread properly in the recipient's inbox.
+
 TONE ADAPTATIONS:
 - Professional: Respectful and business-appropriate while remaining conversational
 - Consultative: Advisory and helpful, focusing on their challenges and solutions
@@ -866,11 +918,11 @@ TONE ADAPTATIONS:
 
 OUTPUT FORMAT - Return valid JSON only:
 {
-  "subject": "Natural, relevant subject line that would make them want to open it",
+  "subject": "Ultra-simple 2-4 word subject line (e.g. 'quick question - Company' or 'Re: <original subject>' for follow-ups)",
   "body": "Conversational email body with natural paragraph breaks",
-  "directSubject": "Clear, direct alternative subject line",
-  "valueFocusedSubject": "Value-focused alternative subject line",
-  "conversationalSubject": "Conversational alternative subject line",
+  "directSubject": "2-3 word direct subject (e.g. 'Company / support')",
+  "valueFocusedSubject": "2-4 word simple subject (e.g. 'support for Company')",
+  "conversationalSubject": "1-3 word conversational subject (e.g. 'quick question')",
   "emailType": "${intent}_${followUpNumber}",
   "tone": "${tone}",
   "personalizationUsed": "Brief note on what personalization was applied or 'minimal' if limited info"
@@ -888,7 +940,7 @@ Specific Reason/Pain Point: "${reason}"
 Category: ${intent}
 Email Stage: ${stageDescription}
 Tone Preference: ${tone}
-${previousSubject ? `Previous Subject (avoid): "${previousSubject}"` : ''}
+${previousSubject ? (followUpNumber > 0 ? `Original Subject to Thread With: "${previousSubject}" (Set subject to "Re: ${previousSubject.replace(/^(re:\s*)+/i, '')}")` : `Previous Subject: "${previousSubject}"`) : ''}
 ${context.rolePains.length > 0 ? `Likely Role Challenges: ${context.rolePains.join(', ')}` : ''}
 
 IMPORTANT CONTEXT:
@@ -927,15 +979,22 @@ ${previousEmails.length > 0 ? `Previous emails in thread for context: ${JSON.str
   const content = data.choices[0]?.message?.content;
   const parsed = JSON.parse(content);
 
-  const cleanSubject = (parsed.subject || '').replace(/^["']|["']$/g, '').trim();
+  const rawSubject = (parsed.subject || '').replace(/^["']|["']$/g, '').trim();
+  const stage: 'initial' | 'followup_1' | 'followup_2' | 'followup_3' =
+    followUpNumber === 1 ? 'followup_1' : followUpNumber === 2 ? 'followup_2' : followUpNumber === 3 ? 'followup_3' : 'initial';
+  let cleanSubject = optimizeSubjectForDeliverability(rawSubject, stage, cleanCompany);
+  if (followUpNumber > 0 && previousSubject) {
+    const cleanBase = previousSubject.replace(/^(re:\s*)+/i, '').trim();
+    cleanSubject = `Re: ${cleanBase || cleanSubject.replace(/^(re:\s*)+/i, '')}`;
+  }
   const cleanBody = sanitizeEmailBody(parsed.body || '');
 
   // Variations
   const defaultVars = generateSubjectLineVariations(cleanCompany, intent, mailTopic);
   const altSubjects = [
-    parsed.directSubject || defaultVars.direct,
-    parsed.valueFocusedSubject || defaultVars.valueFocused,
-    parsed.conversationalSubject || defaultVars.conversational
+    optimizeSubjectForDeliverability(parsed.directSubject || defaultVars.direct, stage, cleanCompany),
+    optimizeSubjectForDeliverability(parsed.valueFocusedSubject || defaultVars.valueFocused, stage, cleanCompany),
+    optimizeSubjectForDeliverability(parsed.conversationalSubject || defaultVars.conversational, stage, cleanCompany)
   ];
 
   const quality = validateEmailQuality(

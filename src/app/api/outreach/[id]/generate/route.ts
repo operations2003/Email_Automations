@@ -22,18 +22,20 @@ export async function POST(
     let previousSubject: string | undefined = undefined;
     const previousEmails: string[] = [];
 
+    const rootSubject = campaign.initialSubject ? campaign.initialSubject.replace(/^(re:\s*)+/i, '').trim() : undefined;
+
     if (stage === 'followup_1') {
       followUpNumber = 1;
-      previousSubject = campaign.initialSubject;
+      previousSubject = rootSubject || campaign.initialSubject;
       if (campaign.initialEmailBody) previousEmails.push(campaign.initialEmailBody);
     } else if (stage === 'followup_2') {
       followUpNumber = 2;
-      previousSubject = campaign.followUp1Subject || campaign.initialSubject;
+      previousSubject = rootSubject || campaign.followUp1Subject || campaign.initialSubject;
       if (campaign.initialEmailBody) previousEmails.push(campaign.initialEmailBody);
       if (campaign.followUp1Body) previousEmails.push(campaign.followUp1Body);
     } else if (stage === 'followup_3') {
       followUpNumber = 3;
-      previousSubject = campaign.followUp2Subject || campaign.followUp1Subject;
+      previousSubject = rootSubject || campaign.followUp2Subject || campaign.followUp1Subject || campaign.initialSubject;
       if (campaign.initialEmailBody) previousEmails.push(campaign.initialEmailBody);
       if (campaign.followUp1Body) previousEmails.push(campaign.followUp1Body);
       if (campaign.followUp2Body) previousEmails.push(campaign.followUp2Body);

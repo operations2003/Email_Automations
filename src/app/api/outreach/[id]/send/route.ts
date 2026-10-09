@@ -138,7 +138,10 @@ export async function POST(
     }
 
     if (stage === 'followup_1') {
-      subjectToSend = subjectToSend || campaign.followUp1Subject;
+      subjectToSend =
+        subjectToSend ||
+        campaign.followUp1Subject ||
+        (campaign.initialSubject ? `Re: ${campaign.initialSubject.replace(/^(re:\s*)+/i, '').trim()}` : '');
       bodyToSend = bodyToSend || campaign.followUp1Body;
 
       const delivery = await sendOutreachEmail(
@@ -180,7 +183,10 @@ export async function POST(
     }
 
     if (stage === 'followup_2') {
-      subjectToSend = subjectToSend || campaign.followUp2Subject;
+      subjectToSend =
+        subjectToSend ||
+        campaign.followUp2Subject ||
+        (campaign.initialSubject ? `Re: ${campaign.initialSubject.replace(/^(re:\s*)+/i, '').trim()}` : '');
       bodyToSend = bodyToSend || campaign.followUp2Body;
 
       const delivery = await sendOutreachEmail(
@@ -222,7 +228,10 @@ export async function POST(
     }
 
     if (stage === 'followup_3') {
-      subjectToSend = subjectToSend || campaign.followUp3Subject;
+      subjectToSend =
+        subjectToSend ||
+        campaign.followUp3Subject ||
+        (campaign.initialSubject ? `Re: ${campaign.initialSubject.replace(/^(re:\s*)+/i, '').trim()}` : '');
       bodyToSend = bodyToSend || campaign.followUp3Body;
 
       const delivery = await sendOutreachEmail(

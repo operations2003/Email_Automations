@@ -42,19 +42,97 @@ function generateMessageId(): string {
 
 
 
-function optimizeSubjectForDeliverability(subject: string): string {
-  return subject
-    // Remove excessive exclamation marks
-    .replace(/!+/g, '')
-    // Avoid ALL CAPS
-    .replace(/^[A-Z\s]+$/, (match) =>
-      match.charAt(0) + match.slice(1).toLowerCase()
-    )
-    // Remove common spam words
-    .replace(/\b(FREE|URGENT|LIMITED|GUARANTEE|WINNER)\b/gi, '')
-    // Clean up spacing
+/**
+ * Optimizes an email subject line for maximum inbox deliverability.
+ * Cold email deliverability rules:
+ * 1. Brevity: 1 to 4 words (max 5 words). Short subjects mimic 1-to-1 personal human emails.
+ * 2. Case: Lowercase or natural sentence case. Never all-caps, never aggressive title-case.
+ * 3. Zero spam triggers: Strips promotional buzzwords (free, urgent, discount, scale, streamline, etc.).
+ * 4. Zero marketing punctuation: Strips exclamation marks, question marks, emojis, brackets, quotes.
+ * 5. Threading: Automatically ensures follow-ups thread with clean 'Re: ' prefix.
+ */
+export function optimizeSubjectForDeliverability(
+  subject: string,
+  stage?: 'initial' | 'followup_1' | 'followup_2' | 'followup_3',
+  fallbackCompany?: string
+): string {
+  if (!subject || !subject.trim()) {
+    const fallback = fallbackCompany ? `quick question - ${fallbackCompany.trim()}` : 'quick question';
+    return stage && stage !== 'initial' ? `Re: ${fallback}` : fallback;
+  }
+
+  let text = subject.trim();
+
+  // 1. Detect and normalize existing 'Re:' thread prefix
+  const isThreaded = /^(re:\s*)+/i.test(text) || (Boolean(stage) && stage !== 'initial');
+  text = text.replace(/^(re:\s*)+/gi, '').trim();
+
+  // 2. Remove emojis and non-standard symbols
+  text = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+
+  // 3. Remove spam punctuation: exclamation marks, question marks, brackets, quotes, stars, dollar/percent signs
+  text = text
+    .replace(/[!¡?¿$%*~^<>_{}[\]\\"]+/g, '')
+    .replace(/['']/g, "'");
+
+  // 4. Strip aggressive spam trigger words and marketing buzzwords
+  const spamWords = [
+    /\b(100%|free|urgent|guarantee|guaranteed|risk-free|winner|congratulations)\b/gi,
+    /\b(act now|apply now|limited time|call now|click here|special offer|special promotion)\b/gi,
+    /\b(game-changing|revolutionary|cutting-edge|industry-leading|best-in-class|world-class|10x)\b/gi,
+    /\b(supercharge|skyrocket|massive|unbelievable|miracle|magic)\b/gi,
+    /\b(discount|promo|deal|fast cash|make money|earn money)\b/gi
+  ];
+
+  for (const regex of spamWords) {
+    text = text.replace(regex, '');
+  }
+
+  // 5. Clean up extra punctuation, slashes, hyphens, and whitespace
+  text = text
+    .replace(/\s*([/-])\s*/g, ' $1 ')
     .replace(/\s+/g, ' ')
+    .replace(/^[-/,\s]+|[-/,\s]+$/g, '')
     .trim();
+
+  // 6. If empty after stripping spam words, provide clean human default
+  if (!text) {
+    text = fallbackCompany ? `quick question - ${fallbackCompany.trim()}` : 'quick question';
+  }
+
+  // 7. Prevent ALL CAPS and aggressive Title Case
+  const lettersOnly = text.replace(/[^a-zA-Z]/g, '');
+  if (lettersOnly.length > 3 && lettersOnly === lettersOnly.toUpperCase()) {
+    text = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  } else {
+    // If predominantly title-cased like "Your Hiring Workflow", convert to natural sentence case
+    const rawWords = text.split(' ');
+    const capCount = rawWords.filter(w => /^[A-Z]/.test(w)).length;
+    if (rawWords.length > 1 && capCount >= Math.ceil(rawWords.length * 0.5)) {
+      text = rawWords.map((w, idx) => {
+        if (idx === 0) return w;
+        if (/^(vcs|hr|hrms|ats|crm|ai|it|id|llc|inc|ceo|cto)$/i.test(w)) return w.toUpperCase();
+        if (w === '-' || w === '/') return w;
+        return w.toLowerCase();
+      }).join(' ');
+    }
+  }
+
+  // 8. Brevity check: If subject is longer than 5 words, trim to first 4 words for maximum inbox placement
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length > 5) {
+    text = words.slice(0, 4).join(' ');
+    // Strip trailing prepositions or dangling punctuation
+    text = text.replace(/\b(with|for|at|and|to|in|on|of|the|a|an)\s*$/i, '').trim();
+    text = text.replace(/[-/,\s]+$/g, '').trim();
+  }
+
+  // 9. If threaded, prepend clean single 'Re: '
+  if (isThreaded) {
+    return `Re: ${text}`;
+  }
+
+  return text;
 }
 
 function optimizeEmailContentForDeliverability(content: string): string {
@@ -160,11 +238,6 @@ export function formatProfessionalEmailHtml(
     ${signatureHtml}
     ${optOutHtml}
   </div>
-  
-  <!-- Deliverability enhancement -->
-  <div style="font-size: 1px; color: transparent; line-height: 1px; max-height: 1px; overflow: hidden;">
-    TaskNera Professional Business Communication
-  </div>
 </body>
 </html>`;
 }
@@ -228,7 +301,7 @@ export async function sendOutreachEmail(
 
   const optimizedSignature = payload.signature ? optimizeSignatureForDeliverability(payload.signature) : undefined;
   const optimizedBody = optimizeEmailContentForDeliverability(payload.body);
-  const optimizedSubject = optimizeSubjectForDeliverability(payload.subject);
+  const optimizedSubject = optimizeSubjectForDeliverability(payload.subject, payload.stage);
 
   // Attach clean opt-out text to plain-text body as well
   let fullBody = optimizedSignature ? `${optimizedBody}\n\n${optimizedSignature}` : optimizedBody;
