@@ -220,50 +220,90 @@ export function generateSubjectLineVariations(
 ): { primary: string; direct: string; valueFocused: string; conversational: string } {
   const cleanComp = company.trim() || 'your team';
 
-  switch (intent) {
-    case 'vcs':
-      return {
-        primary: `virtual customer support coverage for ${cleanComp}`,
-        direct: `Dedicated customer support operations for ${cleanComp}`,
-        valueFocused: `SLA-aligned support across chat, voice & email for ${cleanComp}`,
-        conversational: `Handling customer enquiries & support at ${cleanComp}`
-      };
-    case 'recruitment_services':
-      return {
-        primary: `streamlining talent acquisition at ${cleanComp}`,
-        direct: `End-to-end recruitment & candidate shortlisting for ${cleanComp}`,
-        valueFocused: `Accelerating quality hiring pipelines for ${cleanComp}`,
-        conversational: `Quick question about ${cleanComp}'s hiring pipeline`
-      };
-    case 'software_solutions':
-      return {
-        primary: `digital HR & workflow automation for ${cleanComp}`,
-        direct: `HR technology & operations dashboards for ${cleanComp}`,
-        valueFocused: `Reducing administrative HR effort at ${cleanComp}`,
-        conversational: `HR technology & workflow visibility at ${cleanComp}`
-      };
-    case 'ats_crm':
-      return {
-        primary: `HireIQ: AI recruitment intelligence for ${cleanComp}`,
-        direct: `Resume parsing & candidate matching for ${cleanComp}`,
-        valueFocused: `Accelerating candidate shortlisting decisions at ${cleanComp}`,
-        conversational: `Quick question about ${cleanComp}'s candidate screening workflow`
-      };
-    case 'hrms_crm':
-      return {
-        primary: `connected HRMS & workforce operations for ${cleanComp}`,
-        direct: `Employee lifecycle & CRM workflows at ${cleanComp}`,
-        valueFocused: `Centralizing HR management & operations at ${cleanComp}`,
-        conversational: `Managing employee workflows and CRM at ${cleanComp}`
-      };
-    case 'pain_screening_bottleneck':
-      return {
-        primary: `${cleanComp} shortlist turnaround`,
-        direct: `Candidate resume evaluation for ${cleanComp}`,
-        valueFocused: `Eliminating manual screening bottlenecks at ${cleanComp}`,
-        conversational: `Hours spent reviewing CVs at ${cleanComp}`
-      };
-    case 'high_volume':
+  // Natural, contextual subject lines based on intent
+  const subjectTemplates = {
+    vcs: {
+      primary: [`Customer support for ${cleanComp}`, `Supporting ${cleanComp}'s customers`, `${cleanComp} customer service`],
+      direct: [`Customer support team for ${cleanComp}`, `VCS for ${cleanComp}`, `Customer service support`],
+      valueFocused: [`Reduce support workload at ${cleanComp}`, `Scale customer service for ${cleanComp}`, `Customer support that grows with you`],
+      conversational: [`Quick question about customer support`, `Helping with customer inquiries`, `Customer service at ${cleanComp}`]
+    },
+    recruitment_services: {
+      primary: [`Hiring support for ${cleanComp}`, `Recruitment help for ${cleanComp}`, `${cleanComp} talent acquisition`],
+      direct: [`End-to-end recruitment for ${cleanComp}`, `Hiring team for ${cleanComp}`, `Recruitment services`],
+      valueFocused: [`Streamline hiring at ${cleanComp}`, `Faster recruitment for ${cleanComp}`, `Scale your hiring process`],
+      conversational: [`Question about your hiring process`, `Helping with recruitment`, `Hiring at ${cleanComp}`]
+    },
+    software_solutions: {
+      primary: [`HR technology for ${cleanComp}`, `Streamlining operations at ${cleanComp}`, `${cleanComp} workflow automation`],
+      direct: [`HR tech solutions for ${cleanComp}`, `Digital solutions for ${cleanComp}`, `HR software integration`],
+      valueFocused: [`Connect your HR systems`, `Automate workflows at ${cleanComp}`, `Integrated HR platform`],
+      conversational: [`Quick question about HR systems`, `Connecting your operations`, `HR technology at ${cleanComp}`]
+    },
+    ats_crm: {
+      primary: [`Resume screening for ${cleanComp}`, `HireIQ for ${cleanComp}`, `Candidate evaluation help`],
+      direct: [`ATS + CRM for ${cleanComp}`, `Automated resume screening`, `Recruitment intelligence`],
+      valueFocused: [`Save time screening candidates`, `Faster candidate evaluation`, `Rank resumes automatically`],
+      conversational: [`Question about resume screening`, `Candidate evaluation process`, `Screening resumes at ${cleanComp}`]
+    },
+    hrms_crm: {
+      primary: [`Employee management for ${cleanComp}`, `HRMS for ${cleanComp}`, `HR system integration`],
+      direct: [`HRMS + CRM integration`, `Employee lifecycle management`, `HR management system`],
+      valueFocused: [`Streamline employee operations`, `Connect HR and client data`, `Integrated employee management`],
+      conversational: [`Question about HR management`, `Employee systems at ${cleanComp}`, `HR operations help`]
+    },
+    pain_screening_bottleneck: {
+      primary: [`Resume screening for ${cleanComp}`, `Candidate evaluation help`, `${cleanComp} hiring process`],
+      direct: [`Automated resume screening`, `Candidate screening solution`, `Resume evaluation platform`],
+      valueFocused: [`Save hours on resume screening`, `Faster candidate shortlisting`, `Streamline your hiring`],
+      conversational: [`Question about screening resumes`, `Hiring workflow at ${cleanComp}`, `Candidate evaluation process`]
+    },
+    high_volume: {
+      primary: [`High-volume hiring for ${cleanComp}`, `Batch candidate processing`, `Scale your recruitment`],
+      direct: [`High-volume recruitment solution`, `Bulk candidate screening`, `Large-scale hiring support`],
+      valueFocused: [`Process more candidates faster`, `Scale hiring efficiently`, `Handle candidate volume`],
+      conversational: [`Question about hiring volume`, `Managing candidate flow`, `Recruitment capacity at ${cleanComp}`]
+    },
+    recruiter_productivity: {
+      primary: [`Recruiting efficiency for ${cleanComp}`, `Faster hiring process`, `Recruiter productivity`],
+      direct: [`Recruitment efficiency platform`, `Hiring acceleration tools`, `Recruiter workflow optimization`],
+      valueFocused: [`Boost recruiting productivity`, `Faster candidate placement`, `Streamline recruiter workflow`],
+      conversational: [`Question about recruiting efficiency`, `Hiring speed at ${cleanComp}`, `Recruiter workflow help`]
+    },
+    time_saving: {
+      primary: [`Save hiring time at ${cleanComp}`, `Faster recruitment process`, `Time-efficient hiring`],
+      direct: [`Recruitment time optimization`, `Hiring efficiency solution`, `Accelerated candidate screening`],
+      valueFocused: [`Cut screening time by 70%`, `Hours saved on hiring`, `Faster time-to-hire`],
+      conversational: [`Question about hiring time`, `Recruitment efficiency`, `Speeding up your process`]
+    },
+    soft_cta_curiosity: {
+      primary: [`Quick question for ${cleanComp}`, `Something for ${cleanComp}`, `Thought this might help`],
+      direct: [`Business solution for ${cleanComp}`, `Operational support`, `Growth solution`],
+      valueFocused: [`Streamline operations at ${cleanComp}`, `Efficiency improvement`, `Operational optimization`],
+      conversational: [`Quick question`, `Helping with operations`, `Business question for ${cleanComp}`]
+    }
+  };
+
+  // Default fallback
+  const defaultTemplates = {
+    primary: [`Support for ${cleanComp}`, `Quick question for ${cleanComp}`, `Helping ${cleanComp} scale`],
+    direct: [`Business solutions for ${cleanComp}`, `Operational support`, `Growth solutions`],
+    valueFocused: [`Streamline operations at ${cleanComp}`, `Scale efficiently`, `Operational efficiency`],
+    conversational: [`Quick question`, `Helping with operations`, `Business question`]
+  };
+
+  const templates = subjectTemplates[intent] || defaultTemplates;
+  
+  // Add randomization to avoid repetitive patterns
+  const getRandomTemplate = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+
+  return {
+    primary: getRandomTemplate(templates.primary),
+    direct: getRandomTemplate(templates.direct),
+    valueFocused: getRandomTemplate(templates.valueFocused),
+    conversational: getRandomTemplate(templates.conversational)
+  };
+}
       return {
         primary: `managing applicant volume at ${cleanComp}`,
         direct: `High-volume candidate matching for ${cleanComp}`,
@@ -440,11 +480,20 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
 
   const intent = classifyIntent(reason, mailTopic);
   const cleanCompany = companyName.trim() || 'your company';
-  const { firstName, designation } = parseRecipientDetails(recipientName);
+  const context = analyzeRecipientContext(recipientName, cleanCompany, payload.companyWebsite, reason);
 
-  // Natural greeting
-  const salutation = firstName ? `Hi ${firstName},` : `Hi ${cleanCompany} team,`;
+  // Natural, varied greetings
+  const greetings = context.firstName ? [
+    `Hi ${context.firstName},`,
+    `Hello ${context.firstName},`,
+    `Hi there ${context.firstName},`
+  ] : [
+    `Hi there,`,
+    `Hello,`,
+    `Hi,`
+  ];
 
+  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
   const subjects = generateSubjectLineVariations(cleanCompany, intent, mailTopic);
   const subject = subjects.primary;
   const alternativeSubjects = [subjects.direct, subjects.valueFocused, subjects.conversational];
@@ -455,78 +504,107 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
   if (followUpNumber === 0) {
     emailType = `initial_${intent}`;
 
-    let opening = '';
-    let valuePara = '';
-    let cta = '';
+    // Generate natural, contextual opening
+    const opening = generateContextualOpening(context, cleanCompany, intent);
+    
+    // Natural value proposition based on context
+    const valueProp = generateNaturalValueProp(intent, context, cleanCompany);
+    
+    // Conversational CTA
+    const cta = generateNaturalCTA(intent, cleanCompany, context);
 
-    switch (intent) {
-      case 'vcs':
-        opening = designation
-          ? `I noticed your role leading ${designation} at ${cleanCompany}. Delivering consistent, responsive customer support across multiple channels often places substantial pressure on internal teams.`
-          : `Reaching out regarding how ${cleanCompany} manages inbound customer inquiries and support coverage across channels. Maintaining high service quality while handling fluctuating volume can be an operational challenge.`;
-        valuePara = `Through TaskNera's Virtual Customer Support (VCS), we provide dedicated, human-led support teams across voice, live chat, email, WhatsApp, and social media. Our teams handle enquiries, issue resolution, and follow-ups backed by structured workflows, continuous quality monitoring, and strict SLA-aligned delivery.`;
-        cta = `Would you be open to a brief 10-minute introductory conversation this week to explore if our support pods align with ${cleanCompany}'s customer service goals?`;
-        break;
-
-      case 'recruitment_services':
-        opening = designation
-          ? `I noticed your work as ${designation} at ${cleanCompany}. Keeping up with hiring demands across specialized roles while maintaining thorough candidate screening requires significant team bandwidth.`
-          : `Reaching out regarding ${cleanCompany}'s hiring initiatives. Sourcing and screening qualified talent across active requisitions often pulls hiring managers away from strategic priorities.`;
-        valuePara = `TaskNera supports end-to-end recruitment across permanent, contract, executive, IT and non-IT, and high-volume hiring. From candidate sourcing and screening to candidate shortlisting and interview coordination, we help build qualified talent pipelines and streamline recruitment operations.`;
-        cta = `Would you be open to a short 10-minute conversation to explore how we could support ${cleanCompany}'s current talent requirements?`;
-        break;
-
-      case 'software_solutions':
-        opening = `I am reaching out to see how ${cleanCompany} currently manages operational visibility across people management and business workflows. Disconnected tools and manual administration frequently create bottlenecks.`;
-        valuePara = `TaskNera delivers HR technology and digital solutions including recruitment intelligence, HRMS platforms, employee self-service portals, workforce dashboards, and workflow automation. Our integrated digital ecosystem connects recruitment pipelines, employee management, and client relationships to improve visibility and reduce repetitive administrative effort.`;
-        cta = `Would it be helpful if I shared a brief 2-minute overview showing how we streamline these operations for growing businesses?`;
-        break;
-
-      case 'ats_crm':
-        opening = designation
-          ? `I noticed your recruitment focus at ${cleanCompany}. When managing competitive requisitions, recruitment teams frequently spend hours sifting through resumes to evaluate qualifications against role criteria.`
-          : `When managing active requisitions at ${cleanCompany}, manual resume screening often becomes one of the slowest stages before candidate interviews.`;
-        valuePara = `HireIQ by TaskNera is an AI-powered recruitment intelligence platform that supports job-description analysis, resume parsing, candidate-to-role matching, weighted scoring, and structured candidate evaluation. Combined with our planned CRM integration, it connects client accounts, hiring requirements, and communication history directly with recruitment activities for end-to-end visibility.`;
-        cta = `Would you be open to seeing a 90-second walkthrough of how HireIQ evaluates candidates and accelerates shortlisting?`;
-        break;
-
-      case 'hrms_crm':
-        opening = `Tracking ${cleanCompany}'s growth—managing employee records, onboarding, leave, and payroll alongside client relationships often requires toggling between disconnected software tools.`;
-        valuePara = `TaskNera's HRMS centralizes essential employee lifecycle workflows—including employee records, onboarding and offboarding, attendance, leave, payroll, performance, and training. Connected with our CRM integration, customer accounts and service requirements link directly with workforce operations to create a cohesive business ecosystem.`;
-        cta = `Would you be open to a quick 10-minute walkthrough to see how an integrated setup could simplify ${cleanCompany}'s daily operations?`;
-        break;
-
-      case 'pain_screening_bottleneck':
-        opening = `Managing active hiring requisitions at ${cleanCompany} often leads to consultants spending hours filtering through mismatched resumes just to identify a few viable candidates.`;
-        valuePara = `Our AI recruitment intelligence platform automates first-level screening by matching CVs directly against your exact job specifications. It instantly highlights matching skills, flags missing prerequisites, and ranks top applicants so your team only spends interview time on qualified candidates.`;
-        cta = `Would you be open to checking out a quick 2-minute example of how it operates on a live requisition?`;
-        break;
-
-      case 'high_volume':
-        opening = `Curious how your hiring team at ${cleanCompany} currently manages high-volume applicant intake. When candidate volume surges, valuable talent pools often sit underutilized because re-screening past profiles manually takes too long.`;
-        valuePara = `Our platform processes large batches of resumes in minutes, evaluating candidates against defined criteria and auto-ranking talent pools. This allows your team to reactivate existing candidates and surface top applicants before competitors even complete their initial review.`;
-        cta = `Is managing high candidate volume something your recruitment team is looking to streamline this quarter?`;
-        break;
-
-      case 'recruiter_productivity':
-        opening = `In fast-moving recruitment, submitting vetted shortlists to hiring managers quickly often determines who secures the best talent.`;
-        valuePara = `Our recruitment intelligence platform standardizes candidate evaluation against your criteria, giving recruiters consistent matching scores in seconds. This eliminates manual resume reading, shortens submittal turnaround from days to hours, and frees up your team to focus on candidate engagement.`;
-        cta = `Would you be open to a brief 10-minute introductory call to compare notes on your current workflow?`;
-        break;
-
-      case 'soft_cta_curiosity':
-      case 'time_saving':
-      default:
-        opening = designation
-          ? `I noticed your role as ${designation} at ${cleanCompany} and wanted to reach out regarding your recruitment and candidate review process.`
-          : `Reaching out regarding ${cleanCompany}'s recruitment operations and how your team handles candidate evaluation.`;
-        valuePara = `If your team spends significant time manually reviewing CVs against job specifications, our platform automates that initial screening pass. It parses resumes, highlights key skill alignments, and ranks applicants objectively, typically saving recruiters 8 to 10 hours every week.`;
-        cta = `Would you be open to a brief 10-minute walkthrough to see if this could save your team time this quarter?`;
-        break;
-    }
-
-    bodyContent = [salutation, opening, valuePara, cta].join('\n\n');
+    bodyContent = [greeting, opening, valueProp, cta].join('\n\n');
   } else if (followUpNumber === 1) {
+    emailType = `followup1_${intent}`;
+
+    const followUpOpenings = [
+      `I sent a note last week about how we help companies like ${cleanCompany} with ${intent.replace('_', ' ')}.`,
+      `Wanted to circle back on my message about supporting ${cleanCompany}'s ${intent.replace('_', ' ')} needs.`,
+      `Following up on my message about how we could help streamline operations at ${cleanCompany}.`
+    ];
+
+    const followUpValues = {
+      vcs: `Many of our clients find that having dedicated support teams lets them focus on core business growth instead of managing customer service operations.`,
+      recruitment_services: `Most companies we work with see immediate relief once they have a dedicated team handling their recruitment pipeline.`,
+      software_solutions: `The companies we work with typically see better workflow efficiency within the first month of implementation.`,
+      ats_crm: `Teams using HireIQ typically cut their screening time by 60-70% while improving candidate quality.`,
+      hrms_crm: `Our clients usually see streamlined operations and better data visibility within weeks of implementation.`
+    };
+
+    const followUpCTAs = [
+      `Still worth exploring for ${cleanCompany}?`,
+      `Would a brief conversation make sense for your team?`,
+      `Think this could be relevant for your current priorities?`
+    ];
+
+    bodyContent = [
+      greeting,
+      followUpOpenings[Math.floor(Math.random() * followUpOpenings.length)],
+      followUpValues[intent] || followUpValues.software_solutions,
+      followUpCTAs[Math.floor(Math.random() * followUpCTAs.length)]
+    ].join('\n\n');
+  } else if (followUpNumber === 2) {
+    emailType = `followup2_${intent}`;
+
+    const insights = {
+      vcs: `Most businesses handle about 30% more customer inquiries during growth phases, but internal teams often struggle to scale support quality consistently.`,
+      recruitment_services: `I've noticed that companies growing quickly often spend 40-50% of their time on recruitment logistics rather than strategic hiring decisions.`,
+      software_solutions: `Many companies we speak with mention that their biggest operational challenge is getting different systems to work together effectively.`,
+      ats_crm: `Most recruitment teams tell us they spend more time reading resumes than actually talking to qualified candidates.`,
+      hrms_crm: `One thing I've learned from our clients is that disconnected HR and CRM systems often create duplicate data entry and missed opportunities.`
+    };
+
+    bodyContent = [
+      greeting,
+      insights[intent] || insights.software_solutions,
+      `That's exactly what we help companies like ${cleanCompany} solve.`,
+      `Would it be helpful to see how this works in practice?`
+    ].join('\n\n');
+  } else if (followUpNumber === 3) {
+    emailType = `followup3_${intent}`;
+
+    const qualifyingQuestions = [
+      `Is streamlining ${intent.replace('_', ' ')} something ${cleanCompany} is actively working on this quarter?`,
+      `Are you currently looking at solutions to improve your ${intent.replace('_', ' ')} processes?`,
+      `How is ${cleanCompany} handling ${intent.replace('_', ' ')} challenges right now?`
+    ];
+
+    bodyContent = [
+      greeting,
+      `I've reached out a couple times about how we help with ${intent.replace('_', ' ')} at companies like ${cleanCompany}.`,
+      qualifyingQuestions[Math.floor(Math.random() * qualifyingQuestions.length)]
+    ].join('\n\n');
+  } else {
+    emailType = `final_${intent}`;
+
+    bodyContent = [
+      greeting,
+      `I know you're busy, so I'll keep this brief.`,
+      `If ${intent.replace('_', ' ')} support becomes a priority for ${cleanCompany} in the future, feel free to reach out.`,
+      `Thanks for your time.`
+    ].join('\n\n');
+  }
+
+  const quality = validateEmailQuality(
+    subject,
+    bodyContent,
+    cleanCompany,
+    reason,
+    previousEmails,
+    followUpNumber
+  );
+
+  return {
+    subject,
+    body: bodyContent,
+    emailType,
+    tone,
+    wordCount: quality.wordCount,
+    qualityPassed: quality.valid,
+    qualityNotes: quality.notes,
+    alternativeSubjects
+  };
+}
     // STAGE 1 (Day 2-3): Respectful Reminder & Problem Re-frame (50-75 words)
     emailType = 'follow_up_1_problem_reframe';
 
@@ -604,7 +682,125 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
   };
 }
 
-// Master OpenAI generator implementing consultative B2B cold email standards
+// Enhanced recipient analysis for better personalization
+function analyzeRecipientContext(recipientName?: string, companyName?: string, companyWebsite?: string, reason?: string) {
+  const { firstName, designation } = parseRecipientDetails(recipientName);
+  
+  // Industry detection from company website or context
+  const detectIndustry = (website?: string, company?: string, reason?: string) => {
+    const text = `${website || ''} ${company || ''} ${reason || ''}`.toLowerCase();
+    
+    if (text.includes('healthcare') || text.includes('hospital') || text.includes('medical')) return 'healthcare';
+    if (text.includes('fintech') || text.includes('bank') || text.includes('finance') || text.includes('insurance')) return 'finance';
+    if (text.includes('tech') || text.includes('software') || text.includes('saas') || text.includes('app')) return 'technology';
+    if (text.includes('retail') || text.includes('ecommerce') || text.includes('shop')) return 'retail';
+    if (text.includes('manufact') || text.includes('industrial')) return 'manufacturing';
+    if (text.includes('consult') || text.includes('service')) return 'services';
+    if (text.includes('startup') || text.includes('growth')) return 'startup';
+    
+    return 'general';
+  };
+
+  // Role-based pain point detection
+  const detectRolePains = (designation?: string) => {
+    if (!designation) return [];
+    
+    const role = designation.toLowerCase();
+    const pains = [];
+    
+    if (role.includes('hr') || role.includes('people') || role.includes('talent')) {
+      pains.push('manual_hiring_processes', 'employee_lifecycle_management', 'talent_shortage');
+    }
+    if (role.includes('ceo') || role.includes('founder') || role.includes('cto')) {
+      pains.push('operational_efficiency', 'scaling_challenges', 'resource_optimization');
+    }
+    if (role.includes('operations') || role.includes('ops')) {
+      pains.push('workflow_automation', 'process_standardization', 'cost_optimization');
+    }
+    if (role.includes('customer') || role.includes('support') || role.includes('service')) {
+      pains.push('customer_satisfaction', 'support_scalability', 'response_times');
+    }
+    
+    return pains;
+  };
+
+  return {
+    firstName,
+    designation,
+    industry: detectIndustry(companyWebsite, companyName, reason),
+    rolePains: detectRolePains(designation),
+    hasPersonalization: !!(firstName || designation)
+  };
+}
+
+// Natural conversation starters based on context
+function generateContextualOpening(context: any, companyName: string, intent: OutreachIntent) {
+  const { firstName, designation, industry, hasPersonalization } = context;
+  
+  const openings = {
+    vcs: [
+      hasPersonalization ? 
+        `Hi ${firstName}, I came across your work at ${companyName} and thought you might find this relevant.` :
+        `Hi, I wanted to reach out about something that might be relevant for ${companyName}.`,
+      hasPersonalization ? 
+        `Hi ${firstName}, I noticed ${companyName}'s growth and wanted to share something that could be helpful.` :
+        `Hi there, I've been following ${companyName} and wanted to share something that caught my attention.`
+    ],
+    recruitment_services: [
+      designation ? 
+        `Hi ${firstName}, saw your role as ${designation} at ${companyName} and thought this might resonate.` :
+        `Hi, I wanted to reach out regarding something that might be relevant for your hiring needs.`,
+      hasPersonalization ? 
+        `Hi ${firstName}, I've been thinking about the hiring challenges facing companies like ${companyName}.` :
+        `Hi there, I wanted to discuss something that might help with your talent acquisition efforts.`
+    ],
+    software_solutions: [
+      `Hi ${firstName || 'there'}, I wanted to share something that might streamline your operations at ${companyName}.`,
+      hasPersonalization ? 
+        `Hi ${firstName}, I noticed how ${companyName} is growing and thought you might find this interesting.` :
+        `Hi, I came across ${companyName} and wanted to share something that could be valuable.`
+    ]
+  };
+
+  const categoryOpenings = openings[intent] || openings.software_solutions;
+  return categoryOpenings[Math.floor(Math.random() * categoryOpenings.length)];
+}
+
+// Natural value propositions without buzzwords
+function generateNaturalValueProp(intent: OutreachIntent, context: any, companyName: string) {
+  const { industry, rolePains } = context;
+  
+  const valueProp = {
+    vcs: `We handle customer support across phone, chat, email, and WhatsApp - essentially becoming an extension of your team. Our people follow your processes and maintain your service standards while you focus on growing the business.`,
+    
+    recruitment_services: industry === 'technology' ? 
+      `We handle the entire recruitment process for tech companies - from sourcing developers to screening and coordinating interviews. It's like having a dedicated hiring team without the overhead.` :
+      `We take care of end-to-end recruitment - sourcing, screening, and coordinating interviews across all types of roles. Think of it as your external hiring team that knows your standards.`,
+    
+    software_solutions: `We've built HR technology that actually connects the dots - recruitment, employee management, and client relationships all work together instead of being separate systems.`,
+    
+    ats_crm: `HireIQ reads through resumes and matches them against your job requirements automatically. Instead of spending hours reviewing CVs, you get ranked lists of qualified candidates in minutes.`,
+    
+    hrms_crm: `Our HRMS handles everything from employee records to payroll, and connects with your customer management. It's designed for businesses that want their people operations and client work to flow together seamlessly.`
+  };
+
+  return valueProp[intent] || valueProp.software_solutions;
+}
+
+// Natural, conversational CTAs
+function generateNaturalCTA(intent: OutreachIntent, companyName: string, context: any) {
+  const ctas = [
+    `Worth a quick chat to see if this makes sense for ${companyName}?`,
+    `Would you be open to a brief conversation about how this could work for your team?`,
+    `Interested in seeing how this might fit with what you're building at ${companyName}?`,
+    `Would it be helpful if I showed you how this works in practice?`,
+    `Think this could be relevant for your current priorities?`
+  ];
+  
+  return ctas[Math.floor(Math.random() * ctas.length)];
+}
+
+// Master OpenAI generator implementing natural, human-sounding email generation
 async function generateWithOpenAI(
   payload: EmailGenerationPayload,
   apiKey: string
@@ -623,65 +819,89 @@ async function generateWithOpenAI(
 
   const intent = classifyIntent(reason, mailTopic);
   const cleanCompany = companyName.trim() || 'your company';
-  const { firstName, designation } = parseRecipientDetails(recipientName);
+  const context = analyzeRecipientContext(recipientName, cleanCompany, companyWebsite, reason);
 
   const stageDescription =
     followUpNumber === 0
-      ? 'Initial Cold Outreach Email (STRICTLY 85 to 135 words. Write 2-3 short, clean paragraphs. 1: Personalized professional greeting and specific reason for reaching out based on verified role or company context. 2: Practical business relevance and value proposition without hype or buzzwords. 3: Single low-friction call to action asking if they would be open to a 10-minute conversation or brief 2-minute walkthrough. Zero spam clichés, zero aggressive sales language).'
+      ? 'Initial Cold Outreach Email (STRICTLY 85 to 135 words. Write naturally and conversationally like a real professional reaching out peer-to-peer. Focus on being helpful rather than sales-y. Use varied sentence structures and natural transitions).'
       : followUpNumber === 1
-      ? 'Follow-Up 1 (STRICTLY 50 to 75 words. Respectful reminder referencing previous note without saying "just checking in" or guilt-tripping. Re-frames the core operational friction point thoughtfully and asks a simple question).'
+      ? 'Follow-Up 1 (STRICTLY 50 to 75 words. Natural follow-up that adds value or perspective without being pushy. Reference the original message contextually without saying "following up" or "checking in").'
       : followUpNumber === 2
-      ? 'Follow-Up 2 (STRICTLY 55 to 80 words. Shares a concise, realistic workflow insight or measurable practical benefit. Offers a brief 1-page summary or 2-minute overview).'
+      ? 'Follow-Up 2 (STRICTLY 55 to 80 words. Share a genuine insight or practical perspective. Offer something concrete and valuable).'
       : followUpNumber === 3
-      ? 'Follow-Up 3 (STRICTLY 40 to 60 words. Simple, respectful qualifying question asking if this area is an active priority this quarter, or if their current workflow is already meeting their needs).'
-      : 'Follow-Up 4 (STRICTLY 35 to 50 words. Polite permission-based breakup closing loop. Assumes timing is not right, respectfully steps back with zero pressure, leaves contact details open for the future).';
+      ? 'Follow-Up 3 (STRICTLY 40 to 60 words. Simple qualifying question to understand their current situation. Show genuine interest in their priorities).'
+      : 'Follow-Up 4 (STRICTLY 35 to 50 words. Graceful close that respects their time and leaves the door open for future conversations).';
 
-  const systemPrompt = `You are an elite B2B sales copywriter and outbound strategist for TaskNera HR Solutions (https://tasknera.com).
-You write natural, consultative, highly professional cold emails that sound like they were written by an experienced enterprise sales consultant.
+  const systemPrompt = `You are a seasoned business professional writing personalized outreach emails for TaskNera HR Solutions (https://tasknera.com).
 
-CORE KNOWLEDGE BASE (Adapt seamlessly based on the selected offering / mailTopic):
-1. Virtual Customer Support (VCS): Dedicated, human-led customer support across voice, live chat, email, WhatsApp, and social media. Helps businesses manage enquiries, resolve issues, handle follow-ups, and maintain service quality through structured workflows, quality monitoring, and SLA-aligned delivery.
-2. Recruitment & Talent Acquisition: End-to-end recruitment across permanent, contract, executive, IT and non-IT, and high-volume hiring. From candidate sourcing and screening to shortlisting and interview coordination, building qualified talent pipelines and streamlining recruitment operations.
-3. HR Technology & Digital Solutions / Software Solutions: Technology-enabled solutions for recruitment and people management: recruitment intelligence, HRMS platforms, employee self-service portals, workforce dashboards, analytics, and workflow automation. In-house CRM connects client relationships, recruitment pipelines, and workforce operations.
-4. HireIQ — ATS & Recruitment Intelligence (ATS + CRM Integration): AI-powered recruitment intelligence platform supporting job-description analysis, resume parsing, candidate-to-role matching, weighted scoring, ranking, and structured candidate evaluation. Planned CRM connects client accounts, hiring requirements, communication history, follow-ups, and business opportunities with recruitment activities.
-5. HRMS & Employee Lifecycle Management (HRMS + CRM Integration): Centralized employee lifecycle management covering employee records, onboarding and offboarding, attendance, leave, payroll, performance, and training. Planned CRM connects customer accounts, business opportunities, and service requirements with workforce operations for a unified business ecosystem.
-6. Custom Offerings: Tailored business solutions as specified in the outreach focus.
+Your emails should sound like they were written by a real person, not an AI. Write naturally, conversationally, and authentically.
 
-STRICT WRITING & COMPLIANCE RULES:
-- TONE: Professional, conversational, respectful business English.
-- LENGTH: Initial emails must strictly be between 80 and 135 words. Follow-ups between 40 and 80 words.
-- NO SPAM CLICHES: Never use "I hope this email finds you well", "Hope you're doing well", "I am writing to introduce", "We would love to connect", "Touching base", "Just checking in", "Bumping this to the top", "10x", "Revolutionary", "Guaranteed results", "Urgent", or artificial urgency.
-- NO FAKE INFORMATION: Never invent company research, customer achievements, or previous calls that did not occur. If prospect data is limited, write a clear, relevant email without forced personalization.
-- NO PLACEHOLDERS: Never output placeholders like {{company}}, [Your Name], or similar tokens.
-- DO NOT include signature blocks or placeholders like [Best regards, Name] at the end, as the system attaches configured signatures automatically.
-- NO MARKDOWN: Output clean plain text. Do not use asterisks (**) for bolding, bullet points, or markdown code blocks.
-- STRUCTURE: Greeting on its own line, followed by 2 to 3 concise paragraphs separated by double newlines, ending with ONE clear conversational question.
+CORE SERVICES TO ADAPT FROM:
+1. Virtual Customer Support (VCS): Human-led support teams across phone, chat, email, WhatsApp. We become an extension of their customer service team.
+2. Recruitment Services: End-to-end hiring support - sourcing, screening, interview coordination for all types of roles.
+3. HR Technology: Integrated platforms connecting recruitment, employee management, and client relationships.
+4. HireIQ (ATS + Intelligence): AI-powered resume screening and candidate matching with ranking and scoring.
+5. HRMS Solutions: Complete employee lifecycle management with integrated CRM capabilities.
 
-OUTPUT FORMAT:
-Return strictly valid JSON only:
+NATURAL WRITING PRINCIPLES:
+- Write like you're having a professional conversation, not delivering a pitch
+- Use varied sentence lengths and natural transitions
+- Be specific about how you can help without being pushy
+- Sound genuinely interested in their business, not just making a sale
+- Use simple, clear language that gets straight to the point
+- Personalize meaningfully when information is available, write naturally when it's not
+- Avoid corporate jargon, buzzwords, and formulaic phrases
+
+STRICT GUIDELINES:
+- Length: Initial 85-135 words, follow-ups 35-80 words
+- Never use: "Hope this finds you well", "touching base", "circling back", "just checking in", "revolutionize", "game-changing", "industry-leading", artificial urgency
+- Never invent facts about their company, achievements, or previous interactions
+- No placeholders, signature blocks, or markdown formatting
+- Natural paragraph breaks with double newlines
+- One clear, conversational call-to-action
+
+TONE ADAPTATIONS:
+- Professional: Respectful and business-appropriate while remaining conversational
+- Consultative: Advisory and helpful, focusing on their challenges and solutions
+- Direct: Clear and to-the-point while maintaining warmth
+- Friendly: Approachable and personable while staying professional
+
+OUTPUT FORMAT - Return valid JSON only:
 {
-  "subject": "Concise, natural, relevant subject line in lower-case or standard title",
-  "body": "Clean email body text with paragraph separation, without signature block",
-  "directSubject": "Direct & professional alternative subject line",
+  "subject": "Natural, relevant subject line that would make them want to open it",
+  "body": "Conversational email body with natural paragraph breaks",
+  "directSubject": "Clear, direct alternative subject line",
   "valueFocusedSubject": "Value-focused alternative subject line",
   "conversationalSubject": "Conversational alternative subject line",
   "emailType": "${intent}_${followUpNumber}",
-  "tone": "${tone}"
+  "tone": "${tone}",
+  "personalizationUsed": "Brief note on what personalization was applied or 'minimal' if limited info"
 }`;
 
-  const userPrompt = `Prospect Information:
-Company Name: ${cleanCompany}
-Recipient Name: ${recipientName || 'Not specified'}
-Recipient First Name: ${firstName || 'Not specified'}
-Designation / Role: ${designation || 'Not specified'}
-Company Website: ${companyWebsite || 'Not specified'}
-Service / Mail Topic: ${mailTopic || 'General Solutions'}
-Outreach Reason / Specific Focus: "${reason}"
-Angle Category: ${intent}
-Stage: ${stageDescription}
-Desired Tone: ${tone}
-Previous Subject (Do NOT repeat): "${previousSubject || 'None'}"
-Previous Emails in Thread: ${JSON.stringify(previousEmails)}`;
+  const userPrompt = `CONTEXT FOR PERSONALIZED EMAIL:
+
+Company: ${cleanCompany}
+Recipient: ${recipientName || 'Team member (name not available)'}
+${context.designation ? `Role: ${context.designation}` : ''}
+${companyWebsite ? `Website: ${companyWebsite}` : ''}
+${context.industry !== 'general' ? `Industry Context: ${context.industry}` : ''}
+Service Focus: ${mailTopic || 'General HR Solutions'}
+Specific Reason/Pain Point: "${reason}"
+Category: ${intent}
+Email Stage: ${stageDescription}
+Tone Preference: ${tone}
+${previousSubject ? `Previous Subject (avoid): "${previousSubject}"` : ''}
+${context.rolePains.length > 0 ? `Likely Role Challenges: ${context.rolePains.join(', ')}` : ''}
+
+IMPORTANT CONTEXT:
+- Personalization Available: ${context.hasPersonalization ? 'Yes - use thoughtfully' : 'Limited - write naturally without forced personalization'}
+- Write like a real business professional reaching out peer-to-peer
+- Focus on being genuinely helpful rather than selling
+- Use natural, varied sentence structures
+- Be conversational but maintain professionalism
+- If you don't have enough information to personalize meaningfully, write a clear, relevant email without it
+
+${previousEmails.length > 0 ? `Previous emails in thread for context: ${JSON.stringify(previousEmails.slice(-2))}` : ''}`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
