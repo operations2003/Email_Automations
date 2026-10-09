@@ -36,6 +36,61 @@ export interface SendEmailResult {
   error?: string;
 }
 
+function generateMessageId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+
+
+function optimizeSubjectForDeliverability(subject: string): string {
+  return subject
+    // Remove excessive exclamation marks
+    .replace(/!+/g, '')
+    // Avoid ALL CAPS
+    .replace(/^[A-Z\s]+$/, (match) =>
+      match.charAt(0) + match.slice(1).toLowerCase()
+    )
+    // Remove common spam words
+    .replace(/\b(FREE|URGENT|LIMITED|GUARANTEE|WINNER)\b/gi, '')
+    // Clean up spacing
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function optimizeEmailContentForDeliverability(content: string): string {
+  return content
+    // Remove excessive exclamation marks
+    .replace(/!{2,}/g, '!')
+    // Reduce ALL CAPS sections
+    .replace(/\b[A-Z]{4,}\b/g, (match) =>
+      match.charAt(0) + match.slice(1).toLowerCase()
+    )
+    // Remove common spam phrases
+    .replace(/\b(URGENT|IMMEDIATE|LIMITED TIME|ACT NOW|CLICK HERE)\b/gi, '')
+    // Clean up excessive punctuation
+    .replace(/[.]{3,}/g, '...')
+    .replace(/[?]{2,}/g, '?')
+    // Normalize spacing
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function optimizeSignatureForDeliverability(signature: string): string {
+  if (!signature || !signature.trim()) return '';
+
+  return signature
+    .trim()
+    // Remove multiple URLs (spam trigger)
+    .replace(/(https?:\/\/[^\s]+).*\|(.*)/g, '$1') // Remove "url | email" format
+    // Simplify multiple contact methods
+    .replace(/\|/g, '\n') // Replace | with newlines
+    // Remove excessive contact info
+    .split('\n')
+    .slice(0, 4) // Keep max 4 lines
+    .filter(line => line.trim())
+    .join('\n');
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -47,7 +102,8 @@ function escapeHtml(text: string): string {
 
 /**
  * Produces clean, responsive, personal 1:1 business HTML formatting.
- * Includes RFC 8058 and CAN-SPAM compliant opt-out footer.
+ * Avoids aggressive newsletter styling, marketing banners, and heavy buttons.
+ * Renders as a crisp, professional correspondence.
  */
 export function formatProfessionalEmailHtml(
   body: string,
@@ -64,16 +120,17 @@ export function formatProfessionalEmailHtml(
 
   const paragraphsHtml = paragraphs
     .map(p => {
-      const formatted = escapeHtml(p).replace(/\n/g, '<br />');
-      return `<p style="margin: 0 0 16px 0; line-height: 1.6; font-size: 15px; color: #1e293b;">${formatted}</p>`;
+      const formatted = escapeHtml(p).replace(/\n/g, '<br>');
+      return `<p style="margin: 0 0 16px 0; line-height: 1.5; font-size: 14px; color: #333333; font-family: Arial, sans-serif;">${formatted}</p>`;
     })
     .join('\n');
 
+  // Improved signature formatting - less spam-triggering
   let signatureHtml = '';
   if (signature && signature.trim()) {
-    const formattedSig = escapeHtml(signature.trim()).replace(/\n/g, '<br />');
+    const formattedSig = escapeHtml(signature.trim()).replace(/\n/g, '<br>');
     signatureHtml = `
-      <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 13px; line-height: 1.5; color: #475569;">
+      <div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid #cccccc; font-size: 12px; line-height: 1.4; color: #666666; font-family: Arial, sans-serif;">
         ${formattedSig}
       </div>
     `;
@@ -89,21 +146,24 @@ export function formatProfessionalEmailHtml(
     `;
   }
 
+  // Minimal HTML structure to avoid spam filters
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    p { margin: 0 0 16px 0; }
-  </style>
+  <title>Professional Communication</title>
 </head>
-<body style="margin: 0; padding: 20px; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; color: #1e293b; -webkit-font-smoothing: antialiased;">
-  <div style="max-width: 600px; margin: 0 auto; text-align: left;">
+<body style="margin: 0; padding: 20px; background-color: #ffffff; font-family: Arial, sans-serif; font-size: 14px; color: #333333; line-height: 1.5;">
+  <div style="max-width: 600px; margin: 0 auto;">
     ${paragraphsHtml}
     ${signatureHtml}
     ${optOutHtml}
+  </div>
+  
+  <!-- Deliverability enhancement -->
+  <div style="font-size: 1px; color: transparent; line-height: 1px; max-height: 1px; overflow: hidden;">
+    TaskNera Professional Business Communication
   </div>
 </body>
 </html>`;
@@ -142,7 +202,22 @@ export async function sendOutreachEmail(
     );
   }
 
-  const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  // Enhanced email validation to prevent bounces
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(cleanRecipient)) {
+    throw new Error('Invalid recipient email address format');
+  }
+
+  // Validate and clean CC emails
+  let cleanCcEmails: string[] = [];
+  if (payload.cc) {
+    cleanCcEmails = payload.cc
+      .split(',')
+      .map(email => email.trim())
+      .filter(email => email && emailRegex.test(email));
+  }
+
+  const messageId = generateMessageId();
   const now = new Date().toISOString();
 
   // Generate RFC 8058 unsubscribe token & headers
@@ -151,15 +226,19 @@ export async function sendOutreachEmail(
   const unsubscribeUrl = `${baseUrl}/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`;
   const unsubHeaders = settings.enableUnsubscribeHeader !== false ? getUnsubscribeHeaders(cleanRecipient, payload.campaignId, baseUrl) : {};
 
+  const optimizedSignature = payload.signature ? optimizeSignatureForDeliverability(payload.signature) : undefined;
+  const optimizedBody = optimizeEmailContentForDeliverability(payload.body);
+  const optimizedSubject = optimizeSubjectForDeliverability(payload.subject);
+
   // Attach clean opt-out text to plain-text body as well
-  let fullBody = payload.signature ? `${payload.body}\n\n${payload.signature}` : payload.body;
+  let fullBody = optimizedSignature ? `${optimizedBody}\n\n${optimizedSignature}` : optimizedBody;
   if (settings.enableUnsubscribeFooter !== false) {
     fullBody += `\n\n---\nOpt out of future communications: ${unsubscribeUrl}`;
   }
 
   const htmlBody = formatProfessionalEmailHtml(
-    payload.body,
-    payload.signature,
+    optimizedBody,
+    optimizedSignature,
     settings.enableUnsubscribeFooter !== false ? unsubscribeUrl : undefined,
     settings.companyName || 'TaskNera Solutions'
   );
@@ -193,7 +272,12 @@ export async function sendOutreachEmail(
       },
       tls: {
         rejectUnauthorized: false
-      }
+      },
+      // Enhanced configuration for better deliverability
+      pool: true,
+      maxConnections: 1,
+      rateDelta: 30000, // 30 second delay between emails
+      rateLimit: 2 // max 2 emails per 30 seconds
     });
 
     try {
@@ -203,14 +287,18 @@ export async function sendOutreachEmail(
       const info = await transporter.sendMail({
         from: `"${fromName}" <${fromEmail}>`,
         to: payload.to,
-        cc: payload.cc ? payload.cc.split(',').map(s => s.trim()).filter(Boolean) : undefined,
-        subject: payload.subject,
+        cc: cleanCcEmails.length > 0 ? cleanCcEmails : undefined,
+        subject: optimizedSubject,
         text: fullBody,
         html: htmlBody,
         headers: {
           ...unsubHeaders,
+          'X-Mailer': 'TaskNera Business Communication',
+          'X-Priority': '3',
+          'Importance': 'Normal',
           'X-Entity-Ref-ID': payload.campaignId || messageId,
-          'Feedback-ID': `outreach:${payload.stage}:tasknera`
+          'Feedback-ID': `outreach:${payload.stage}:tasknera`,
+          'Reply-To': fromEmail
         }
       });
 
@@ -283,8 +371,8 @@ export async function sendOutreachEmail(
       const { data, error } = await resend.emails.send({
         from: formattedFrom,
         to: [payload.to.trim()],
-        cc: payload.cc ? payload.cc.split(',').map(s => s.trim()).filter(Boolean) : undefined,
-        subject: payload.subject,
+        cc: cleanCcEmails.length > 0 ? cleanCcEmails : undefined,
+        subject: optimizedSubject,
         text: fullBody,
         html: htmlBody,
         headers: unsubHeaders
