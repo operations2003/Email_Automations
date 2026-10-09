@@ -7,19 +7,22 @@ import { OutreachTable } from '@/components/OutreachTable';
 import { DashboardView } from '@/components/DashboardView';
 import { FollowUpsView } from '@/components/FollowUpsView';
 import { SettingsView } from '@/components/SettingsView';
+import { CompanyManagement } from '@/components/CompanyManagement';
 import { AddOutreachModal } from '@/components/AddOutreachModal';
 import { EmailPreviewModal } from '@/components/EmailPreviewModal';
 import { HistoryModal } from '@/components/HistoryModal';
 import { LoginScreen } from '@/components/LoginScreen';
 import { useAuth } from '@/context/AuthContext';
+import { Company } from '@/types/company';
 import { CheckCircle2, AlertCircle, Info, Sparkles, Shield } from 'lucide-react';
 
 export default function HomePage() {
   const { user, loading: authLoading, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'outreach' | 'dashboard' | 'followups' | 'settings'>('outreach');
+  const [activeTab, setActiveTab] = useState<'outreach' | 'companies' | 'dashboard' | 'followups' | 'settings'>('outreach');
   const [campaigns, setCampaigns] = useState<OutreachCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [selectedCompanyForOutreach, setSelectedCompanyForOutreach] = useState<Company | null>(null);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -377,11 +380,24 @@ export default function HomePage() {
           />
         )}
 
+        {activeTab === 'companies' && (
+          <CompanyManagement
+            isAdmin={isAdmin}
+            onStartOutreach={(company) => {
+              setSelectedCompanyForOutreach(company);
+              setIsAddModalOpen(true);
+            }}
+          />
+        )}
+
         {activeTab === 'dashboard' && (
           <DashboardView
             onRunScheduler={handleRunScheduler}
             isSchedulerRunning={isSchedulerRunning}
-            onOpenNewModal={() => setIsAddModalOpen(true)}
+            onOpenNewModal={() => {
+              setSelectedCompanyForOutreach(null);
+              setIsAddModalOpen(true);
+            }}
           />
         )}
 
@@ -438,7 +454,11 @@ export default function HomePage() {
       {/* Add Company Outreach Modal */}
       <AddOutreachModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setSelectedCompanyForOutreach(null);
+        }}
+        initialCompany={selectedCompanyForOutreach}
         services={settings?.services}
         onServicesChange={newServices => {
           if (settings) {

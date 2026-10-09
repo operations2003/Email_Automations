@@ -15,19 +15,24 @@ import {
   Clock,
   User,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Send,
+  Search,
+  Sparkles
 } from 'lucide-react';
 
 interface CompanyManagementProps {
-  isAdmin: boolean;
+  isAdmin?: boolean;
+  onStartOutreach?: (company: Company) => void;
 }
 
-export function CompanyManagement({ isAdmin }: CompanyManagementProps) {
+export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyManagementProps) {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Form state
   const [showForm, setShowForm] = useState(false);
@@ -52,7 +57,7 @@ export function CompanyManagement({ isAdmin }: CompanyManagementProps) {
       } else {
         setError(data.error || 'Failed to fetch companies');
       }
-    } catch (err) {
+    } catch {
       setError('Network error fetching companies');
     } finally {
       setLoading(false);
@@ -154,7 +159,7 @@ export function CompanyManagement({ isAdmin }: CompanyManagementProps) {
       } else {
         setError(data.error || `Failed to ${editingId ? 'update' : 'create'} company`);
       }
-    } catch (err) {
+    } catch {
       setError('Network error saving company');
     } finally {
       setSaving(false);
@@ -162,6 +167,11 @@ export function CompanyManagement({ isAdmin }: CompanyManagementProps) {
   };
 
   const handleDelete = async (id: string, name: string) => {
+    if (!isAdmin) {
+      setError('Only administrators can delete companies from the directory.');
+      return;
+    }
+
     if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
       return;
     }
@@ -182,255 +192,342 @@ export function CompanyManagement({ isAdmin }: CompanyManagementProps) {
       } else {
         setError(data.error || 'Failed to delete company');
       }
-    } catch (err) {
+    } catch {
       setError('Network error deleting company');
     } finally {
       setSaving(false);
     }
   };
 
-  if (!isAdmin) {
+  const filteredCompanies = companies.filter(c => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
     return (
-      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <div className="flex items-center gap-2 text-yellow-800">
-          <AlertTriangle className="w-4 h-4" />
-          <span>Admin access required to manage companies</span>
-        </div>
-      </div>
+      c.name.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      (c.industry && c.industry.toLowerCase().includes(q)) ||
+      (c.description && c.description.toLowerCase().includes(q))
     );
-  }
+  });
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Building2 className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Company Management</h3>
+      {/* Header and Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#23272f] pb-5">
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <Building2 className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-white tracking-tight">Company Directory</h3>
+              <p className="text-xs text-gray-400">
+                Manage target companies for cold outreach campaigns. Both employees and administrators can add and update companies.
+              </p>
+            </div>
+          </div>
         </div>
-        <button
-          onClick={handleStartAdd}
-          disabled={saving}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Company
-        </button>
+
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search companies..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="rounded-lg bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none w-48 sm:w-60"
+            />
+          </div>
+
+          <button
+            onClick={handleStartAdd}
+            disabled={saving}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors shadow-sm disabled:opacity-50"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Company</span>
+          </button>
+        </div>
       </div>
 
-      {/* Success/Error Messages */}
+      {/* Success/Error Alerts */}
       {success && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center gap-2 text-green-800">
-            <Check className="w-4 h-4" />
-            <span>{success}</span>
-          </div>
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center gap-2 text-xs text-emerald-300">
+          <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+          <span>{success}</span>
         </div>
       )}
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center gap-2 text-red-800">
-            <AlertTriangle className="w-4 h-4" />
+        <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg flex items-center justify-between text-xs text-rose-300">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
             <span>{error}</span>
           </div>
+          <button onClick={() => setError(null)} className="text-rose-400 hover:text-rose-200">
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 
-      {/* Form Modal */}
+      {/* Add / Edit Form Modal */}
       {showForm && (
-        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <h4 className="text-md font-medium mb-4">
-            {editingId ? 'Edit Company' : 'Add New Company'}
-          </h4>
+        <div className="p-5 bg-[#14171c] border border-[#2b303c] rounded-xl shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-[#23272f] pb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-blue-400" />
+              <h4 className="text-sm font-semibold text-white">
+                {editingId ? 'Edit Company Details' : 'Add New Target Company'}
+              </h4>
+            </div>
+            <button
+              onClick={handleCancelForm}
+              className="text-gray-400 hover:text-white p-1 rounded-md transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Name *
+              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                Company Name <span className="text-rose-400">*</span>
               </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., Acme Corporation"
-                disabled={saving}
-              />
+              <div className="relative">
+                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-500" />
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                  placeholder="e.g. Acme Corporation"
+                  disabled={saving}
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address *
+              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                Primary Contact Email <span className="text-rose-400">*</span>
               </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., contact@acme.com"
-                disabled={saving}
-              />
+              <div className="relative">
+                <Mail className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-500" />
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none font-mono"
+                  placeholder="e.g. hr@acme.com or founder@acme.com"
+                  disabled={saving}
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Website
+              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                Website URL
               </label>
-              <input
-                type="url"
-                value={formData.website}
-                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., https://acme.com"
-                disabled={saving}
-              />
+              <div className="relative">
+                <Globe className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-500" />
+                <input
+                  type="url"
+                  value={formData.website}
+                  onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none font-mono"
+                  placeholder="e.g. https://acme.com"
+                  disabled={saving}
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Industry
+              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                Industry / Sector
               </label>
-              <input
-                type="text"
-                value={formData.industry}
-                onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., Technology, Healthcare, Finance"
-                disabled={saving}
-              />
+              <div className="relative">
+                <Briefcase className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-500" />
+                <input
+                  type="text"
+                  value={formData.industry}
+                  onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                  placeholder="e.g. SaaS, Fintech, Healthcare, Staffing"
+                  disabled={saving}
+                />
+              </div>
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
+              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+                Notes &amp; Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                placeholder="Brief description of the company..."
+                className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] p-2.5 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none"
+                placeholder="Background notes, target positions, recruitment mandate requirements..."
                 disabled={saving}
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 mt-4">
+          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#23272f]">
             <button
               onClick={handleCancelForm}
               disabled={saving}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-3 py-1.5 border border-[#23272f] text-gray-300 rounded-lg hover:bg-[#1a1e24] text-xs font-medium transition-colors disabled:opacity-50"
             >
-              <X className="w-4 h-4 inline mr-1" />
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saving || !formData.name.trim() || !formData.email.trim()}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors shadow-sm disabled:opacity-50"
             >
-              <Save className="w-4 h-4" />
-              {saving ? 'Saving...' : editingId ? 'Update' : 'Create'}
+              <Save className="w-3.5 h-3.5" />
+              <span>{saving ? 'Saving...' : editingId ? 'Update Company' : 'Save Company'}</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Companies List */}
+      {/* Companies Grid / List */}
       <div className="space-y-3">
         {loading ? (
-          <div className="text-center py-8 text-gray-500">Loading companies...</div>
-        ) : companies.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Building2 className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-            <p>No companies added yet</p>
-            <p className="text-sm">Add your first company to get started</p>
+          <div className="text-center py-12 text-gray-400 text-xs">
+            <Building2 className="w-8 h-8 mx-auto mb-2 text-gray-600 animate-pulse" />
+            Loading company directory...
+          </div>
+        ) : filteredCompanies.length === 0 ? (
+          <div className="text-center py-12 rounded-xl border border-dashed border-[#23272f] bg-[#14171c]/50 p-8">
+            <Building2 className="w-10 h-10 mx-auto mb-3 text-gray-600" />
+            <h4 className="text-sm font-semibold text-white mb-1">
+              {searchQuery ? 'No companies matching your search' : 'No target companies added yet'}
+            </h4>
+            <p className="text-xs text-gray-400 mb-4 max-w-sm mx-auto">
+              {searchQuery
+                ? `No company names or emails match "${searchQuery}". Try a different search term.`
+                : 'Both employees and admins can add target companies here to launch tailored email campaigns.'}
+            </p>
+            <button
+              onClick={handleStartAdd}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Your First Company</span>
+            </button>
           </div>
         ) : (
-          companies.map((company) => (
-            <div
-              key={company.id}
-              className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="w-5 h-5 text-blue-600" />
-                    <h4 className="font-medium text-gray-900">{company.name}</h4>
-                  </div>
-                  
-                  <div className="space-y-1 text-sm text-gray-600">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {filteredCompanies.map((company) => (
+              <div
+                key={company.id}
+                className="group relative p-4 bg-[#14171c] border border-[#23272f] hover:border-[#333a46] rounded-xl transition-all shadow-sm flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      <span>{company.email}</span>
+                      <div className="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                        <Building2 className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">
+                          {company.name}
+                        </h4>
+                        {company.industry && (
+                          <span className="inline-block text-[10px] uppercase font-semibold text-gray-400 tracking-wider">
+                            {company.industry}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    
+
+                    {/* Quick action buttons */}
+                    <div className="flex items-center gap-1">
+                      {onStartOutreach && (
+                        <button
+                          onClick={() => onStartOutreach(company)}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-600/15 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-[11px] font-medium transition-colors"
+                          title={`Send outreach email to ${company.name}`}
+                        >
+                          <Send className="w-3 h-3" />
+                          <span>Send Mail</span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => handleStartEdit(company)}
+                        disabled={saving}
+                        className="p-1 text-gray-400 hover:text-white hover:bg-[#23272f] rounded-md transition-colors"
+                        title="Edit company"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDelete(company.id, company.name)}
+                          disabled={saving}
+                          className="p-1 text-gray-400 hover:text-rose-400 hover:bg-[#23272f] rounded-md transition-colors"
+                          title="Delete company (Admin only)"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs text-gray-400 pt-1">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                      <span className="font-mono text-gray-300">{company.email}</span>
+                    </div>
+
                     {company.website && (
                       <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4" />
+                        <Globe className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                         <a
-                          href={company.website}
+                          href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-400 hover:underline truncate"
                         >
                           {company.website}
                         </a>
                       </div>
                     )}
-                    
-                    {company.industry && (
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4" />
-                        <span>{company.industry}</span>
-                      </div>
-                    )}
-                    
+
                     {company.description && (
-                      <p className="mt-2 text-gray-700">{company.description}</p>
+                      <p className="text-[11px] text-gray-400 line-clamp-2 pt-1 border-t border-[#1e232b] mt-1.5">
+                        {company.description}
+                      </p>
                     )}
-                    
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>Created {new Date(company.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <User className="w-3 h-3" />
-                        <span>by {company.createdBy}</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-2 ml-4">
-                  <button
-                    onClick={() => handleStartEdit(company)}
-                    disabled={saving}
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Edit company"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(company.id, company.name)}
-                    disabled={saving}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Delete company"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+
+                <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#1e232b] text-[10px] text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-gray-600" />
+                    <span>Added {new Date(company.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                  {company.createdBy && (
+                    <div className="flex items-center gap-1">
+                      <User className="w-3 h-3 text-gray-600" />
+                      <span>by {company.createdBy}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
       </div>
 
       {companies.length > 0 && (
-        <div className="text-sm text-gray-500 text-center">
-          Total: {companies.length} {companies.length === 1 ? 'company' : 'companies'}
+        <div className="text-[11px] text-gray-500 text-center pt-2">
+          Total: {companies.length} {companies.length === 1 ? 'company' : 'companies'} registered in directory
         </div>
       )}
     </div>

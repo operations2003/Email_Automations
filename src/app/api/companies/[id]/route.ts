@@ -10,10 +10,10 @@ export async function PUT(
 ) {
   try {
     const user = getUserFromRequest(req);
-    if (!user || user.role !== 'admin') {
+    if (!user) {
       return NextResponse.json(
-        { success: false, error: 'Admin access required' },
-        { status: 403 }
+        { success: false, error: 'Authentication required' },
+        { status: 401 }
       );
     }
 

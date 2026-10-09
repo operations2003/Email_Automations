@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { GeneratedEmailResult, OutreachService } from '@/types/outreach';
 import { Company } from '@/types/company';
-import { useAuth } from '@/context/AuthContext';
 import {
   X,
   Send,
@@ -27,6 +26,7 @@ interface AddOutreachModalProps {
   onSelectExisting: (id: string) => void;
   services?: OutreachService[];
   onServicesChange?: (newServices: OutreachService[]) => void;
+  initialCompany?: { name: string; email: string; website?: string; recipientName?: string } | null;
 }
 
 export function AddOutreachModal({
@@ -35,14 +35,14 @@ export function AddOutreachModal({
   onSuccess,
   onSelectExisting,
   services: initialServices,
-  onServicesChange
+  onServicesChange,
+  initialCompany
 }: AddOutreachModalProps) {
-  const { isEmployee } = useAuth();
-  
   // Company selection state
   const [availableCompanies, setAvailableCompanies] = useState<Pick<Company, 'id' | 'name' | 'email'>[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [loadingCompanies, setLoadingCompanies] = useState(false);
+  const [saveToDirectory, setSaveToDirectory] = useState(true);
   
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
@@ -61,12 +61,25 @@ export function AddOutreachModal({
     'HRMS + CRm': 'Integrated HRMS + CRM platform uniting human resource management, employee records, attendance, and client relations.'
   };
 
-  // Fetch available companies for employees
+  // Fetch available companies for all users
   useEffect(() => {
-    if (isEmployee && isOpen) {
+    if (isOpen) {
       fetchAvailableCompanies();
     }
-  }, [isEmployee, isOpen]);
+  }, [isOpen]);
+
+  // Pre-fill when an initial company is provided
+  useEffect(() => {
+    if (initialCompany && isOpen) {
+      setSelectedCompanyId('');
+      setCompanyName(initialCompany.name || '');
+      setEmail(initialCompany.email || '');
+      setCompanyWebsite(initialCompany.website || '');
+      if (initialCompany.recipientName) {
+        setRecipientName(initialCompany.recipientName);
+      }
+    }
+  }, [initialCompany, isOpen]);
 
   const fetchAvailableCompanies = async () => {
     setLoadingCompanies(true);
@@ -91,8 +104,6 @@ export function AddOutreachModal({
       setEmail(company.email);
     } else {
       setSelectedCompanyId('');
-      setCompanyName('');
-      setEmail('');
     }
   };
 
@@ -160,11 +171,7 @@ export function AddOutreachModal({
 
   const handleGenerate = async (forceDuplicate = false) => {
     if (!companyName.trim()) {
-      if (isEmployee) {
-        setError('Please select a company from the dropdown.');
-      } else {
-        setError('Please enter a company name.');
-      }
+      setError('Please enter or select a company name.');
       return;
     }
     if (!email.trim() || !email.includes('@')) {
@@ -243,11 +250,7 @@ export function AddOutreachModal({
 
   const handleGenerateAndSend = async () => {
     if (!companyName.trim()) {
-      if (isEmployee) {
-        setError('Please select a company from the dropdown.');
-      } else {
-        setError('Please enter a company name.');
-      }
+      setError('Please enter or select a company name.');
       return;
     }
     if (!email.trim() || !email.includes('@')) {
@@ -490,77 +493,70 @@ export function AddOutreachModal({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-5">
           {/* Left: Input fields */}
           <div className="space-y-4">
-            {/* Company Selection for Employees */}
-            {isEmployee && (
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">
-                  Select Company <span className="text-rose-400">*</span>
+            {/* Company Selection / Quick Picker (Optional for both Admin and Employee) */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-gray-300">
+                  Select Saved Company <span className="text-gray-500 font-normal">(Optional)</span>
                 </label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
-                  <select
-                    value={selectedCompanyId}
-                    onChange={e => handleCompanySelect(e.target.value)}
-                    disabled={loadingCompanies}
-                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white focus:border-blue-500 focus:outline-none appearance-none cursor-pointer disabled:opacity-50"
+                {selectedCompanyId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCompanyId('');
+                    }}
+                    className="text-[11px] text-blue-400 hover:text-blue-300 transition-colors"
                   >
-                    <option value="">
-                      {loadingCompanies ? 'Loading companies...' : 'Choose a company to email'}
-                    </option>
-                    {availableCompanies.map(company => (
-                      <option key={company.id} value={company.id}>
-                        {company.name} ({company.email})
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-                {availableCompanies.length === 0 && !loadingCompanies && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    No companies available. Contact admin to add companies.
-                  </p>
+                    Clear selection
+                  </button>
                 )}
               </div>
-            )}
+              <div className="relative">
+                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <select
+                  value={selectedCompanyId}
+                  onChange={e => handleCompanySelect(e.target.value)}
+                  disabled={loadingCompanies}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white focus:border-blue-500 focus:outline-none appearance-none cursor-pointer disabled:opacity-50"
+                >
+                  <option value="">
+                    {loadingCompanies ? 'Loading companies...' : '-- Choose from saved companies or type below --'}
+                  </option>
+                  {availableCompanies.map(company => (
+                    <option key={company.id} value={company.id}>
+                      {company.name} ({company.email})
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
 
-            {/* Company Name Field - Show for admins or when no company selected for employees */}
-            {(!isEmployee || !selectedCompanyId) && (
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">
+            {/* Company Name Field */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-gray-300">
                   Company Name <span className="text-rose-400">*</span>
                 </label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="e.g. Acme Corp"
-                    value={companyName}
-                    onChange={e => setCompanyName(e.target.value)}
-                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                  />
-                </div>
+                {selectedCompanyId && (
+                  <span className="text-[10px] text-emerald-400 font-medium">Auto-filled from directory</span>
+                )}
               </div>
-            )}
-
-            {/* Show selected company info for employees */}
-            {isEmployee && selectedCompanyId && (
-              <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-md">
-                <div className="flex items-center gap-2 text-xs">
-                  <Building2 className="w-4 h-4 text-blue-400" />
-                  <span className="text-blue-200 font-medium">Selected Company:</span>
-                  <span className="text-white">{companyName}</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs mt-1">
-                  <Mail className="w-4 h-4 text-blue-400" />
-                  <span className="text-blue-200">Email:</span>
-                  <span className="text-white font-mono">{email}</span>
-                </div>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="e.g. Acme Corp"
+                  value={companyName}
+                  onChange={e => setCompanyName(e.target.value)}
+                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+                />
               </div>
-            )}
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -574,8 +570,7 @@ export function AddOutreachModal({
                     placeholder="contact@company.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    disabled={isEmployee && selectedCompanyId !== ''}
-                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white font-mono placeholder-gray-400 focus:border-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white font-mono placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -592,6 +587,20 @@ export function AddOutreachModal({
                   className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-3 text-xs text-white font-mono placeholder-gray-400 focus:border-blue-500 focus:outline-none"
                 />
               </div>
+            </div>
+
+            {/* Auto save checkbox */}
+            <div className="flex items-center gap-2 pt-0.5">
+              <input
+                type="checkbox"
+                id="saveToDirectory"
+                checked={saveToDirectory}
+                onChange={e => setSaveToDirectory(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-[#23272f] bg-[#0d0f12] text-blue-600 focus:ring-0 cursor-pointer"
+              />
+              <label htmlFor="saveToDirectory" className="text-[11px] text-gray-400 cursor-pointer select-none">
+                Save / update in Company Directory for the team
+              </label>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

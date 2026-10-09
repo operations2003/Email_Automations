@@ -13,7 +13,7 @@ import { HistoryModal } from '@/components/HistoryModal';
 import { CheckCircle2, AlertCircle, Info, Sparkles } from 'lucide-react';
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<'outreach' | 'dashboard' | 'followups' | 'settings'>('outreach');
+  const [activeTab, setActiveTab] = useState<'outreach' | 'companies' | 'dashboard' | 'followups' | 'settings'>('outreach');
   const [campaigns, setCampaigns] = useState<OutreachCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);

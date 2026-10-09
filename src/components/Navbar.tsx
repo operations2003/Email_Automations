@@ -15,12 +15,13 @@ import {
   ShieldCheck,
   UserCheck,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Building2
 } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'outreach' | 'dashboard' | 'followups' | 'settings';
-  setActiveTab: (tab: 'outreach' | 'dashboard' | 'followups' | 'settings') => void;
+  activeTab: 'outreach' | 'companies' | 'dashboard' | 'followups' | 'settings';
+  setActiveTab: (tab: 'outreach' | 'companies' | 'dashboard' | 'followups' | 'settings') => void;
   onOpenNewModal: () => void;
   onRunScheduler: () => void;
   isSchedulerRunning: boolean;
@@ -107,6 +108,17 @@ export function Navbar({
             >
               <Table2 className="h-3.5 w-3.5" />
               All Emails
+            </button>
+            <button
+              onClick={() => setActiveTab('companies')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                activeTab === 'companies'
+                  ? 'bg-[#23272f] text-white'
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              <Building2 className="h-3.5 w-3.5" />
+              Companies
             </button>
             <button
               onClick={() => setActiveTab('followups')}
