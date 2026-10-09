@@ -225,7 +225,9 @@ export function LoginScreen() {
 
           <div className="mt-8 pt-4 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
             <span>© 2026 TaskNera HR Solutions</span>
-            <span>https://tasknera.io</span>
+            <a href="https://tasknera.com" target="_blank" rel="noreferrer" className="hover:text-slate-600 transition-colors">
+              https://tasknera.com
+            </a>
           </div>
         </div>
 
