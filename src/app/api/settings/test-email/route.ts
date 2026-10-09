@@ -15,10 +15,15 @@ export async function POST(req: NextRequest) {
     }
 
     const currentSettings = await getSettings();
-    // Allow overriding with transient unsaved settings from the form
+    // Allow overriding with transient unsaved settings from the form, preserving real password if masked
+    const override = { ...(body.settingsOverride || {}) };
+    if (!override.smtpPass || override.smtpPass === '••••••••') {
+      override.smtpPass = currentSettings.smtpPass || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || '';
+    }
+
     const effectiveSettings: AppSettings = {
       ...currentSettings,
-      ...(body.settingsOverride || {})
+      ...override
     };
 
     if (effectiveSettings.provider === 'simulated') {

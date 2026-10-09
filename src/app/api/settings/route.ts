@@ -6,19 +6,16 @@ export async function GET(req: NextRequest) {
   try {
     const user = getUserFromRequest(req);
     const settings = await getSettings();
-    // Mask sensitive key for display
+    // Mask sensitive key and password for display
     const maskedSettings = {
       ...settings,
+      smtpPass: settings.smtpPass ? '••••••••' : '',
+      hasSmtpPass: Boolean(settings.smtpPass && settings.smtpPass.trim().length > 0),
       openAiApiKey: settings.openAiApiKey
         ? `${settings.openAiApiKey.substring(0, 7)}...${settings.openAiApiKey.substring(settings.openAiApiKey.length - 4)}`
         : '',
       hasCustomKey: Boolean(settings.openAiApiKey && settings.openAiApiKey.trim().length > 10)
     };
-
-    // If employee, mask smtpPass completely
-    if (user && user.role === 'employee' && maskedSettings.smtpPass) {
-      maskedSettings.smtpPass = '••••••••';
-    }
 
     return NextResponse.json({ success: true, settings: maskedSettings });
   } catch (error: unknown) {
@@ -45,6 +42,11 @@ export async function POST(req: NextRequest) {
       delete body.openAiApiKey;
     }
 
+    // If user provided masked dots or empty string, preserve existing password
+    if (body.smtpPass === '••••••••' || body.smtpPass === '' || body.smtpPass === undefined) {
+      delete body.smtpPass;
+    }
+
     const updated = await updateSettings({
       ...current,
       ...body
@@ -55,6 +57,8 @@ export async function POST(req: NextRequest) {
       message: 'Settings updated successfully',
       settings: {
         ...updated,
+        smtpPass: updated.smtpPass ? '••••••••' : '',
+        hasSmtpPass: Boolean(updated.smtpPass && updated.smtpPass.trim().length > 0),
         openAiApiKey: updated.openAiApiKey
           ? `${updated.openAiApiKey.substring(0, 7)}...${updated.openAiApiKey.substring(updated.openAiApiKey.length - 4)}`
           : '',

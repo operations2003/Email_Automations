@@ -4,12 +4,7 @@ let client: MongoClient | null = null;
 let db: Db | null = null;
 
 function getSanitizedUri(): string {
-  let uri = process.env.MONGODB_URI || '';
-  if (!uri) return '';
-  if (uri.includes('Tasknera%402003')) {
-    uri = uri.replace('Tasknera%402003', 'tasknera%402003');
-  }
-  return uri;
+  return process.env.MONGODB_URI?.trim() || '';
 }
 
 export async function getMongoDb(dbName = 'tasknera'): Promise<Db | null> {

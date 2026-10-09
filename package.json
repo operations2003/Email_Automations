@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "security:scan": "node scripts/scan-secrets.mjs",
+    "test:security": "node tests/security-email.test.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.53.0",

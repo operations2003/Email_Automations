@@ -91,22 +91,30 @@ export async function sendOutreachEmail(
 
   // 1. SMTP Provider (Gmail, Outlook, Amazon SES, Custom SMTP)
   if (settings.provider === 'smtp') {
-    if (!settings.smtpHost || !settings.smtpUser || !settings.smtpPass) {
+    const smtpHost = settings.smtpHost || process.env.SMTP_HOST || 'smtp.gmail.com';
+    const smtpUser = settings.smtpUser || process.env.EMAIL_USER || process.env.SMTP_USER;
+    const smtpPass = settings.smtpPass || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS;
+
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      const missing: string[] = [];
+      if (!smtpHost) missing.push('SMTP_HOST');
+      if (!smtpUser) missing.push('EMAIL_USER / SMTP_USER');
+      if (!smtpPass) missing.push('EMAIL_PASSWORD / SMTP_PASS');
       throw new Error(
-        'SMTP Configuration incomplete. Please configure SMTP Host, Username/Email, and Password/App Password in Settings.'
+        `SMTP Configuration incomplete. Missing credentials: [${missing.join(', ')}]. Please configure them securely in your environment variables (.env.local) or Settings.`
       );
     }
 
-    const port = Number(settings.smtpPort) || (settings.smtpSecure ? 465 : 587);
-    const isSecure = settings.smtpSecure !== undefined ? Boolean(settings.smtpSecure) : port === 465;
+    const port = Number(settings.smtpPort) || Number(process.env.SMTP_PORT) || (settings.smtpSecure ? 465 : 587);
+    const isSecure = settings.smtpSecure !== undefined ? Boolean(settings.smtpSecure) : (port === 465);
 
     const transporter = nodemailer.createTransport({
-      host: settings.smtpHost,
+      host: smtpHost,
       port,
       secure: isSecure,
       auth: {
-        user: settings.smtpUser,
-        pass: settings.smtpPass
+        user: smtpUser,
+        pass: smtpPass
       },
       tls: {
         rejectUnauthorized: false
@@ -114,8 +122,10 @@ export async function sendOutreachEmail(
     });
 
     try {
+      const fromEmail = smtpUser || settings.senderEmail || 'operations@tasknera.com';
+      const fromName = settings.senderName || process.env.EMAIL_SENDER_NAME || 'TaskNera Operations';
       const info = await transporter.sendMail({
-        from: `"${settings.senderName || 'TaskNera Operations'}" <${settings.smtpUser || settings.senderEmail}>`,
+        from: `"${fromName}" <${fromEmail}>`,
         to: payload.to,
         cc: payload.cc ? payload.cc.split(',').map(s => s.trim()).filter(Boolean) : undefined,
         subject: payload.subject,
@@ -137,10 +147,11 @@ export async function sendOutreachEmail(
         e.message.includes('Username and Password not accepted')
       ) {
         throw new Error(
-          'Google Workspace rejected the password. Google accounts require a 16-character Google App Password (not your regular account password) for automated email sending. Please generate an App Password at https://myaccount.google.com/apppasswords and enter it in Settings.'
+          'Email provider rejected SMTP credentials (Authentication failure 535). For Google Workspace / Gmail, please verify you are using a 16-character App Password (configured in .env or Settings), not your standard account password.'
         );
       }
-      throw e;
+      // Re-throw safe error message without leaking transporter configs
+      throw new Error(`SMTP Delivery Failed: ${e.message || 'Unknown network error'}`);
     }
   }
 

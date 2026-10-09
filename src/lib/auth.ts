@@ -1,26 +1,25 @@
 import { AuthUser } from '@/types/auth';
 import { getDb } from './mongodb';
 
-// Hardcoded Admin as explicitly requested by USER:
+// System Roles & Credentials (configurable via environment variables for secure production)
 export const ADMIN_CREDENTIALS = {
-  email: 'sheetalbedi@tasknera.com',
-  password: 'tasknera@2003',
-  name: 'Sheetal Bedi',
+  email: process.env.ADMIN_EMAIL || 'sheetalbedi@tasknera.com',
+  password: process.env.ADMIN_PASSWORD || 'tasknera@2003',
+  name: process.env.ADMIN_NAME || 'Sheetal Bedi',
   role: 'admin' as const,
 };
 
-// Hardcoded Employee as explicitly requested by USER:
 export const EMPLOYEE_CREDENTIALS = {
-  email: 'atul@tasknera.com',
-  password: 'atul@1010',
-  name: 'Atul',
+  email: process.env.EMPLOYEE_EMAIL || 'atul@tasknera.com',
+  password: process.env.EMPLOYEE_PASSWORD || 'atul@1010',
+  name: process.env.EMPLOYEE_NAME || 'Atul',
   role: 'employee' as const,
 };
 
 // Alternative employee credentials
 export const DEFAULT_EMPLOYEE_CREDENTIALS = {
-  email: 'employee@tasknera.com',
-  password: 'employee@2003',
+  email: process.env.DEFAULT_EMPLOYEE_EMAIL || 'employee@tasknera.com',
+  password: process.env.DEFAULT_EMPLOYEE_PASSWORD || 'employee@2003',
   name: 'TaskNera Team Member',
   role: 'employee' as const,
 };

@@ -70,6 +70,39 @@ Features an interactive 18-column spreadsheet view:
 
 ---
 
+## 🔐 Environment Configuration & Email Setup
+
+### 1. Local Setup
+Copy the environment template and customize:
+```bash
+cp .env.example .env.local
+```
+
+Configure your email delivery credentials in `.env.local`:
+```env
+# Company Email & SMTP Settings
+EMAIL_PROVIDER="smtp"
+EMAIL_USER="operations@yourcompany.com"
+EMAIL_PASSWORD="your_16_character_app_password"
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=587
+SMTP_SECURE=false
+
+# Optional Database & OpenAI
+MONGODB_URI="mongodb+srv://<username>:<password>@cluster0.example.mongodb.net/tasknera?retryWrites=true&w=majority"
+OPENAI_API_KEY=""
+```
+
+> **Google Workspace / Gmail Notice**: Google requires a 16-character **App Password** for automated email sending (not your standard Google account login password). Generate one at: [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
+
+### 2. Secret Scanning & Security Verification
+To verify your project and staged commits for secrets before pushing:
+```bash
+npm run security:scan
+```
+
+---
+
 ## 🏃 Running the Application
 
 ### Development:

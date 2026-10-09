@@ -963,14 +963,24 @@ Fintech Hub, partnerships@fintechhub.com, Rahul`}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">App Password</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-gray-700">App Password / SMTP Password</label>
+                    {formData.smtpPass === '••••••••' && (
+                      <span className="text-[10px] text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        ● Configured
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="password"
-                    placeholder="16-letter App Password"
-                    value={formData.smtpPass || ''}
+                    placeholder={formData.smtpPass === '••••••••' ? '•••••••• (Leave as is or enter new to replace)' : 'Enter 16-letter App Password (or configure via .env.local)'}
+                    value={formData.smtpPass === '••••••••' ? '' : (formData.smtpPass || '')}
                     onChange={e => setFormData({ ...formData, smtpPass: e.target.value })}
                     className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                   />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Can also be loaded securely from <code>EMAIL_PASSWORD</code> environment variable.
+                  </p>
                 </div>
               </div>
 

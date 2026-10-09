@@ -29,13 +29,24 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files and secret credentials
 .env
 .env.*
 .env.local
 .env*.local
+*.env
+*.env.*
 !.env.example
 !**/.env.example
+
+# cryptographic keys and certificates
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+credentials.json
+client_secret*.json
 
 # vercel
 .vercel/
@@ -49,5 +60,6 @@ data/*.json
 !data/*.example.json
 backend/data/*.json
 !backend/data/*.example.json
+
 
 
