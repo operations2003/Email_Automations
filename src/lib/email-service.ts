@@ -173,7 +173,7 @@ export async function sendOutreachEmail(
   // 2. Resend API Provider (Official Resend SDK)
   const isResend =
     settings.provider === 'resend' ||
-    Boolean(process.env.RESEND_API_KEY && settings.provider !== 'smtp' && settings.provider !== 'simulated');
+    Boolean(process.env.RESEND_API_KEY && (settings.provider as string) !== 'smtp' && (settings.provider as string) !== 'simulated');
 
   if (isResend) {
     const apiKey = (process.env.RESEND_API_KEY || settings.resendApiKey || '').trim();
