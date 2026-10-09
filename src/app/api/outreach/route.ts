@@ -70,6 +70,62 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    // Support bulk assignment array: [{ companyName, email, ... }] or { items: [...] }
+    const items = Array.isArray(body) ? body : body.items ? body.items : null;
+    if (items && Array.isArray(items) && items.length > 0) {
+      const createdCampaigns: OutreachCampaign[] = [];
+      const now = new Date().toISOString();
+      for (const item of items) {
+        if (!item.companyName || !item.email) continue;
+        const id = `camp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        const camp: OutreachCampaign = {
+          id,
+          companyName: item.companyName.trim(),
+          email: item.email.trim(),
+          ccEmails: item.ccEmails?.trim() || '',
+          reason: item.reason?.trim() || 'Introduce TaskNera services and offerings.',
+          recipientName: item.recipientName?.trim() || '',
+          companyWebsite: item.companyWebsite?.trim() || '',
+          notes: item.notes?.trim() || '',
+          assignedTo: item.assignedTo?.trim() || 'Atul',
+          assignedBy: item.assignedBy?.trim() || 'Sheetal Bedi (Admin)',
+          initialSubject: '',
+          initialEmailBody: '',
+          initialSentAt: null,
+          followUp1Subject: '',
+          followUp1Body: '',
+          followUp1ScheduledAt: null,
+          followUp1SentAt: null,
+          followUp2Subject: '',
+          followUp2Body: '',
+          followUp2ScheduledAt: null,
+          followUp2SentAt: null,
+          followUp3Subject: '',
+          followUp3Body: '',
+          followUp3ScheduledAt: null,
+          followUp3SentAt: null,
+          status: 'Draft' as OutreachStatus,
+          replyStatus: 'Not Replied' as ReplyStatus,
+          lastActivity: `Assigned to ${item.assignedTo?.trim() || 'Atul'} by Admin`,
+          lastActivityTimestamp: now,
+          createdAt: now,
+          updatedAt: now,
+          history: [
+            {
+              id: `hist_init_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+              type: 'initial_generated',
+              title: `Assigned to ${item.assignedTo?.trim() || 'Atul'}`,
+              description: `Admin assigned ${item.companyName.trim()} for outreach.`,
+              timestamp: now
+            }
+          ]
+        };
+        await saveCampaign(camp);
+        createdCampaigns.push(camp);
+      }
+      return NextResponse.json({ success: true, count: createdCampaigns.length, campaigns: createdCampaigns });
+    }
+
     const {
       companyName,
       email,
@@ -79,6 +135,8 @@ export async function POST(req: NextRequest) {
       recipientName = '',
       companyWebsite = '',
       notes = '',
+      assignedTo = '',
+      assignedBy = '',
       forceCreate = false,
       forceDuplicate = false
     } = body;
@@ -126,6 +184,8 @@ export async function POST(req: NextRequest) {
       recipientName: recipientName.trim(),
       companyWebsite: companyWebsite.trim(),
       notes: notes.trim(),
+      assignedTo: assignedTo?.trim() || undefined,
+      assignedBy: assignedBy?.trim() || undefined,
       initialSubject: '',
       initialEmailBody: '',
       initialSentAt: null,
@@ -143,7 +203,7 @@ export async function POST(req: NextRequest) {
       followUp3SentAt: null,
       status: 'Draft' as OutreachStatus,
       replyStatus: 'Not Replied' as ReplyStatus,
-      lastActivity: 'Company added to outreach list',
+      lastActivity: assignedTo ? `Assigned to ${assignedTo} by Admin` : 'Company added to outreach list',
       lastActivityTimestamp: now,
       createdAt: now,
       updatedAt: now,
@@ -151,8 +211,8 @@ export async function POST(req: NextRequest) {
         {
           id: `hist_init_${Date.now()}`,
           type: 'initial_generated',
-          title: 'Outreach Record Created',
-          description: `Created outreach target for ${companyName.trim()} (${email.trim()}).`,
+          title: assignedTo ? `Assigned to ${assignedTo}` : 'Outreach Record Created',
+          description: assignedTo ? `Admin assigned ${companyName.trim()} for outreach.` : `Created outreach target for ${companyName.trim()} (${email.trim()}).`,
           timestamp: now
         }
       ]

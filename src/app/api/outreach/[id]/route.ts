@@ -43,6 +43,8 @@ export async function PUT(
     if (updates.recipientName !== undefined) campaign.recipientName = updates.recipientName;
     if (updates.companyWebsite !== undefined) campaign.companyWebsite = updates.companyWebsite;
     if (updates.notes !== undefined) campaign.notes = updates.notes;
+    if (updates.assignedTo !== undefined) campaign.assignedTo = updates.assignedTo;
+    if (updates.assignedBy !== undefined) campaign.assignedBy = updates.assignedBy;
 
     // Editable email content
     if (updates.initialSubject !== undefined) campaign.initialSubject = updates.initialSubject;

@@ -16,7 +16,9 @@ import {
   ExternalLink,
   MoreVertical,
   MessageSquare,
-  PenTool
+  PenTool,
+  Users,
+  UserCheck
 } from 'lucide-react';
 
 interface OutreachTableProps {
@@ -75,9 +77,43 @@ export function OutreachTable({
   statusFilter,
   setStatusFilter
 }: OutreachTableProps) {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const isAtul = Boolean(
+    user?.email?.toLowerCase().includes('atul') ||
+    user?.name?.toLowerCase().includes('atul')
+  );
+
+  const assignedLeadsCount = campaigns.filter(
+    c => (c.assignedTo && c.assignedTo.toLowerCase().includes('atul')) || (c.assignedTo && c.assignedTo.trim().length > 0)
+  ).length;
+
+  const filteredCampaigns = campaigns.filter(c => {
+    // Search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchCompany = c.companyName.toLowerCase().includes(q);
+      const matchEmail = c.email.toLowerCase().includes(q);
+      const matchContact = c.recipientName?.toLowerCase().includes(q);
+      const matchReason = c.reason?.toLowerCase().includes(q);
+      const matchAssigned = c.assignedTo?.toLowerCase().includes(q);
+      if (!matchCompany && !matchEmail && !matchContact && !matchReason && !matchAssigned) {
+        return false;
+      }
+    }
+
+    // Status / Assignment filter
+    if (statusFilter === 'assigned_to_atul' || statusFilter === 'assigned_to_me') {
+      return (c.assignedTo && c.assignedTo.toLowerCase().includes('atul')) || (c.assignedTo && c.assignedTo.trim().length > 0);
+    }
+    if (statusFilter && statusFilter !== 'all') {
+      return c.status === statusFilter;
+    }
+
+    return true;
+  });
 
   const copyToClipboard = (text: string, id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -161,6 +197,37 @@ export function OutreachTable({
 
   return (
     <div className="space-y-3">
+      {/* Assigned Leads Banner for Atul / Team */}
+      {assignedLeadsCount > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-lg border border-indigo-500/30 bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-transparent text-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              <Users className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="font-semibold text-white">
+                {isAtul ? 'Welcome Atul!' : 'Team Queue:'} You have {assignedLeadsCount} company lead{assignedLeadsCount > 1 ? 's' : ''} assigned by Admin
+              </p>
+              <p className="text-[11px] text-indigo-300/80 mt-0.5">
+                Ready for you to generate draft emails and reach out.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === 'assigned_to_atul' ? 'all' : 'assigned_to_atul')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              statusFilter === 'assigned_to_atul'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-indigo-500/20 text-indigo-200 hover:bg-indigo-500/30 border border-indigo-500/30'
+            }`}
+          >
+            <UserCheck className="h-3.5 w-3.5" />
+            <span>{statusFilter === 'assigned_to_atul' ? 'Show All Leads' : `View Assigned Leads (${assignedLeadsCount})`}</span>
+          </button>
+        </div>
+      )}
+
       {/* Search and Filters Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-[#14171c] p-2.5 rounded-lg border border-[#23272f]">
         <div className="flex items-center gap-2.5 flex-1 min-w-[280px] max-w-md">
@@ -168,7 +235,7 @@ export function OutreachTable({
             <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by company or email..."
+              placeholder="Search by company, email, contact, or assigned..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-gray-200 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
@@ -185,6 +252,11 @@ export function OutreachTable({
               className="rounded-md bg-[#0d0f12] border border-[#23272f] py-1 px-2 text-xs text-gray-300 focus:border-blue-500 focus:outline-none"
             >
               <option value="all">All ({campaigns.length})</option>
+              {assignedLeadsCount > 0 && (
+                <option value="assigned_to_atul" className="text-indigo-400 font-semibold bg-[#14171c]">
+                  👤 Assigned to {isAtul ? 'Me' : 'Atul'} ({assignedLeadsCount})
+                </option>
+              )}
               {ALL_STATUSES.map(st => (
                 <option key={st} value={st}>
                   {st}
@@ -219,7 +291,7 @@ export function OutreachTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1f242d]">
-              {campaigns.length === 0 ? (
+              {filteredCampaigns.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-gray-400">
                     {loading ? (
@@ -229,16 +301,22 @@ export function OutreachTable({
                       </div>
                     ) : (
                       <div>
-                        <p className="text-sm font-medium text-gray-300">No emails yet</p>
+                        <p className="text-sm font-medium text-gray-300">
+                          {statusFilter === 'assigned_to_atul'
+                            ? 'No leads currently assigned to Atul'
+                            : 'No matching emails found'}
+                        </p>
                         <p className="text-xs text-gray-400 mt-1">
-                          Click &quot;New Email&quot; above to start.
+                          {statusFilter !== 'all'
+                            ? 'Try clearing the filter above.'
+                            : 'Click "New Email" above to start.'}
                         </p>
                       </div>
                     )}
                   </td>
                 </tr>
               ) : (
-                campaigns.map(c => {
+                filteredCampaigns.map(c => {
                   const isMenuOpen = openMenuId === c.id;
 
                   return (
@@ -249,7 +327,7 @@ export function OutreachTable({
                     >
                       {/* Company & Contact */}
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-medium text-gray-200">{c.companyName}</span>
                           {c.companyWebsite && (
                             <a
@@ -263,10 +341,20 @@ export function OutreachTable({
                               <ExternalLink className="h-3 w-3" />
                             </a>
                           )}
+                          {c.assignedTo && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                              👤 {c.assignedTo}
+                            </span>
+                          )}
                         </div>
                         {c.recipientName && (
                           <span className="text-[11px] text-gray-400 block mt-0.5">
                             {c.recipientName}
+                          </span>
+                        )}
+                        {c.notes && (
+                          <span className="text-[10px] text-indigo-300/80 block mt-0.5 italic line-clamp-1" title={c.notes}>
+                            Note: {c.notes}
                           </span>
                         )}
                       </td>

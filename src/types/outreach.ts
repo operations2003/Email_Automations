@@ -55,6 +55,8 @@ export interface OutreachCampaign {
   recipientName?: string;
   companyWebsite?: string;
   notes?: string;
+  assignedTo?: string; // e.g. 'Atul' or 'atul@tasknera.com'
+  assignedBy?: string; // e.g. 'Sheetal Bedi (Admin)'
 
   // Initial Email
   initialSubject: string;
@@ -101,43 +103,43 @@ export interface OutreachService {
 
 export const DEFAULT_SERVICES: OutreachService[] = [
   {
-    id: 'pain',
-    name: 'Screening Bottleneck',
-    icon: '⚡',
-    tagline: 'Manual resume screening drag',
-    pitch: "Recruiters manually screening hundreds of CVs per JD, creating screening bottlenecks and delaying candidate shortlists.",
+    id: 'vcs',
+    name: 'VCS',
+    icon: '👥',
+    tagline: 'Flexible workforce & staffing support',
+    pitch: "TaskNera HR Solutions provides flexible workforce and staffing support to help businesses meet their talent requirements efficiently. We aim to simplify workforce planning, support hiring needs, and help organizations find suitable talent while reducing the time and effort involved in managing staffing requirements. Our services can be tailored to your organization's needs and growth plans.",
     isDefault: true
   },
   {
-    id: 'time',
-    name: 'Time Saving (8-10h/wk)',
-    icon: '⏱️',
-    tagline: 'Save 8-10h/week per recruiter',
-    pitch: "Automate first-level resume matching to save recruiters 8-10 hours weekly and deliver client shortlists in hours instead of days.",
+    id: 'recruitment',
+    name: 'Recruitment Services',
+    icon: '🎯',
+    tagline: 'Streamlined candidate sourcing & shortlisting',
+    pitch: "TaskNera HR Solutions helps businesses streamline their recruitment process, from identifying potential candidates to screening and shortlisting suitable talent. Our goal is to help organizations reduce hiring effort, improve recruitment efficiency, and connect with candidates who match their job requirements. We support businesses in building stronger teams through a more organized and effective hiring process.",
     isDefault: true
   },
   {
-    id: 'volume',
-    name: 'High-Volume Matching',
-    icon: '📈',
-    tagline: 'Large batches & pool matching',
-    pitch: "Batch screen large CV volumes and auto-rank candidate pools against mandatory job requirements.",
+    id: 'software',
+    name: 'Software Solutions',
+    icon: '💻',
+    tagline: 'Digital tools for HR, CRM & recruitment intelligence',
+    pitch: "TaskNera HR Solutions delivers technology-driven software solutions that help businesses simplify workflows, reduce manual tasks, and improve operational efficiency. Our solutions focus on recruitment intelligence, human resource management, and customer relationship management, enabling organizations to manage essential business activities more effectively through digital tools tailored to their operational needs.",
     isDefault: true
   },
   {
-    id: 'productivity',
-    name: 'Desk Capacity & Speed',
-    icon: '🚀',
-    tagline: 'Faster shortlists & consistency',
-    pitch: "Accelerate recruiter placement velocity and maintain consistent candidate evaluation scores across consultant desks.",
+    id: 'hireiq',
+    name: 'ATS + CRM Application — HireIQ by TaskNera',
+    icon: '🧠',
+    tagline: 'AI-powered recruitment intelligence & CRM',
+    pitch: "HireIQ by TaskNera is an AI-powered recruitment intelligence solution designed to make hiring smarter and more efficient. It helps recruitment teams analyze job descriptions, evaluate resumes against defined criteria, identify suitable candidates, and organize recruitment activities. Combined with CRM capabilities, it helps teams manage candidate information and recruitment interactions in a more structured workflow, reducing repetitive work and supporting informed hiring decisions.",
     isDefault: true
   },
   {
-    id: 'curiosity',
-    name: 'Soft CTA Walkthrough',
-    icon: '💬',
-    tagline: '90-second live example offer',
-    pitch: "Low-friction conversation starter asking if they are open to seeing a 90-second example of automated candidate matching on a live JD.",
+    id: 'hrms_crm',
+    name: 'HRMS + CRM Application',
+    icon: '🏢',
+    tagline: 'Integrated employee management & CRM workflows',
+    pitch: "TaskNera HR Solutions offers an integrated HRMS and CRM solution designed to simplify employee management and customer relationship workflows. The HRMS supports essential HR activities such as attendance, leave management, employee records, and payroll workflows, while CRM capabilities help businesses manage leads, customer information, and interactions. Together, these solutions aim to improve coordination, reduce administrative workload, and provide businesses with better visibility into their day-to-day operations.",
     isDefault: true
   }
 ];
@@ -178,6 +180,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
 export const MAIL_TOPICS = [
   'VCS',
+  'Recruitment Services',
+  'Software Solutions',
+  'ATS + CRM Application — HireIQ by TaskNera',
+  'HRMS + CRM Application',
+  // Backward compatibility aliases
   'recruitment services',
   'software solutions',
   'ATS + CRM app',
