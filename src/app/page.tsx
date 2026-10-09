@@ -311,8 +311,8 @@ export default function HomePage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#f3f4f8] text-gray-900 flex flex-col justify-center items-center">
-        <div className="h-8 w-8 border-2 border-[#7c3aed] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center">
+        <div className="h-7 w-7 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -322,18 +322,18 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f4f8] text-gray-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
       {/* Toast notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 shadow-xl text-xs">
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 shadow-lg text-xs">
           {toastMessage.type === 'success' ? (
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           ) : toastMessage.type === 'error' ? (
             <AlertCircle className="h-4 w-4 text-rose-600" />
           ) : (
-            <Info className="h-4 w-4 text-[#7c3aed]" />
+            <Info className="h-4 w-4 text-slate-700" />
           )}
-          <span className="font-medium text-gray-900">{toastMessage.text}</span>
+          <span className="font-medium text-slate-900">{toastMessage.text}</span>
         </div>
       )}
 
@@ -441,11 +441,11 @@ export default function HomePage() {
             />
           ) : (
             <div className="max-w-md mx-auto text-center py-16 space-y-4">
-              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-[#7c3aed] border border-purple-200">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-800 border border-slate-200">
                 <Shield className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">Administrator Access Required</h2>
-              <p className="text-xs text-gray-500 leading-relaxed">
+              <h2 className="text-lg font-bold text-slate-900">Administrator Access Required</h2>
+              <p className="text-xs text-slate-500 leading-relaxed">
                 System settings, API secrets, and delivery credentials can only be viewed or modified by Sheetal Bedi (Admin).
               </p>
             </div>

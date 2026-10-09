@@ -15,38 +15,46 @@ const BUNDLED_SETTINGS_FILE = path.join(process.cwd(), 'data', 'settings.json');
 
 export const DEFAULT_SETTINGS: AppSettings = {
   senderName: process.env.EMAIL_SENDER_NAME || 'TaskNera Operations',
-  senderEmail: process.env.EMAIL_USER || process.env.SMTP_USER || 'operations@tasknera.com',
+  senderEmail: process.env.EMAIL_FROM || process.env.EMAIL_USER || process.env.SMTP_USER || 'operations@tasknera.com',
   defaultCc: process.env.DEFAULT_CC || 'operations@tasknera.com',
   companyName: process.env.COMPANY_NAME || 'TaskNera Solutions',
   emailSignature: `Best regards,\nOperations Team\nTaskNera Solutions\nhttps://tasknera.io | operations@tasknera.com`,
   aiTone: 'Professional',
   followUpIntervalDays: 2,
   maxFollowUps: 3,
-  provider: (process.env.EMAIL_PROVIDER as any) || 'smtp',
+  provider: (process.env.RESEND_API_KEY ? 'resend' : (process.env.EMAIL_PROVIDER as any) || 'smtp'),
+  resendApiKey: process.env.RESEND_API_KEY || '',
   smtpHost: process.env.SMTP_HOST || 'smtp.gmail.com',
   smtpPort: Number(process.env.SMTP_PORT) || 587,
   smtpSecure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : false,
   smtpUser: process.env.EMAIL_USER || process.env.SMTP_USER || '',
   smtpPass: process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || '',
   openAiApiKey: process.env.OPENAI_API_KEY || '',
-  resendApiKey: process.env.RESEND_API_KEY || '',
   services: DEFAULT_SERVICES
 };
 
-function applyEnvFallbacks(settings: AppSettings): AppSettings {
-  return {
+let inMemorySettings: AppSettings = { ...DEFAULT_SETTINGS };
+
+function applyEnvOverrides(settings: AppSettings): AppSettings {
+  const result: AppSettings = {
     ...settings,
     smtpUser: settings.smtpUser || process.env.EMAIL_USER || process.env.SMTP_USER || '',
     smtpPass: settings.smtpPass || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || '',
     smtpHost: settings.smtpHost || process.env.SMTP_HOST || 'smtp.gmail.com',
     smtpPort: settings.smtpPort || Number(process.env.SMTP_PORT) || 587,
     openAiApiKey: settings.openAiApiKey || process.env.OPENAI_API_KEY || '',
-    resendApiKey: settings.resendApiKey || process.env.RESEND_API_KEY || '',
-    provider: settings.provider || (process.env.EMAIL_PROVIDER as any) || 'smtp'
   };
+  if (process.env.RESEND_API_KEY) {
+    if (!result.resendApiKey || result.provider === 'simulated') {
+      result.resendApiKey = process.env.RESEND_API_KEY;
+      result.provider = 'resend';
+    }
+  }
+  if (process.env.EMAIL_FROM) {
+    result.senderEmail = process.env.EMAIL_FROM;
+  }
+  return result;
 }
-
-let inMemorySettings: AppSettings = { ...DEFAULT_SETTINGS };
 
 export async function getSettings(): Promise<AppSettings> {
   try {
@@ -57,12 +65,13 @@ export async function getSettings(): Promise<AppSettings> {
       if (doc) {
         const { _id, key, ...rest } = doc as any;
         const services = rest.services && rest.services.length > 0 ? rest.services : DEFAULT_SERVICES;
-        inMemorySettings = applyEnvFallbacks({ ...DEFAULT_SETTINGS, ...rest, services });
+        inMemorySettings = applyEnvOverrides({ ...DEFAULT_SETTINGS, ...rest, services });
         return inMemorySettings;
       } else {
         // initialize default settings in MongoDB
-        await col.insertOne({ key: 'global_app_settings', ...DEFAULT_SETTINGS }).catch(() => {});
-        return DEFAULT_SETTINGS;
+        const initial = applyEnvOverrides({ ...DEFAULT_SETTINGS });
+        await col.insertOne({ key: 'global_app_settings', ...initial }).catch(() => {});
+        return initial;
       }
     }
   } catch (err) {
@@ -75,7 +84,7 @@ export async function getSettings(): Promise<AppSettings> {
     const data = await fs.readFile(SETTINGS_FILE, 'utf-8');
     const parsed = JSON.parse(data);
     const services = parsed.services && parsed.services.length > 0 ? parsed.services : DEFAULT_SERVICES;
-    inMemorySettings = applyEnvFallbacks({ ...DEFAULT_SETTINGS, ...parsed, services });
+    inMemorySettings = applyEnvOverrides({ ...DEFAULT_SETTINGS, ...parsed, services });
     return inMemorySettings;
   } catch {
     // If on serverless, attempt to read bundled settings.json
@@ -84,13 +93,13 @@ export async function getSettings(): Promise<AppSettings> {
         const bundled = await fs.readFile(BUNDLED_SETTINGS_FILE, 'utf-8');
         const parsed = JSON.parse(bundled);
         const services = parsed.services && parsed.services.length > 0 ? parsed.services : DEFAULT_SERVICES;
-        inMemorySettings = applyEnvFallbacks({ ...DEFAULT_SETTINGS, ...parsed, services });
+        inMemorySettings = applyEnvOverrides({ ...DEFAULT_SETTINGS, ...parsed, services });
         return inMemorySettings;
       } catch {
         // ignore
       }
     }
-    return DEFAULT_SETTINGS;
+    return applyEnvOverrides(inMemorySettings);
   }
 }
 

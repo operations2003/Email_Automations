@@ -6,6 +6,19 @@ import { getMongoDb } from './mongodb.js';
 const DATA_DIR = path.join(process.cwd(), 'data');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 
+function applyEnvOverrides(settings: AppSettings): AppSettings {
+  if (process.env.RESEND_API_KEY) {
+    if (!settings.resendApiKey || settings.provider === 'simulated') {
+      settings.resendApiKey = process.env.RESEND_API_KEY;
+      settings.provider = 'resend';
+    }
+  }
+  if (process.env.EMAIL_FROM) {
+    settings.senderEmail = process.env.EMAIL_FROM;
+  }
+  return settings;
+}
+
 export async function getSettings(): Promise<AppSettings> {
   try {
     const db = await getMongoDb();
@@ -14,10 +27,11 @@ export async function getSettings(): Promise<AppSettings> {
       const doc = await col.findOne({ key: 'global_app_settings' });
       if (doc) {
         const { _id, key, ...rest } = doc as any;
-        return { ...DEFAULT_SETTINGS, ...rest };
+        return applyEnvOverrides({ ...DEFAULT_SETTINGS, ...rest });
       } else {
-        await col.insertOne({ key: 'global_app_settings', ...DEFAULT_SETTINGS });
-        return DEFAULT_SETTINGS;
+        const initial = applyEnvOverrides({ ...DEFAULT_SETTINGS });
+        await col.insertOne({ key: 'global_app_settings', ...initial });
+        return initial;
       }
     }
   } catch (err) {
@@ -28,7 +42,7 @@ export async function getSettings(): Promise<AppSettings> {
     await fs.mkdir(DATA_DIR, { recursive: true });
     const data = await fs.readFile(SETTINGS_FILE, 'utf-8');
     const parsed = JSON.parse(data);
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    return applyEnvOverrides({ ...DEFAULT_SETTINGS, ...parsed });
   } catch {
     try {
       await fs.mkdir(DATA_DIR, { recursive: true });
@@ -36,7 +50,7 @@ export async function getSettings(): Promise<AppSettings> {
     } catch {
       // ignore
     }
-    return DEFAULT_SETTINGS;
+    return applyEnvOverrides({ ...DEFAULT_SETTINGS });
   }
 }
 

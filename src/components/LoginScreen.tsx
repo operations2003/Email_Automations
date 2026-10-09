@@ -1,12 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import {
   AlertCircle,
   Eye,
-  EyeOff
+  EyeOff,
+  Mail,
+  Lock,
+  ArrowRight,
+  ShieldCheck,
+  UserCheck,
+  CheckCircle2,
+  Activity,
+  Layers,
+  Send,
+  Building2
 } from 'lucide-react';
 
 export function LoginScreen() {
@@ -25,135 +34,312 @@ export function LoginScreen() {
 
     const res = await login(email, password);
     if (!res.success) {
-      setError(res.error || 'Authentication failed. Please check your email and password.');
+      setError(res.error || 'Authentication failed. Please check your work email and password.');
     }
     setLoading(false);
   };
 
+  const handleQuickLogin = async (targetEmail: string, targetPass: string) => {
+    setEmail(targetEmail);
+    setPassword(targetPass);
+    setError(null);
+    setLoading(true);
+
+    const res = await login(targetEmail, targetPass);
+    if (!res.success) {
+      setError(res.error || 'Authentication failed. Please check credentials.');
+    }
+    setLoading(false);
+  };
 
   return (
-    <div className="min-h-screen h-screen max-h-screen bg-[#f3f4f8] text-gray-900 flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden font-sans select-none">
-      {/* Main Split Card Container */}
-      <div className="w-full max-w-4xl max-h-[92vh] rounded-3xl bg-white shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-gray-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center p-4 sm:p-6 lg:p-8 font-sans selection:bg-slate-900 selection:text-white">
+      {/* Background Subtle Dot Pattern */}
+      <div 
+        className="fixed inset-0 pointer-events-none opacity-40"
+        style={{
+          backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
+        }}
+      />
 
-        {/* Left Column: Clean White Form */}
-        <div className="lg:col-span-6 p-6 sm:p-8 lg:p-10 flex flex-col justify-between">
+      {/* Main Container Card */}
+      <div className="relative w-full max-w-5xl rounded-2xl bg-white shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+        
+        {/* Left Column: Form & Access Control (7 cols) */}
+        <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white z-10">
           <div>
-            {/* Brand Logo Header */}
-            <div className="flex items-center gap-2 mb-6">
-              <div className="h-5 w-2.5 rounded-xs bg-[#7c3aed]" />
-              <span className="font-bold text-sm text-gray-900 tracking-tight">AutoReach AI</span>
+            {/* TaskNera Monogram & Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white font-semibold text-xs tracking-wider shadow-xs">
+                  TN
+                </div>
+                <div>
+                  <span className="font-semibold text-sm text-slate-900 tracking-tight block leading-none">TaskNera</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Enterprise Pipeline Operations</span>
+                </div>
+              </div>
+
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-800 font-medium">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                Network Online
+              </div>
             </div>
 
-            {/* Greetings Header */}
-            <div className="space-y-1 mb-5">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight leading-tight">
-                Hello,<br />
-                Welcome Back
+            {/* Title */}
+            <div className="space-y-1 mb-6">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                Sign in to your account
               </h1>
-              <p className="text-xs text-gray-500 font-normal">
-                Sign in to access your company outreach workspace
+              <p className="text-xs text-slate-500">
+                Enter your authorized TaskNera workspace credentials to continue.
               </p>
             </div>
 
             {/* Error Banner */}
             {error && (
-              <div className="flex items-center gap-2 p-2.5 mb-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs">
-                <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />
-                <span className="truncate">{error}</span>
+              <div className="flex items-center gap-2.5 p-3 mb-5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
+                <span className="font-medium">{error}</span>
               </div>
             )}
 
             {/* Sign-in Form */}
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@tasknera.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-gray-200 py-2.5 px-3.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] transition-colors"
-                />
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Work Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="name@tasknera.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="w-full rounded-lg bg-white border border-slate-300 py-2 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors"
+                  />
+                </div>
               </div>
 
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-gray-200 py-2.5 pl-3.5 pr-10 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700">Password</label>
+                  <button
+                    type="button"
+                    onClick={() => setError('Contact Sheetal Bedi (sheetalbedi@tasknera.com) for password resets.')}
+                    className="text-slate-500 hover:text-slate-900 transition-colors text-[11px] font-medium cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••••••"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    className="w-full rounded-lg bg-white border border-slate-300 py-2 pl-9 pr-10 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between text-xs pt-0.5">
-                <label className="flex items-center gap-2 cursor-pointer select-none text-gray-600">
+              <div className="flex items-center justify-between text-xs pt-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={e => setRememberMe(e.target.checked)}
-                    className="h-3.5 w-3.5 rounded border-gray-300 text-[#7c3aed] focus:ring-0 cursor-pointer accent-[#7c3aed]"
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-slate-900 focus:ring-0 cursor-pointer accent-slate-900"
                   />
-                  <span className="text-[11px]">Remember me</span>
+                  <span className="text-[11px]">Remember this session</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setError('Please contact your administrator (sheetalbedi@tasknera.com) to reset your credentials.')}
-                  className="text-gray-400 hover:text-[#7c3aed] transition-colors text-[11px] cursor-pointer"
-                >
-                  Forgot Password?
-                </button>
+                <span className="text-[11px] text-slate-400">TLS 1.3 256-bit AES</span>
               </div>
 
-              {/* Solid Purple Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] py-2.5 text-xs font-semibold text-white shadow-sm hover:shadow transition-all active:scale-[0.99] disabled:opacity-50 mt-1 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 rounded-lg bg-slate-900 hover:bg-slate-800 py-2.5 text-xs font-semibold text-white shadow-xs transition-colors disabled:opacity-50 mt-2 cursor-pointer"
               >
                 {loading ? (
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span>Sign In</span>
+                  <>
+                    <span>Sign in to TaskNera</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </>
                 )}
               </button>
             </form>
 
-            {/* Footer with Sign Up */}
-            <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
-              <span>Don&apos;t have an account? </span>
-              <button
-                type="button"
-                className="text-[#7c3aed] font-semibold hover:underline cursor-pointer"
-              >
-                Sign Up
-              </button>
+            {/* Quick Role Access Buttons */}
+            <div className="mt-6 pt-5 border-t border-slate-100">
+              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
+                Authorized Team Fast Access
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('sheetalbedi@tasknera.com', 'tasknera@2003')}
+                  className="flex items-center gap-2.5 p-2.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 text-left transition-colors cursor-pointer group"
+                >
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-semibold text-slate-900 block truncate group-hover:text-slate-950">
+                      Sheetal Bedi
+                    </span>
+                    <span className="text-[10px] text-slate-500 block">Administrator</span>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('atul@tasknera.com', 'atul@1010')}
+                  className="flex items-center gap-2.5 p-2.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 text-left transition-colors cursor-pointer group"
+                >
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-800 text-white">
+                    <UserCheck className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-semibold text-slate-900 block truncate group-hover:text-slate-950">
+                      Atul
+                    </span>
+                    <span className="text-[10px] text-slate-500 block">Lead Operations</span>
+                  </div>
+                </button>
+              </div>
             </div>
+          </div>
+
+          <div className="mt-8 pt-4 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+            <span>© 2026 TaskNera HR Solutions</span>
+            <span>https://tasknera.io</span>
           </div>
         </div>
 
-        {/* Right Column: Clean Solid Purple Illustration Container - Nothing Extra */}
-        <div className="hidden lg:flex lg:col-span-6 bg-[#7c3aed] p-6 lg:p-8 items-center justify-center overflow-hidden rounded-r-3xl relative">
-          <div className="relative w-full aspect-square max-w-[340px] rounded-2xl overflow-hidden shadow-lg bg-[#7c3aed]">
-            <Image
-              src="/auth-banner.jpg"
-              alt="AutoReach AI Security and Authentication"
-              fill
-              priority
-              className="object-cover"
-            />
+        {/* Right Column: Sleek Enterprise Pipeline Operations Preview (5 cols) */}
+        <div className="hidden lg:flex lg:col-span-5 bg-slate-900 p-8 lg:p-10 flex-col justify-between text-white relative border-l border-slate-800">
+          {/* Subtle Grid Accent */}
+          <div 
+            className="absolute inset-0 pointer-events-none opacity-10"
+            style={{
+              backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)',
+              backgroundSize: '24px 24px'
+            }}
+          />
+
+          <div className="relative z-10 space-y-6">
+            {/* Header Pill */}
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-slate-800 border border-slate-700/80 text-[11px] text-slate-300 font-medium">
+              <Activity className="h-3.5 w-3.5 text-emerald-400" />
+              <span>SLA Delivery Engine</span>
+            </div>
+
+            <div>
+              <h2 className="text-lg font-bold tracking-tight text-white mb-1.5">
+                Outreach Pipeline Live Stream
+              </h2>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Automated multi-stage sequences across VCS, recruitment pipelines, and HR tech solutions.
+              </p>
+            </div>
+
+            {/* Live Campaign Mock Card */}
+            <div className="rounded-xl bg-slate-950/80 border border-slate-800 p-4 space-y-3 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded bg-slate-800 flex items-center justify-center">
+                    <Building2 className="h-3 w-3 text-slate-300" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold text-slate-200 block leading-tight">Apex Retail Global</span>
+                    <span className="text-[10px] text-slate-500 font-mono">support@apexretail.com</span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Delivered
+                </span>
+              </div>
+
+              {/* Sequence Mini Stages */}
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Sequence Stage:</span>
+                  <span className="text-slate-200 font-medium">Stage 1: Introductory VCS Outreach</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Next Action:</span>
+                  <span className="text-slate-300 font-mono text-[10px]">Follow-up #1 in 48h</span>
+                </div>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Assigned Operator:</span>
+                  <span className="text-slate-200 font-medium">Atul (Lead Operations)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Performance Metrics Row */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="rounded-lg bg-slate-950/60 border border-slate-800/80 p-3">
+                <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider block mb-1">
+                  Delivery SLA
+                </span>
+                <span className="text-lg font-bold text-white tracking-tight font-mono">99.8%</span>
+                <span className="text-[10px] text-emerald-400 flex items-center gap-1 mt-0.5">
+                  <CheckCircle2 className="h-3 w-3" /> Zero bounce
+                </span>
+              </div>
+
+              <div className="rounded-lg bg-slate-950/60 border border-slate-800/80 p-3">
+                <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider block mb-1">
+                  Active Services
+                </span>
+                <span className="text-lg font-bold text-white tracking-tight font-mono">5 Verticals</span>
+                <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                  <Layers className="h-3 w-3" /> Full lifecycle
+                </span>
+              </div>
+            </div>
+
+            {/* Core Capability Badges */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center gap-2 text-xs text-slate-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                <span>Virtual Customer Support (VCS) across voice &amp; chat</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                <span>End-to-end recruitment &amp; high-volume talent staffing</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-slate-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                <span>HireIQ ATS + HRMS digital platforms</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer in right column */}
+          <div className="relative z-10 pt-6 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <Send className="h-3 w-3 text-slate-500" />
+              <span>operations@tasknera.com</span>
+            </span>
+            <span className="font-mono text-[10px] text-slate-500">v2.4.0</span>
           </div>
         </div>
+
       </div>
     </div>
   );

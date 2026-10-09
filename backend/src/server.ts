@@ -7,6 +7,7 @@ import dashboardRouter from './routes/dashboard.js';
 import settingsRouter from './routes/settings.js';
 import schedulerRouter from './routes/scheduler.js';
 import webhooksRouter from './routes/webhooks.js';
+import emailsRouter from './routes/emails.js';
 import { runDueFollowUps } from './services/scheduler.js';
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.use(express.json());
 
 // Mount API routes
 app.use('/api/outreach', outreachRouter);
+app.use('/api/emails', emailsRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/scheduler', schedulerRouter);

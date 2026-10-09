@@ -15,7 +15,7 @@ interface HistoryModalProps {
 }
 
 export function HistoryModal({ campaign, isOpen, onClose }: HistoryModalProps) {
-  const [, setHistoryData] = useState<{
+  const [historyData, setHistoryData] = useState<{
     history: EmailHistoryEvent[];
     emails: {
       initial: { sentAt?: string; subject?: string; body?: string };
@@ -45,32 +45,41 @@ export function HistoryModal({ campaign, isOpen, onClose }: HistoryModalProps) {
     return `${d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   };
 
+  const historyList = historyData?.history || campaign.history || [];
+  const initialSentAt = historyData?.emails?.initial?.sentAt || campaign.initialSentAt;
+  const followUp1SentAt = historyData?.emails?.followUp1?.sentAt || campaign.followUp1SentAt;
+  const followUp1ScheduledAt = historyData?.emails?.followUp1?.scheduledAt || campaign.followUp1ScheduledAt;
+  const followUp2SentAt = historyData?.emails?.followUp2?.sentAt || campaign.followUp2SentAt;
+  const followUp2ScheduledAt = historyData?.emails?.followUp2?.scheduledAt || campaign.followUp2ScheduledAt;
+  const followUp3SentAt = historyData?.emails?.followUp3?.sentAt || campaign.followUp3SentAt;
+  const followUp3ScheduledAt = historyData?.emails?.followUp3?.scheduledAt || campaign.followUp3ScheduledAt;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-3xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl my-8 max-h-[85vh] flex flex-col text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="relative w-full max-w-3xl rounded-xl border border-slate-200 bg-white p-6 shadow-xl my-8 max-h-[85vh] flex flex-col text-slate-900">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-gray-900 tracking-tight">
+              <h3 className="text-base font-semibold text-slate-900 tracking-tight">
                 {campaign.companyName}
               </h3>
-              <span className="font-mono text-xs text-gray-500">
+              <span className="font-mono text-xs text-slate-500">
                 ({campaign.email})
               </span>
               {campaign.mailTopic && (
-                <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-[#7c3aed] border border-purple-200">
+                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 border border-slate-200">
                   {campaign.mailTopic}
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Status: <span className="text-gray-800 font-semibold">{campaign.status}</span> · Reply: <span className="text-emerald-600 font-semibold">{campaign.replyStatus}</span>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Status: <span className="text-slate-800 font-semibold">{campaign.status}</span> · Reply: <span className="text-emerald-700 font-medium">{campaign.replyStatus}</span>
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors cursor-pointer"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -81,85 +90,85 @@ export function HistoryModal({ campaign, isOpen, onClose }: HistoryModalProps) {
           {/* Sequence Overview Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
             {/* Initial */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs">
-              <span className="text-[11px] font-semibold text-gray-500 block mb-1">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-xs">
+              <span className="text-[11px] font-semibold text-slate-500 block mb-1">
                 First Email
               </span>
-              <p className="font-medium text-gray-800 line-clamp-1">{campaign.initialSubject || 'Draft'}</p>
-              <p className="text-[10px] text-gray-500 font-mono mt-1">
-                {campaign.initialSentAt ? formatDate(campaign.initialSentAt) : 'Not sent yet'}
+              <p className="font-medium text-slate-800 line-clamp-1">{historyData?.emails?.initial?.subject || campaign.initialSubject || 'Draft'}</p>
+              <p className="text-[10px] text-slate-500 font-mono mt-1">
+                {initialSentAt ? formatDate(initialSentAt) : 'Not sent yet'}
               </p>
             </div>
 
             {/* FU 1 */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs">
-              <span className="text-[11px] font-semibold text-gray-500 block mb-1">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-xs">
+              <span className="text-[11px] font-semibold text-slate-500 block mb-1">
                 Follow-up 1 (Day 2)
               </span>
-              <p className="font-medium text-gray-800 line-clamp-1">{campaign.followUp1Subject || 'Scheduled'}</p>
-              <p className="text-[10px] text-gray-500 font-mono mt-1">
-                {campaign.followUp1SentAt ? formatDate(campaign.followUp1SentAt) : campaign.followUp1ScheduledAt ? `Due ${formatDate(campaign.followUp1ScheduledAt)}` : 'Waiting'}
+              <p className="font-medium text-slate-800 line-clamp-1">{historyData?.emails?.followUp1?.subject || campaign.followUp1Subject || 'Scheduled'}</p>
+              <p className="text-[10px] text-slate-500 font-mono mt-1">
+                {followUp1SentAt ? formatDate(followUp1SentAt) : followUp1ScheduledAt ? `Due ${formatDate(followUp1ScheduledAt)}` : 'Waiting'}
               </p>
             </div>
 
             {/* FU 2 */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs">
-              <span className="text-[11px] font-semibold text-gray-500 block mb-1">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-xs">
+              <span className="text-[11px] font-semibold text-slate-500 block mb-1">
                 Follow-up 2 (Day 4)
               </span>
-              <p className="font-medium text-gray-800 line-clamp-1">{campaign.followUp2Subject || 'Scheduled'}</p>
-              <p className="text-[10px] text-gray-500 font-mono mt-1">
-                {campaign.followUp2SentAt ? formatDate(campaign.followUp2SentAt) : campaign.followUp2ScheduledAt ? `Due ${formatDate(campaign.followUp2ScheduledAt)}` : 'Waiting'}
+              <p className="font-medium text-slate-800 line-clamp-1">{historyData?.emails?.followUp2?.subject || campaign.followUp2Subject || 'Scheduled'}</p>
+              <p className="text-[10px] text-slate-500 font-mono mt-1">
+                {followUp2SentAt ? formatDate(followUp2SentAt) : followUp2ScheduledAt ? `Due ${formatDate(followUp2ScheduledAt)}` : 'Waiting'}
               </p>
             </div>
 
             {/* FU 3 */}
-            <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs">
-              <span className="text-[11px] font-semibold text-gray-500 block mb-1">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 text-xs">
+              <span className="text-[11px] font-semibold text-slate-500 block mb-1">
                 Follow-up 3 (Day 6)
               </span>
-              <p className="font-medium text-gray-800 line-clamp-1">{campaign.followUp3Subject || 'Final follow-up'}</p>
-              <p className="text-[10px] text-gray-500 font-mono mt-1">
-                {campaign.followUp3SentAt ? formatDate(campaign.followUp3SentAt) : campaign.followUp3ScheduledAt ? `Due ${formatDate(campaign.followUp3ScheduledAt)}` : 'Waiting'}
+              <p className="font-medium text-slate-800 line-clamp-1">{historyData?.emails?.followUp3?.subject || campaign.followUp3Subject || 'Final follow-up'}</p>
+              <p className="text-[10px] text-slate-500 font-mono mt-1">
+                {followUp3SentAt ? formatDate(followUp3SentAt) : followUp3ScheduledAt ? `Due ${formatDate(followUp3ScheduledAt)}` : 'Waiting'}
               </p>
             </div>
           </div>
 
           {/* Event Stream */}
           <div>
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-gray-400" />
+            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-slate-400" />
               Email History
             </h4>
 
-            <div className="relative pl-5 space-y-3 border-l border-gray-200 ml-2">
-              {campaign.history && campaign.history.length > 0 ? (
-                campaign.history.map(item => (
+            <div className="relative pl-5 space-y-3 border-l border-slate-200 ml-2">
+              {historyList && historyList.length > 0 ? (
+                historyList.map(item => (
                   <div key={item.id} className="relative">
-                    <div className="absolute -left-[25px] top-1.5 h-2.5 w-2.5 rounded-full bg-[#7c3aed] border-2 border-white shadow-xs" />
-                    <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-xs">
+                    <div className="absolute -left-[25px] top-1.5 h-2.5 w-2.5 rounded-full bg-slate-900 border-2 border-white shadow-xs" />
+                    <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-gray-900">{item.title}</span>
-                        <span className="text-[10px] text-gray-400 font-mono">
+                        <span className="text-xs font-semibold text-slate-900">{item.title}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">
                           {formatDate(item.timestamp)}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600 leading-relaxed">{item.description}</p>
+                      <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-gray-500">No activity recorded yet.</p>
+                <p className="text-xs text-slate-500">No activity recorded yet.</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-3 border-t border-gray-200 pt-3 flex justify-end">
+        <div className="mt-3 border-t border-slate-100 pt-3 flex justify-end">
           <button
             onClick={onClose}
-            className="rounded-lg border border-gray-200 px-3.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+            className="rounded-lg border border-slate-200 px-3.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Close
           </button>

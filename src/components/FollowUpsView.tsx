@@ -126,44 +126,44 @@ export function FollowUpsView({
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       {/* Filter buttons */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-gray-200 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs">
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               filter === 'all'
-                ? 'bg-[#7c3aed] text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             All ({followUpTasks.length})
           </button>
           <button
             onClick={() => setFilter('due')}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               filter === 'due'
-                ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                : 'text-amber-700 hover:bg-amber-50'
+                ? 'bg-amber-100 text-amber-900 border border-amber-200'
+                : 'text-amber-800 hover:bg-amber-50'
             }`}
           >
             Due Today ({dueCount})
           </button>
           <button
             onClick={() => setFilter('upcoming')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               filter === 'upcoming'
-                ? 'bg-[#7c3aed] text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Upcoming
           </button>
           <button
             onClick={() => setFilter('sent')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               filter === 'sent'
-                ? 'bg-[#7c3aed] text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Sent
@@ -174,7 +174,7 @@ export function FollowUpsView({
           <button
             onClick={onRunScheduler}
             disabled={isSchedulerRunning}
-            className="flex items-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
+            className="flex items-center gap-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-white px-3.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
           >
             {isSchedulerRunning ? (
               <RefreshCw className="h-3 w-3 animate-spin" />
@@ -189,65 +189,65 @@ export function FollowUpsView({
       {/* List */}
       <div className="space-y-2.5">
         {filteredTasks.length === 0 ? (
-          <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center text-gray-500 text-xs">
-            No follow-ups found here.
+          <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-slate-500 text-xs">
+            No follow-ups found in this view.
           </div>
         ) : (
           filteredTasks.map((t, idx) => (
             <div
               key={`${t.campaign.id}-${t.stage}-${idx}`}
-              className={`rounded-2xl border p-4.5 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm ${
+              className={`rounded-xl border p-4 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs ${
                 t.isDue
-                  ? 'border-amber-200 bg-amber-50/50'
+                  ? 'border-amber-200 bg-amber-50/40'
                   : t.isSent
-                  ? 'border-gray-200 bg-gray-50/60'
-                  : 'border-gray-200 bg-white'
+                  ? 'border-slate-200 bg-slate-50/60'
+                  : 'border-slate-200 bg-white'
               }`}
             >
               {/* Left Details */}
               <div className="space-y-1 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-bold text-gray-700">
+                  <span className="text-[11px] font-semibold text-slate-700">
                     {t.stageName} (Day {t.dayOffset})
                   </span>
 
-                  <span className="text-gray-300">·</span>
+                  <span className="text-slate-300">·</span>
 
-                  <span className="font-bold text-xs text-gray-900">
+                  <span className="font-semibold text-xs text-slate-900">
                     {t.campaign.companyName}
                   </span>
 
-                  <span className="text-xs text-gray-500 font-mono">
+                  <span className="text-xs text-slate-500 font-mono">
                     ({t.campaign.email})
                   </span>
 
                   {t.isDue && (
-                    <span className="rounded-md bg-amber-100 px-1.5 py-0.2 text-[10px] font-semibold text-amber-800 border border-amber-200">
+                    <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 border border-amber-200">
                       Due today
                     </span>
                   )}
                   {t.isSent && (
-                    <span className="rounded-md bg-emerald-50 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                    <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-800 border border-emerald-200">
                       Sent {new Date(t.sentAt!).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                     </span>
                   )}
                   {t.isPaused && (
-                    <span className="rounded-md bg-gray-100 px-1.5 py-0.2 text-[10px] font-medium text-gray-600">
-                      Stopped (Got reply or paused)
+                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200">
+                      Stopped (Replied or paused)
                     </span>
                   )}
                 </div>
 
-                <p className="text-xs text-gray-800 font-medium">
-                  {t.subject || 'Subject will be written when due'}
+                <p className="text-xs text-slate-800 font-medium">
+                  {t.subject || 'Subject generated upon dispatch'}
                 </p>
-                <p className="text-xs text-gray-500 line-clamp-1 max-w-2xl">
-                  {t.body || 'Email will be drafted automatically.'}
+                <p className="text-xs text-slate-500 line-clamp-1 max-w-2xl">
+                  {t.body || 'Draft prepared automatically.'}
                 </p>
 
-                <div className="flex items-center gap-3 text-[11px] text-gray-400 pt-0.5">
+                <div className="flex items-center gap-3 text-[11px] text-slate-400 pt-0.5">
                   <span>
-                    First email: {t.campaign.initialSentAt ? new Date(t.campaign.initialSentAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—'}
+                    Initial: {t.campaign.initialSentAt ? new Date(t.campaign.initialSentAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—'}
                   </span>
                   <span>
                     Scheduled: {t.scheduledAt ? new Date(t.scheduledAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—'}
@@ -260,7 +260,7 @@ export function FollowUpsView({
                 <button
                   type="button"
                   onClick={() => onPreview(t.campaign, t.stage)}
-                  className="flex items-center gap-1 rounded-xl border border-gray-200 hover:bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors cursor-pointer"
+                  className="flex items-center gap-1 rounded-lg border border-slate-200 hover:bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors cursor-pointer"
                 >
                   <Eye className="h-3 w-3" />
                   <span>View</span>
@@ -270,7 +270,7 @@ export function FollowUpsView({
                   <button
                     type="button"
                     onClick={() => onSendFollowUp(t.campaign, t.stage)}
-                    className="flex items-center gap-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors cursor-pointer shadow-sm"
+                    className="flex items-center gap-1 rounded-lg bg-emerald-700 hover:bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors cursor-pointer shadow-xs"
                   >
                     <Send className="h-3 w-3" />
                     <span>Send Now</span>
@@ -281,11 +281,11 @@ export function FollowUpsView({
                   <button
                     type="button"
                     onClick={() => onFastForward(t.campaign)}
-                    className="flex items-center gap-1 rounded-xl border border-amber-200 hover:bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-700 transition-colors cursor-pointer"
-                    title="Skip 2 days ahead for testing"
+                    className="flex items-center gap-1 rounded-lg border border-slate-200 hover:bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors cursor-pointer"
+                    title="Advance schedule 2 days"
                   >
                     <FastForward className="h-3 w-3" />
-                    <span>Skip 2d</span>
+                    <span>Advance 2d</span>
                   </button>
                 )}
               </div>

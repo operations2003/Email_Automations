@@ -1,5 +1,20 @@
 import { AppSettings } from '@/types/outreach';
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
+
+function formatFromAddress(senderName?: string, senderEmail?: string): string {
+  const envFrom = (process.env.EMAIL_FROM || '').trim();
+  if (envFrom) {
+    if (envFrom.includes('<') && envFrom.includes('>')) {
+      return envFrom;
+    }
+    const name = senderName || 'TaskNera Operations';
+    return `"${name}" <${envFrom}>`;
+  }
+  const email = (senderEmail || 'operations@tasknera.com').trim();
+  const name = (senderName || 'TaskNera Operations').trim();
+  return `"${name}" <${email}>`;
+}
 
 export interface SendEmailPayload {
   to: string;
@@ -155,44 +170,55 @@ export async function sendOutreachEmail(
     }
   }
 
-  // 2. Resend API Provider
-  if (settings.provider === 'resend') {
-    const apiKey = settings.resendApiKey || process.env.RESEND_API_KEY;
+  // 2. Resend API Provider (Official Resend SDK)
+  const isResend =
+    settings.provider === 'resend' ||
+    Boolean(process.env.RESEND_API_KEY && (settings.provider as string) !== 'smtp' && (settings.provider as string) !== 'simulated');
+
+  if (isResend) {
+    const apiKey = (process.env.RESEND_API_KEY || settings.resendApiKey || '').trim();
     if (!apiKey) {
-      throw new Error('Resend API Key is missing. Please configure RESEND_API_KEY in environment variables or Settings.');
+      throw new Error(
+        'Resend API Key is missing. Please configure RESEND_API_KEY in your environment or add it in Settings.'
+      );
     }
 
-    const fromEmail = settings.senderEmail || process.env.EMAIL_USER || 'operations@tasknera.com';
-    const fromName = settings.senderName || process.env.EMAIL_SENDER_NAME || 'TaskNera Operations';
+    const formattedFrom = formatFromAddress(settings.senderName, settings.senderEmail);
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        from: `"${fromName}" <${fromEmail}>`,
-        to: [payload.to],
+    try {
+      const resend = new Resend(apiKey);
+      const { data, error } = await resend.emails.send({
+        from: formattedFrom,
+        to: [payload.to.trim()],
         cc: payload.cc ? payload.cc.split(',').map(s => s.trim()).filter(Boolean) : undefined,
         subject: payload.subject,
         text: fullBody,
         html: htmlBody
-      })
-    });
+      });
 
-    const data = await res.json().catch(() => ({}));
+      if (error) {
+        let errorMsg = error.message || 'The email provider could not accept the email.';
+        if (
+          errorMsg.toLowerCase().includes('domain is not verified') ||
+          error.name === 'validation_error'
+        ) {
+          errorMsg = `Resend Domain Error: The domain in sender address '${formattedFrom}' is not verified. Please add and verify DNS records (DKIM/SPF) for your domain at https://resend.com/domains, or update EMAIL_FROM.`;
+        } else if (error.name === 'restricted_api_key' || (error as any).statusCode === 401) {
+          errorMsg = `Resend Authorization Error: ${error.message || 'Restricted or invalid API key'}.`;
+        }
+        throw new Error(errorMsg);
+      }
 
-    if (!res.ok) {
-      throw new Error(data.message || data.error || `Resend API failed with status ${res.status}`);
+      return {
+        success: true,
+        messageId: data?.id || messageId,
+        deliveredAt: now,
+        provider: 'resend'
+      };
+    } catch (err: unknown) {
+      const e = err as Error;
+      throw new Error(e.message || 'Failed to dispatch email via Resend.');
     }
-
-    return {
-      success: true,
-      messageId: data.id || messageId,
-      deliveredAt: now,
-      provider: 'resend'
-    };
   }
 
   // 3. Simulated Sandbox Mode (Records delivery in local DB and dashboard without dispatching network emails)

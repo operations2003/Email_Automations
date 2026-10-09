@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'AutoReach AI — Smart Spreadsheet & Follow-Up Management System',
+  title: 'TaskNera | Outreach & Pipeline Operations',
   description:
-    'AI-powered cold email outreach and automated 3-stage follow-up sequencer with reply detection and anti-spam personalization.',
+    'Enterprise email outreach automation, candidate pipelines, and SLA-aligned follow-up sequencer for TaskNera.',
 };
 
 import { Providers } from '@/components/Providers';
@@ -30,7 +30,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#f3f4f8] text-gray-900 selection:bg-[#7c3aed]/20 selection:text-[#7c3aed]">
+      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 selection:bg-slate-200 selection:text-slate-900">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -258,6 +258,7 @@ export function AddOutreachModal({
   };
 
   const handleGenerateAndSend = async () => {
+    if (isSending) return;
     if (!companyName.trim()) {
       setError('Please enter or select a company name.');
       return;
@@ -377,6 +378,7 @@ export function AddOutreachModal({
   };
 
   const handleSendEmail = async () => {
+    if (isSending) return;
     setIsSending(true);
     setError(null);
 
@@ -421,14 +423,14 @@ export function AddOutreachModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl my-8 text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="relative w-full max-w-4xl rounded-xl border border-slate-200 bg-white p-6 shadow-xl my-8 text-slate-900">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h2 className="text-base font-bold text-gray-900 tracking-tight">New Outreach Email</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Personalized B2B cold outreach for AI ATS &amp; candidate screening intelligence.
+            <h2 className="text-base font-semibold text-slate-900 tracking-tight">New Outreach Email</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Compose tailored B2B outreach across TaskNera workforce &amp; software offerings.
             </p>
           </div>
           <button
@@ -436,7 +438,7 @@ export function AddOutreachModal({
               resetForm();
               onClose();
             }}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors cursor-pointer"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -448,10 +450,10 @@ export function AddOutreachModal({
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
               <div className="space-y-1 text-xs">
-                <p className="font-bold text-amber-900">This email was already added</p>
+                <p className="font-semibold text-amber-900">This email was already added</p>
                 <p className="text-amber-800">
                   {duplicateWarning.message} for{' '}
-                  <strong className="text-gray-900 font-semibold">{duplicateWarning.existingCompany}</strong>.
+                  <strong className="text-slate-900 font-semibold">{duplicateWarning.existingCompany}</strong>.
                 </p>
                 <div className="flex gap-2 pt-2">
                   <button
@@ -461,7 +463,7 @@ export function AddOutreachModal({
                       resetForm();
                       onClose();
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold transition-colors cursor-pointer shadow-sm"
+                    className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium transition-colors cursor-pointer text-xs"
                   >
                     Open Existing
                   </button>
@@ -471,14 +473,14 @@ export function AddOutreachModal({
                       setDuplicateWarning(null);
                       handleGenerate(true);
                     }}
-                    className="px-3 py-1.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-100 text-gray-700 font-medium transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium transition-colors cursor-pointer text-xs"
                   >
                     Create anyway
                   </button>
                   <button
                     type="button"
                     onClick={() => setDuplicateWarning(null)}
-                    className="px-3 py-1.5 rounded-xl text-gray-500 hover:text-gray-800 cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-800 cursor-pointer text-xs"
                   >
                     Cancel
                   </button>
@@ -505,8 +507,8 @@ export function AddOutreachModal({
             {/* Company Selection / Quick Picker */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-gray-700">
-                  Select Saved Company <span className="text-gray-400 font-normal">(Optional)</span>
+                <label className="block text-xs font-semibold text-slate-700">
+                  Select Saved Company <span className="text-slate-400 font-normal">(Optional)</span>
                 </label>
                 {selectedCompanyId && (
                   <button
@@ -514,19 +516,19 @@ export function AddOutreachModal({
                     onClick={() => {
                       setSelectedCompanyId('');
                     }}
-                    className="text-[11px] text-[#7c3aed] hover:underline transition-colors cursor-pointer font-medium"
+                    className="text-[11px] text-slate-600 hover:text-slate-900 underline transition-colors cursor-pointer font-medium"
                   >
                     Clear selection
                   </button>
                 )}
               </div>
               <div className="relative">
-                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 <select
                   value={selectedCompanyId}
                   onChange={e => handleCompanySelect(e.target.value)}
                   disabled={loadingCompanies}
-                  className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-8 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none appearance-none cursor-pointer disabled:opacity-50"
+                  className="w-full rounded-lg bg-white border border-slate-200 py-2 pl-9 pr-8 text-xs text-slate-900 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none appearance-none cursor-pointer disabled:opacity-50"
                 >
                   <option value="">
                     {loadingCompanies ? 'Loading companies...' : '-- Choose from saved companies or type below --'}
@@ -538,7 +540,7 @@ export function AddOutreachModal({
                   ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -548,44 +550,44 @@ export function AddOutreachModal({
             {/* Company Name Field */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-gray-700">
+                <label className="block text-xs font-semibold text-slate-700">
                   Company Name <span className="text-rose-500">*</span>
                 </label>
                 {selectedCompanyId && (
-                  <span className="text-[10px] text-emerald-600 font-semibold">Auto-filled from directory</span>
+                  <span className="text-[10px] text-emerald-700 font-medium">Auto-filled from directory</span>
                 )}
               </div>
               <div className="relative">
-                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 <input
                   type="text"
                   placeholder="e.g. Acme Corp"
                   value={companyName}
                   onChange={e => setCompanyName(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
+                  className="w-full rounded-lg bg-white border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Email Address <span className="text-rose-500">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                  <Mail className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
                   <input
                     type="email"
                     placeholder="contact@company.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-3 text-xs text-gray-900 font-mono placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
+                    className="w-full rounded-lg bg-white border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-900 font-mono placeholder-slate-400 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   CC (Optional)
                 </label>
                 <input
@@ -593,7 +595,7 @@ export function AddOutreachModal({
                   placeholder="team@mycompany.com"
                   value={ccEmails}
                   onChange={e => setCcEmails(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
+                  className="w-full rounded-lg bg-white border border-slate-200 py-2 px-3 text-xs text-slate-900 font-mono placeholder-slate-400 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
                 />
               </div>
             </div>
@@ -605,42 +607,42 @@ export function AddOutreachModal({
                 id="saveToDirectory"
                 checked={saveToDirectory}
                 onChange={e => setSaveToDirectory(e.target.checked)}
-                className="h-3.5 w-3.5 rounded border-gray-300 text-[#7c3aed] focus:ring-0 cursor-pointer accent-[#7c3aed]"
+                className="h-3.5 w-3.5 rounded border-slate-300 text-slate-900 focus:ring-0 cursor-pointer accent-slate-900"
               />
-              <label htmlFor="saveToDirectory" className="text-[11px] text-gray-600 cursor-pointer select-none">
+              <label htmlFor="saveToDirectory" className="text-[11px] text-slate-600 cursor-pointer select-none">
                 Save / update in Company Directory for the team
               </label>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Person&apos;s Name (Optional)
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                  <User className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
                   <input
                     type="text"
                     placeholder="e.g. John Doe"
                     value={recipientName}
                     onChange={e => setRecipientName(e.target.value)}
-                    className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
+                    className="w-full rounded-lg bg-white border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Website (Optional)
                 </label>
                 <div className="relative">
-                  <Globe className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                  <Globe className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
                   <input
                     type="text"
                     placeholder="acme.com"
                     value={companyWebsite}
                     onChange={e => setCompanyWebsite(e.target.value)}
-                    className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
+                    className="w-full rounded-lg bg-white border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
                   />
                 </div>
               </div>
@@ -649,21 +651,21 @@ export function AddOutreachModal({
             {/* Mail Topic (Category) */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-gray-700">
+                <label className="block text-xs font-semibold text-slate-700">
                   Mail Topic <span className="text-rose-500">*</span>
                 </label>
                 {mailTopic && (
-                  <span className="text-[10px] text-[#7c3aed] font-semibold">
+                  <span className="text-[10px] text-slate-600 font-medium">
                     Active: {mailTopic}
                   </span>
                 )}
               </div>
               <div className="relative">
-                <Tag className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <Tag className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 <select
                   value={mailTopic}
                   onChange={e => setMailTopic(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-8 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none appearance-none cursor-pointer"
+                  className="w-full rounded-lg bg-white border border-slate-200 py-2 pl-9 pr-8 text-xs text-slate-900 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none appearance-none cursor-pointer"
                 >
                   <option value="">Choose a mail topic...</option>
                   <option value="Virtual Customer Support (VCS)">Virtual Customer Support (VCS)</option>
@@ -673,7 +675,7 @@ export function AddOutreachModal({
                   <option value="HRMS & Employee Lifecycle Management">HRMS & Employee Lifecycle Management</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -700,8 +702,8 @@ export function AddOutreachModal({
                       type="button"
                       onClick={() => setMailTopic(topic.id)}
                       className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${isSelected
-                          ? 'bg-[#7c3aed] text-white shadow-xs'
-                          : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200/80 hover:bg-slate-200/70'
                         }`}
                     >
                       {topic.label}
@@ -712,21 +714,21 @@ export function AddOutreachModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Outreach Context / Notes (Optional)
               </label>
               <div className="relative">
-                <FileText className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                <FileText className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
                 <textarea
                   rows={2}
                   placeholder={
                     mailTopic
-                      ? `Optional custom notes for ${mailTopic} (AI automatically customizes pitch for this topic)`
-                      : "e.g. Any custom notes (Optional - AI automatically applies angle & intelligence)"
+                      ? `Optional custom notes for ${mailTopic}`
+                      : "e.g. Any custom notes or specific prospect context"
                   }
                   value={reason}
                   onChange={e => setReason(e.target.value)}
-                  className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
+                  className="w-full rounded-lg bg-white border border-slate-200 py-2 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
                 />
               </div>
             </div>
@@ -737,16 +739,16 @@ export function AddOutreachModal({
                   type="button"
                   onClick={() => handleGenerate(false)}
                   disabled={isGenerating || isSending}
-                  className="flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 py-2.5 px-3 text-xs font-semibold text-gray-700 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                  className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-800 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                 >
                   {isGenerating ? (
                     <>
-                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-[#7c3aed]" />
-                      <span>Writing draft...</span>
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-slate-600" />
+                      <span>Composing draft...</span>
                     </>
                   ) : (
                     <>
-                      <PenTool className="h-3.5 w-3.5 text-[#7c3aed]" />
+                      <PenTool className="h-3.5 w-3.5 text-slate-600" />
                       <span>Draft &amp; Review</span>
                     </>
                   )}
@@ -756,8 +758,8 @@ export function AddOutreachModal({
                   type="button"
                   onClick={handleGenerateAndSend}
                   disabled={isGenerating || isSending}
-                  className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 px-3 text-xs font-semibold text-white transition-colors disabled:opacity-50 shadow-sm cursor-pointer"
-                  title="Automatically write draft and send email immediately"
+                  className="flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 py-2.5 px-3 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
+                  title="Compose draft and send email immediately"
                 >
                   {isSending ? (
                     <>
@@ -767,7 +769,7 @@ export function AddOutreachModal({
                   ) : (
                     <>
                       <Send className="h-3.5 w-3.5" />
-                      <span>⚡ Auto-Send Now</span>
+                      <span>Send Immediately</span>
                     </>
                   )}
                 </button>
@@ -776,14 +778,14 @@ export function AddOutreachModal({
           </div>
 
           {/* Right: Draft preview */}
-          <div className="flex flex-col rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-2.5 mb-3">
+          <div className="flex flex-col rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+            <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 mb-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-700">
+                <span className="text-xs font-semibold text-slate-800">
                   Draft Preview
                 </span>
-                <span className="rounded-md bg-purple-100 px-2 py-0.5 text-[10px] text-[#7c3aed] font-semibold border border-purple-200">
-                  {mailTopic || 'AI Engine'}
+                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] text-slate-700 font-medium border border-slate-200">
+                  {mailTopic || 'TaskNera Standard'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -791,24 +793,24 @@ export function AddOutreachModal({
                   <button
                     type="button"
                     onClick={handleCopyMail}
-                    className="flex items-center gap-1 rounded-lg bg-white hover:bg-gray-100 border border-gray-200 px-2 py-0.5 text-[11px] text-gray-700 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 rounded-md bg-white hover:bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] text-slate-700 transition-colors cursor-pointer"
                     title="Copy full email (subject + body)"
                   >
                     {isCopied ? (
                       <>
                         <Check className="h-3 w-3 text-emerald-600" />
-                        <span className="text-emerald-700 font-semibold">Copied!</span>
+                        <span className="text-emerald-700 font-medium">Copied</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="h-3 w-3 text-gray-400" />
+                        <Copy className="h-3 w-3 text-slate-400" />
                         <span>Copy</span>
                       </>
                     )}
                   </button>
                 )}
                 {generatedResult && (
-                  <span className="text-[11px] text-gray-400 font-mono">
+                  <span className="text-[11px] text-slate-500 font-mono">
                     {generatedResult.wordCount} words
                   </span>
                 )}
@@ -819,9 +821,9 @@ export function AddOutreachModal({
               <div className="flex-1 flex flex-col space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-[11px] font-semibold text-gray-500">Subject</label>
+                    <label className="block text-[11px] font-medium text-slate-500">Subject</label>
                     {generatedResult.alternativeSubjects && generatedResult.alternativeSubjects.length > 0 && (
-                      <span className="text-[10px] text-gray-400 font-medium">3 AI Angles Available</span>
+                      <span className="text-[10px] text-slate-500 font-medium">Subject Variations</span>
                     )}
                   </div>
                   {generatedResult.alternativeSubjects && generatedResult.alternativeSubjects.length > 0 && (
@@ -834,14 +836,14 @@ export function AddOutreachModal({
                             key={idx}
                             type="button"
                             onClick={() => setSubject(altSubj)}
-                            className={`text-[10px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer text-left ${
+                            className={`text-[10px] px-2 py-0.5 rounded-md border transition-colors cursor-pointer text-left ${
                               isSelected
-                                ? 'bg-purple-50 border-[#7c3aed] text-[#7c3aed] font-medium ring-1 ring-[#7c3aed]/30'
-                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                                ? 'bg-slate-900 border-slate-900 text-white font-medium'
+                                : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                             }`}
                             title={altSubj}
                           >
-                            <span className="font-semibold text-gray-500 mr-1">{labels[idx] || `V${idx + 1}`}:</span>
+                            <span className={`font-semibold mr-1 ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>{labels[idx] || `V${idx + 1}`}:</span>
                             {altSubj.length > 34 ? altSubj.slice(0, 34) + '…' : altSubj}
                           </button>
                         );
@@ -853,63 +855,63 @@ export function AddOutreachModal({
                       type="text"
                       value={subject}
                       onChange={e => setSubject(e.target.value)}
-                      className="w-full rounded-xl bg-white border border-gray-200 p-2 text-xs font-semibold text-gray-900 focus:outline-none focus:border-[#7c3aed]"
+                      className="w-full rounded-lg bg-white border border-slate-200 p-2 text-xs font-medium text-slate-900 focus:outline-none focus:border-slate-800"
                     />
                   ) : (
-                    <div className="rounded-xl bg-white p-2.5 text-xs font-semibold text-gray-900 border border-gray-200">
+                    <div className="rounded-lg bg-white p-2.5 text-xs font-medium text-slate-900 border border-slate-200">
                       {subject}
                     </div>
                   )}
                 </div>
 
                 <div className="flex-1 flex flex-col">
-                  <label className="block text-[11px] font-semibold text-gray-500 mb-1">Body</label>
+                  <label className="block text-[11px] font-medium text-slate-500 mb-1">Body</label>
                   {isEditing ? (
                     <textarea
                       rows={8}
                       value={emailBody}
                       onChange={e => setEmailBody(e.target.value)}
-                      className="w-full flex-1 rounded-xl bg-white border border-gray-200 p-2.5 text-xs text-gray-800 focus:outline-none focus:border-[#7c3aed] whitespace-pre-line"
+                      className="w-full flex-1 rounded-lg bg-white border border-slate-200 p-2.5 text-xs text-slate-800 focus:outline-none focus:border-slate-800 whitespace-pre-line"
                     />
                   ) : (
-                    <div className="flex-1 rounded-xl bg-white p-3 text-xs text-gray-700 border border-gray-200 whitespace-pre-line leading-relaxed overflow-y-auto max-h-[220px]">
+                    <div className="flex-1 rounded-lg bg-white p-3 text-xs text-slate-700 border border-slate-200 whitespace-pre-line leading-relaxed overflow-y-auto max-h-[220px]">
                       {emailBody}
                     </div>
                   )}
                 </div>
 
-                <div className="pt-2.5 flex items-center justify-between gap-2 border-t border-gray-200">
+                <div className="pt-2.5 flex items-center justify-between gap-2 border-t border-slate-200">
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={handleRegenerate}
                       disabled={isGenerating}
-                      className="px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700 hover:bg-gray-100 transition-colors font-medium cursor-pointer"
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 transition-colors font-medium cursor-pointer"
                     >
-                      Try Another Version
+                      Regenerate
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsEditing(!isEditing)}
-                      className="px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700 hover:bg-gray-100 transition-colors font-medium cursor-pointer"
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 transition-colors font-medium cursor-pointer"
                     >
                       {isEditing ? 'Done' : 'Edit'}
                     </button>
                     <button
                       type="button"
                       onClick={handleCopyMail}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer font-medium"
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer font-medium"
                       title="Copy full email to clipboard"
                     >
                       {isCopied ? (
                         <>
                           <Check className="h-3 w-3 text-emerald-600" />
-                          <span className="text-emerald-700 font-medium">Copied!</span>
+                          <span className="text-emerald-700 font-medium">Copied</span>
                         </>
                       ) : (
                         <>
                           <Copy className="h-3 w-3" />
-                          <span>Copy Mail</span>
+                          <span>Copy</span>
                         </>
                       )}
                     </button>
@@ -919,27 +921,27 @@ export function AddOutreachModal({
                     <button
                       type="button"
                       onClick={handleSaveDraft}
-                      className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-900 font-semibold cursor-pointer"
+                      className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-900 font-medium cursor-pointer"
                     >
-                      Save as Draft
+                      Save Draft
                     </button>
                     <button
                       type="button"
                       onClick={handleSendEmail}
                       disabled={isSending}
-                      className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
+                      className="flex items-center gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                     >
-                      <Send className="h-3 w-3" />
+                      {isSending ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
                       <span>{isSending ? 'Sending...' : 'Send Email'}</span>
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-gray-400 text-xs">
-                <FileText className="h-8 w-8 text-gray-300 mb-2 stroke-[1.5]" />
-                <p className="text-gray-700 font-semibold">Your draft will show here</p>
-                <p className="text-gray-500 mt-1 max-w-xs">
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-slate-400 text-xs">
+                <FileText className="h-8 w-8 text-slate-300 mb-2 stroke-[1.5]" />
+                <p className="text-slate-700 font-semibold">Your draft will show here</p>
+                <p className="text-slate-500 mt-1 max-w-xs">
                   Fill in the details on the left and click &quot;Draft &amp; Review&quot;.
                 </p>
               </div>
