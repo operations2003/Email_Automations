@@ -12,14 +12,17 @@ export type OutreachStatus =
   | 'Not Interested'
   | 'Closed'
   | 'Completed - No Response'
-  | 'Follow-Up Paused';
+  | 'Follow-Up Paused'
+  | 'Bounced'
+  | 'Unsubscribed';
 
 export type ReplyStatus =
   | 'Not Replied'
   | 'Replied'
   | 'Interested'
   | 'Meeting Requested'
-  | 'Bounced';
+  | 'Bounced'
+  | 'Unsubscribed';
 
 export interface EmailHistoryEvent {
   id: string;
@@ -33,6 +36,9 @@ export interface EmailHistoryEvent {
     | 'followup_3_scheduled'
     | 'followup_3_sent'
     | 'reply_received'
+    | 'delivered'
+    | 'bounced'
+    | 'unsubscribed'
     | 'status_changed'
     | 'paused'
     | 'resumed'
@@ -161,6 +167,10 @@ export interface AppSettings {
   smtpPass?: string;
   smtpSecure?: boolean;
   resendApiKey?: string;
+  dailySendingLimit?: number; // default 50
+  minIntervalSeconds?: number; // default 45
+  enableUnsubscribeHeader?: boolean; // default true
+  enableUnsubscribeFooter?: boolean; // default true
   services?: OutreachService[];
 }
 
@@ -174,6 +184,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   followUpIntervalDays: 2,
   maxFollowUps: 3,
   provider: 'simulated',
+  dailySendingLimit: 50,
+  minIntervalSeconds: 45,
+  enableUnsubscribeHeader: true,
+  enableUnsubscribeFooter: true,
   openAiApiKey: '',
   services: DEFAULT_SERVICES
 };

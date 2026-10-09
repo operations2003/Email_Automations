@@ -29,6 +29,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   smtpSecure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : false,
   smtpUser: process.env.EMAIL_USER || process.env.SMTP_USER || '',
   smtpPass: process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || '',
+  dailySendingLimit: 50,
+  minIntervalSeconds: 45,
+  enableUnsubscribeHeader: true,
+  enableUnsubscribeFooter: true,
   openAiApiKey: process.env.OPENAI_API_KEY || '',
   services: DEFAULT_SERVICES
 };
