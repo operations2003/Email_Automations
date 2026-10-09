@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   smtpUser: process.env.EMAIL_USER || process.env.SMTP_USER || '',
   smtpPass: process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || '',
   openAiApiKey: process.env.OPENAI_API_KEY || '',
+  resendApiKey: process.env.RESEND_API_KEY || '',
   services: DEFAULT_SERVICES
 };
 
@@ -40,6 +41,7 @@ function applyEnvFallbacks(settings: AppSettings): AppSettings {
     smtpHost: settings.smtpHost || process.env.SMTP_HOST || 'smtp.gmail.com',
     smtpPort: settings.smtpPort || Number(process.env.SMTP_PORT) || 587,
     openAiApiKey: settings.openAiApiKey || process.env.OPENAI_API_KEY || '',
+    resendApiKey: settings.resendApiKey || process.env.RESEND_API_KEY || '',
     provider: settings.provider || (process.env.EMAIL_PROVIDER as any) || 'smtp'
   };
 }

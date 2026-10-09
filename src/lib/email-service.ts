@@ -157,18 +157,22 @@ export async function sendOutreachEmail(
 
   // 2. Resend API Provider
   if (settings.provider === 'resend') {
-    if (!settings.resendApiKey) {
-      throw new Error('Resend API Key is missing. Please provide your Resend API Key in Settings.');
+    const apiKey = settings.resendApiKey || process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error('Resend API Key is missing. Please configure RESEND_API_KEY in environment variables or Settings.');
     }
+
+    const fromEmail = settings.senderEmail || process.env.EMAIL_USER || 'operations@tasknera.com';
+    const fromName = settings.senderName || process.env.EMAIL_SENDER_NAME || 'TaskNera Operations';
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${settings.resendApiKey}`
+        Authorization: `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        from: `${settings.senderName} <${settings.senderEmail}>`,
+        from: `"${fromName}" <${fromEmail}>`,
         to: [payload.to],
         cc: payload.cc ? payload.cc.split(',').map(s => s.trim()).filter(Boolean) : undefined,
         subject: payload.subject,
