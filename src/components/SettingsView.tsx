@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { AppSettings, OutreachService, DEFAULT_SERVICES } from '@/types/outreach';
+import { AppSettings, OutreachService, DEFAULT_SERVICES, OutreachCampaign } from '@/types/outreach';
 import { CompanyManagement } from './CompanyManagement';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -25,15 +25,21 @@ import {
   Edit2,
   RotateCcw,
   Sparkles,
-  Building2
+  Building2,
+  Users,
+  UserCheck,
+  ListPlus,
+  UploadCloud
 } from 'lucide-react';
 
 interface SettingsViewProps {
   settings: AppSettings;
   onUpdateSettings: (newSettings: Partial<AppSettings>) => Promise<void>;
+  campaigns?: OutreachCampaign[];
+  onRefreshCampaigns?: () => void;
 }
 
-export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) {
+export function SettingsView({ settings, onUpdateSettings, campaigns = [], onRefreshCampaigns }: SettingsViewProps) {
   const { isAdmin } = useAuth();
   const [formData, setFormData] = useState<AppSettings>(settings);
   const [saved, setSaved] = useState(false);
@@ -69,6 +75,166 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
     tagline: '',
     pitch: ''
   });
+
+  // Lead Assignment to Atul state
+  const [assignMode, setAssignMode] = useState<'single' | 'bulk'>('single');
+  const [assigningLead, setAssigningLead] = useState(false);
+  const [assignSuccessMsg, setAssignSuccessMsg] = useState<string | null>(null);
+  const [assignErrorMsg, setAssignErrorMsg] = useState<string | null>(null);
+  const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
+
+  // Single lead inputs
+  const [singleCompany, setSingleCompany] = useState('');
+  const [singleEmail, setSingleEmail] = useState('');
+  const [singleContact, setSingleContact] = useState('');
+  const [singleWebsite, setSingleWebsite] = useState('');
+  const [singleService, setSingleService] = useState('');
+  const [singleNotes, setSingleNotes] = useState('');
+  const [singleAssignedTo, setSingleAssignedTo] = useState('Atul');
+
+  // Bulk lead inputs
+  const [bulkText, setBulkText] = useState('');
+  const [bulkService, setBulkService] = useState('');
+  const [bulkNotes, setBulkNotes] = useState('');
+  const [bulkAssignedTo, setBulkAssignedTo] = useState('Atul');
+
+  const handleAssignSingleLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!singleCompany.trim() || !singleEmail.trim()) {
+      setAssignErrorMsg('Company Name and Email are required.');
+      return;
+    }
+    if (!singleEmail.includes('@')) {
+      setAssignErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    setAssigningLead(true);
+    setAssignErrorMsg(null);
+    setAssignSuccessMsg(null);
+
+    try {
+      const res = await fetch('/api/outreach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: singleCompany.trim(),
+          email: singleEmail.trim(),
+          recipientName: singleContact.trim(),
+          companyWebsite: singleWebsite.trim(),
+          reason: singleService.trim() || 'Introduce TaskNera services and offerings.',
+          notes: singleNotes.trim(),
+          assignedTo: singleAssignedTo.trim() || 'Atul',
+          assignedBy: 'Sheetal Bedi (Admin)',
+          forceCreate: true
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setAssignSuccessMsg(`Assigned "${singleCompany.trim()}" to ${singleAssignedTo.trim() || 'Atul'} successfully!`);
+        setSingleCompany('');
+        setSingleEmail('');
+        setSingleContact('');
+        setSingleWebsite('');
+        setSingleNotes('');
+        onRefreshCampaigns?.();
+        setTimeout(() => setAssignSuccessMsg(null), 4000);
+      } else {
+        setAssignErrorMsg(data.error || data.message || 'Could not assign company.');
+      }
+    } catch (err: unknown) {
+      const error = err as Error;
+      setAssignErrorMsg(error.message || 'Network error assigning company.');
+    } finally {
+      setAssigningLead(false);
+    }
+  };
+
+  const handleAssignBulkLeads = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bulkText.trim()) {
+      setAssignErrorMsg('Please paste at least one company and email.');
+      return;
+    }
+
+    const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const parsedItems: Array<{ companyName: string; email: string; recipientName?: string; reason?: string; notes?: string; assignedTo: string; assignedBy: string }> = [];
+
+    for (const line of lines) {
+      const parts = line.split(/[,|\t]/).map(p => p.trim()).filter(p => p.length > 0);
+      if (parts.length >= 2) {
+        let company = parts[0];
+        let email = parts[1];
+        const contact = parts[2] || '';
+
+        if (company.includes('@') && !email.includes('@')) {
+          const temp = company;
+          company = email;
+          email = temp;
+        }
+
+        if (company && email.includes('@')) {
+          parsedItems.push({
+            companyName: company,
+            email: email,
+            recipientName: contact,
+            reason: bulkService.trim() || 'Introduce TaskNera services and offerings.',
+            notes: bulkNotes.trim(),
+            assignedTo: bulkAssignedTo.trim() || 'Atul',
+            assignedBy: 'Sheetal Bedi (Admin)'
+          });
+        }
+      }
+    }
+
+    if (parsedItems.length === 0) {
+      setAssignErrorMsg('Could not find valid lines with "Company, email". Example:\nAcme Corp, contact@acme.com');
+      return;
+    }
+
+    setAssigningLead(true);
+    setAssignErrorMsg(null);
+    setAssignSuccessMsg(null);
+
+    try {
+      const res = await fetch('/api/outreach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(parsedItems)
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setAssignSuccessMsg(`Successfully assigned ${data.count || parsedItems.length} leads to ${bulkAssignedTo.trim() || 'Atul'}!`);
+        setBulkText('');
+        onRefreshCampaigns?.();
+        setTimeout(() => setAssignSuccessMsg(null), 5000);
+      } else {
+        setAssignErrorMsg(data.error || 'Failed to bulk assign companies.');
+      }
+    } catch (err: unknown) {
+      const error = err as Error;
+      setAssignErrorMsg(error.message || 'Network error bulk assigning companies.');
+    } finally {
+      setAssigningLead(false);
+    }
+  };
+
+  const handleDeleteAssignedLead = async (id: string, name: string) => {
+    if (!confirm(`Remove ${name} from assigned leads?`)) return;
+    setDeletingLeadId(id);
+    try {
+      const res = await fetch(`/api/outreach/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        onRefreshCampaigns?.();
+      }
+    } catch (err) {
+      console.error('Failed to delete lead:', err);
+    } finally {
+      setDeletingLeadId(null);
+    }
+  };
 
   const currentServices: OutreachService[] =
     formData.services && formData.services.length > 0
@@ -321,6 +487,374 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
           </div>
         </div>
       )}
+
+      {/* Assign Leads to Atul (Team Queue) Section */}
+      <div className="rounded-lg border border-indigo-500/30 bg-[#14171c] p-4 space-y-4 shadow-lg shadow-indigo-500/5">
+        {/* Section Header */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#23272f] pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-indigo-500/15 text-indigo-400 border border-indigo-500/30">
+              <Users className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-white">Assign Leads to Atul</h3>
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider">
+                  Admin Queue
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Add company name and email targets for Atul. They will appear highlighted in Atul&apos;s queue when he logs in.
+              </p>
+            </div>
+          </div>
+
+          {/* Mode Switcher Tabs */}
+          <div className="flex items-center bg-[#0d0f12] p-1 rounded-lg border border-[#23272f]">
+            <button
+              type="button"
+              onClick={() => {
+                setAssignMode('single');
+                setAssignErrorMsg(null);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                assignMode === 'single'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              <Building2 className="h-3 w-3" />
+              <span>Single Lead</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAssignMode('bulk');
+                setAssignErrorMsg(null);
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                assignMode === 'bulk'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-gray-400 hover:text-gray-200'
+              }`}
+            >
+              <UploadCloud className="h-3 w-3" />
+              <span>Bulk Paste</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Status Alerts */}
+        {assignSuccessMsg && (
+          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-300 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+            <span>{assignSuccessMsg}</span>
+          </div>
+        )}
+
+        {assignErrorMsg && (
+          <div className="rounded-md border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
+            <span>{assignErrorMsg}</span>
+          </div>
+        )}
+
+        {/* Single Lead Form */}
+        {assignMode === 'single' ? (
+          <form onSubmit={handleAssignSingleLead} className="space-y-3 bg-[#0d0f12] p-3.5 rounded-lg border border-[#23272f]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Company Name <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Acme Technologies"
+                  value={singleCompany}
+                  onChange={e => setSingleCompany(e.target.value)}
+                  className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-indigo-500 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Target Email <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="email"
+                  placeholder="e.g. founder@acme.com"
+                  value={singleEmail}
+                  onChange={e => setSingleEmail(e.target.value)}
+                  className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-indigo-500 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Contact Person / Role (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Rajesh Kumar (CTO)"
+                  value={singleContact}
+                  onChange={e => setSingleContact(e.target.value)}
+                  className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Company Website (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. acme.com"
+                  value={singleWebsite}
+                  onChange={e => setSingleWebsite(e.target.value)}
+                  className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Service / Pitch Offering
+                </label>
+                <select
+                  value={singleService}
+                  onChange={e => setSingleService(e.target.value)}
+                  className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-indigo-500 focus:outline-none"
+                >
+                  <option value="">Default Pitch (TaskNera Full Services)</option>
+                  {currentServices.map(s => (
+                    <option key={s.id} value={`${s.name} - ${s.pitch}`}>
+                      {s.icon || '💼'} {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Assign To
+                </label>
+                <select
+                  value={singleAssignedTo}
+                  onChange={e => setSingleAssignedTo(e.target.value)}
+                  className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-indigo-500 focus:outline-none"
+                >
+                  <option value="Atul">Atul (atul@tasknera.com)</option>
+                  <option value="Team">General Team Queue</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-300 mb-1">
+                Notes / Guidance for Atul (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Emphasize our 2-week pilot sprint and full-stack capabilities"
+                value={singleNotes}
+                onChange={e => setSingleNotes(e.target.value)}
+                className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="submit"
+                disabled={assigningLead || !singleCompany.trim() || !singleEmail.trim()}
+                className="flex items-center gap-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50"
+              >
+                {assigningLead ? (
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <UserCheck className="h-3.5 w-3.5" />
+                )}
+                <span>Assign Lead to {singleAssignedTo}</span>
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleAssignBulkLeads} className="space-y-3 bg-[#0d0f12] p-3.5 rounded-lg border border-[#23272f]">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-gray-300">
+                  Paste Companies & Emails (One per line) <span className="text-rose-400">*</span>
+                </label>
+                <span className="text-[11px] text-gray-400">
+                  Format: <code>Company Name, email@domain.com, Contact Person</code>
+                </span>
+              </div>
+              <textarea
+                rows={5}
+                placeholder={`Acme Corp, founder@acme.com, Alex
+Nova Labs, contact@novalabs.io, Priya
+Fintech Hub, partnerships@fintechhub.com, Rahul`}
+                value={bulkText}
+                onChange={e => setBulkText(e.target.value)}
+                className="w-full rounded-md bg-[#14171c] border border-[#23272f] p-2.5 text-xs font-mono text-gray-200 focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Service to Pitch for these Leads
+                </label>
+                <select
+                  value={bulkService}
+                  onChange={e => setBulkService(e.target.value)}
+                  className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-indigo-500 focus:outline-none"
+                >
+                  <option value="">Default Pitch (TaskNera Full Services)</option>
+                  {currentServices.map(s => (
+                    <option key={s.id} value={`${s.name} - ${s.pitch}`}>
+                      {s.icon || '💼'} {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Assign To
+                </label>
+                <select
+                  value={bulkAssignedTo}
+                  onChange={e => setBulkAssignedTo(e.target.value)}
+                  className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-indigo-500 focus:outline-none"
+                >
+                  <option value="Atul">Atul (atul@tasknera.com)</option>
+                  <option value="Team">General Team Queue</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-300 mb-1">
+                Notes / Guidance for Atul (Optional)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Focus on our custom web and mobile app development speed"
+                value={bulkNotes}
+                onChange={e => setBulkNotes(e.target.value)}
+                className="w-full rounded-md bg-[#14171c] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-indigo-500 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="submit"
+                disabled={assigningLead || !bulkText.trim()}
+                className="flex items-center gap-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50"
+              >
+                {assigningLead ? (
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ListPlus className="h-3.5 w-3.5" />
+                )}
+                <span>Bulk Assign All Leads to {bulkAssignedTo}</span>
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Currently Assigned Leads Table */}
+        {(() => {
+          const assignedList = (campaigns || []).filter(
+            c => (c.assignedTo && c.assignedTo.toLowerCase().includes('atul')) || (c.assignedTo && c.assignedTo.trim().length > 0)
+          );
+          return (
+            <div className="pt-2 border-t border-[#23272f]">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-200 uppercase tracking-wider">
+                    Leads in Atul&apos;s Queue ({assignedList.length})
+                  </span>
+                  <span className="text-[11px] text-gray-400">
+                    • Atul will see these highlighted when he logs in
+                  </span>
+                </div>
+                {onRefreshCampaigns && (
+                  <button
+                    type="button"
+                    onClick={onRefreshCampaigns}
+                    className="p-1 rounded hover:bg-[#23272f] text-gray-400 hover:text-gray-200 transition-colors"
+                    title="Refresh assigned list"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+
+              {assignedList.length === 0 ? (
+                <div className="text-center py-6 border border-dashed border-[#23272f] rounded-lg bg-[#0d0f12]/50 text-gray-400 text-xs">
+                  No leads assigned to Atul yet. Add a company and email above to assign it.
+                </div>
+              ) : (
+                <div className="rounded-lg border border-[#23272f] bg-[#0d0f12] overflow-x-auto max-h-64 overflow-y-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="sticky top-0 bg-[#14171c] text-gray-400 text-[11px] border-b border-[#23272f]">
+                      <tr>
+                        <th className="py-2 px-3">Company</th>
+                        <th className="py-2 px-3">Email</th>
+                        <th className="py-2 px-3">Assigned To</th>
+                        <th className="py-2 px-3">Status</th>
+                        <th className="py-2 px-3 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#1f242d]">
+                      {assignedList.map(lead => (
+                        <tr key={lead.id} className="hover:bg-white/[0.02]">
+                          <td className="py-2 px-3 font-medium text-gray-200">
+                            {lead.companyName}
+                            {lead.recipientName && (
+                              <span className="text-[10px] text-gray-400 block font-normal">
+                                {lead.recipientName}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2 px-3 font-mono text-gray-300 text-[11px]">
+                            {lead.email}
+                          </td>
+                          <td className="py-2 px-3 text-gray-400">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-medium">
+                              👤 {lead.assignedTo || 'Atul'}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3">
+                            <span className="text-[11px] text-gray-300">
+                              {lead.status}
+                            </span>
+                          </td>
+                          <td className="py-2 px-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAssignedLead(lead.id, lead.companyName)}
+                              disabled={deletingLeadId === lead.id}
+                              className="p-1 rounded hover:bg-rose-500/10 text-gray-400 hover:text-rose-400 transition-colors disabled:opacity-50"
+                              title="Delete / Unassign"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email Delivery Provider */}

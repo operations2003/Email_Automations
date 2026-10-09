@@ -436,6 +436,8 @@ export default function HomePage() {
             <SettingsView
               settings={settings}
               onUpdateSettings={handleUpdateSettings}
+              campaigns={campaigns}
+              onRefreshCampaigns={fetchCampaigns}
             />
           ) : (
             <div className="max-w-md mx-auto text-center py-16 space-y-4">

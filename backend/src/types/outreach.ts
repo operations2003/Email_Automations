@@ -122,6 +122,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
 export const MAIL_TOPICS = [
   'VCS',
+  'Recruitment Services',
+  'Software Solutions',
+  'ATS + CRM Application — HireIQ by TaskNera',
+  'HRMS + CRM Application',
   'recruitment services',
   'software solutions',
   'ATS + CRM app',
@@ -154,4 +158,5 @@ export interface GeneratedEmailResult {
   wordCount: number;
   qualityPassed: boolean;
   qualityNotes: string[];
+  alternativeSubjects?: string[];
 }

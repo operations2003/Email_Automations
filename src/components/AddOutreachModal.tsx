@@ -43,7 +43,7 @@ export function AddOutreachModal({
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [saveToDirectory, setSaveToDirectory] = useState(true);
-  
+
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [ccEmails, setCcEmails] = useState('');
@@ -54,11 +54,15 @@ export function AddOutreachModal({
 
   // Pre-configured pitches tailored for each mail topic category
   const DEFAULT_TOPIC_PITCHES: Record<string, string> = {
-    'VCS': 'Version control systems (VCS), repository governance, CI/CD pipeline automation, and engineering workflow speed.',
-    'recruitment services': 'End-to-end recruitment services, specialized talent acquisition, and fast shortlist delivery for key open mandates.',
-    'software solutions': 'Custom software solutions, enterprise application development, cloud engineering, and technical architecture.',
-    'ATS + CRM app': 'Integrated ATS + CRM app to streamline candidate sourcing, pipeline tracking, and client relationship management in one platform.',
-    'HRMS + CRm': 'Integrated HRMS + CRM platform uniting human resource management, employee records, attendance, and client relations.'
+    'VCS': "TaskNera HR Solutions provides flexible workforce and staffing support to help businesses meet their talent requirements efficiently. We aim to simplify workforce planning, support hiring needs, and help organizations find suitable talent while reducing the time and effort involved in managing staffing requirements. Our services can be tailored to your organization's needs and growth plans.",
+    'Recruitment Services': "TaskNera HR Solutions helps businesses streamline their recruitment process, from identifying potential candidates to screening and shortlisting suitable talent. Our goal is to help organizations reduce hiring effort, improve recruitment efficiency, and connect with candidates who match their job requirements. We support businesses in building stronger teams through a more organized and effective hiring process.",
+    'recruitment services': "TaskNera HR Solutions helps businesses streamline their recruitment process, from identifying potential candidates to screening and shortlisting suitable talent. Our goal is to help organizations reduce hiring effort, improve recruitment efficiency, and connect with candidates who match their job requirements. We support businesses in building stronger teams through a more organized and effective hiring process.",
+    'Software Solutions': "TaskNera HR Solutions delivers technology-driven software solutions that help businesses simplify workflows, reduce manual tasks, and improve operational efficiency. Our solutions focus on recruitment intelligence, human resource management, and customer relationship management, enabling organizations to manage essential business activities more effectively through digital tools tailored to their operational needs.",
+    'software solutions': "TaskNera HR Solutions delivers technology-driven software solutions that help businesses simplify workflows, reduce manual tasks, and improve operational efficiency. Our solutions focus on recruitment intelligence, human resource management, and customer relationship management, enabling organizations to manage essential business activities more effectively through digital tools tailored to their operational needs.",
+    'ATS + CRM Application — HireIQ by TaskNera': "HireIQ by TaskNera is an AI-powered recruitment intelligence solution designed to make hiring smarter and more efficient. It helps recruitment teams analyze job descriptions, evaluate resumes against defined criteria, identify suitable candidates, and organize recruitment activities. Combined with CRM capabilities, it helps teams manage candidate information and recruitment interactions in a more structured workflow, reducing repetitive work and supporting informed hiring decisions.",
+    'ATS + CRM app': "HireIQ by TaskNera is an AI-powered recruitment intelligence solution designed to make hiring smarter and more efficient. It helps recruitment teams analyze job descriptions, evaluate resumes against defined criteria, identify suitable candidates, and organize recruitment activities. Combined with CRM capabilities, it helps teams manage candidate information and recruitment interactions in a more structured workflow, reducing repetitive work and supporting informed hiring decisions.",
+    'HRMS + CRM Application': "TaskNera HR Solutions offers an integrated HRMS and CRM solution designed to simplify employee management and customer relationship workflows. The HRMS supports essential HR activities such as attendance, leave management, employee records, and payroll workflows, while CRM capabilities help businesses manage leads, customer information, and interactions. Together, these solutions aim to improve coordination, reduce administrative workload, and provide businesses with better visibility into their day-to-day operations.",
+    'HRMS + CRm': "TaskNera HR Solutions offers an integrated HRMS and CRM solution designed to simplify employee management and customer relationship workflows. The HRMS supports essential HR activities such as attendance, leave management, employee records, and payroll workflows, while CRM capabilities help businesses manage leads, customer information, and interactions. Together, these solutions aim to improve coordination, reduce administrative workload, and provide businesses with better visibility into their day-to-day operations."
   };
 
   // Fetch available companies for all users
@@ -657,11 +661,11 @@ export function AddOutreachModal({
                   className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-8 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none appearance-none cursor-pointer"
                 >
                   <option value="">Choose a mail topic...</option>
-                  <option value="VCS">VCS</option>
-                  <option value="recruitment services">recruitment services</option>
-                  <option value="software solutions">software solutions</option>
-                  <option value="ATS + CRM app">ATS + CRM app</option>
-                  <option value="HRMS + CRm">HRMS + CRm</option>
+                  <option value="VCS">VCS (Flexible Workforce & Staffing)</option>
+                  <option value="Recruitment Services">Recruitment Services</option>
+                  <option value="Software Solutions">Software Solutions</option>
+                  <option value="ATS + CRM Application — HireIQ by TaskNera">ATS + CRM Application — HireIQ by TaskNera</option>
+                  <option value="HRMS + CRM Application">HRMS + CRM Application</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -673,25 +677,28 @@ export function AddOutreachModal({
               {/* Quick-select topic pills */}
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {[
-                  'VCS',
-                  'recruitment services',
-                  'software solutions',
-                  'ATS + CRM app',
-                  'HRMS + CRm'
+                  { id: 'VCS', label: 'VCS' },
+                  { id: 'Recruitment Services', label: 'Recruitment Services' },
+                  { id: 'Software Solutions', label: 'Software Solutions' },
+                  { id: 'ATS + CRM Application — HireIQ by TaskNera', label: 'HireIQ (ATS + CRM)' },
+                  { id: 'HRMS + CRM Application', label: 'HRMS + CRM' }
                 ].map(topic => {
-                  const isSelected = mailTopic === topic;
+                  const isSelected = mailTopic === topic.id ||
+                    (topic.id === 'Recruitment Services' && mailTopic === 'recruitment services') ||
+                    (topic.id === 'Software Solutions' && mailTopic === 'software solutions') ||
+                    (topic.id === 'ATS + CRM Application — HireIQ by TaskNera' && mailTopic === 'ATS + CRM app') ||
+                    (topic.id === 'HRMS + CRM Application' && mailTopic === 'HRMS + CRm');
                   return (
                     <button
-                      key={topic}
+                      key={topic.id}
                       type="button"
-                      onClick={() => setMailTopic(topic)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer ${
-                        isSelected
+                      onClick={() => setMailTopic(topic.id)}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${isSelected
                           ? 'bg-[#7c3aed] text-white shadow-xs'
                           : 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200'
-                      }`}
+                        }`}
                     >
-                      {topic}
+                      {topic.label}
                     </button>
                   );
                 })}
@@ -805,7 +812,36 @@ export function AddOutreachModal({
             {generatedResult ? (
               <div className="flex-1 flex flex-col space-y-3">
                 <div>
-                  <label className="block text-[11px] font-semibold text-gray-500 mb-1">Subject</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-semibold text-gray-500">Subject</label>
+                    {generatedResult.alternativeSubjects && generatedResult.alternativeSubjects.length > 0 && (
+                      <span className="text-[10px] text-gray-400 font-medium">3 AI Angles Available</span>
+                    )}
+                  </div>
+                  {generatedResult.alternativeSubjects && generatedResult.alternativeSubjects.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {generatedResult.alternativeSubjects.map((altSubj, idx) => {
+                        const labels = ['Direct', 'Value', 'Conversational'];
+                        const isSelected = subject === altSubj;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setSubject(altSubj)}
+                            className={`text-[10px] px-2 py-0.5 rounded-lg border transition-colors cursor-pointer text-left ${
+                              isSelected
+                                ? 'bg-purple-50 border-[#7c3aed] text-[#7c3aed] font-medium ring-1 ring-[#7c3aed]/30'
+                                : 'bg-gray-50 border-gray-200 text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            }`}
+                            title={altSubj}
+                          >
+                            <span className="font-semibold text-gray-500 mr-1">{labels[idx] || `V${idx + 1}`}:</span>
+                            {altSubj.length > 34 ? altSubj.slice(0, 34) + '…' : altSubj}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                   {isEditing ? (
                     <input
                       type="text"
