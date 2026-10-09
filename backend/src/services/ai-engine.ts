@@ -8,26 +8,74 @@ export type OutreachIntent =
   | 'recruiter_productivity'     // Angle 4: Higher billing capacity, consistent candidate scores
   | 'soft_cta_curiosity'         // Angle 5: Low-friction 90-sec example, conversational check
   | 'general_ats_intelligence'   // General recruitment intelligence & matching
-  | 'vcs'                        // Topic 1: VCS (TaskNera flexible workforce & staffing support)
-  | 'recruitment_services'       // Topic 2: Recruitment Services (TaskNera streamlined candidate sourcing & shortlisting)
-  | 'software_solutions'         // Topic 3: Software Solutions (TaskNera tech-driven tools for HR, CRM & recruitment intelligence)
-  | 'ats_crm'                    // Topic 4: ATS + CRM Application — HireIQ by TaskNera (AI recruitment intelligence & CRM)
-  | 'hrms_crm';                  // Topic 5: HRMS + CRM Application (Integrated employee management & CRM workflows)
+  | 'vcs'                        // Topic 1: Virtual Customer Support (VCS) (Dedicated human-led support across voice, chat, email, WhatsApp, SLA-aligned delivery)
+  | 'recruitment_services'       // Topic 2: Recruitment & Talent Acquisition (Permanent, contract, executive, IT & non-IT, high-volume hiring)
+  | 'software_solutions'         // Topic 3: HR Technology & Digital Solutions / Software Solutions (HRMS, workforce dashboards, automation, integrated ecosystem)
+  | 'ats_crm'                    // Topic 4: HireIQ — ATS & Recruitment Intelligence / ATS + CRM (AI JD analysis, resume parsing, scoring, ranking, CRM integration)
+  | 'hrms_crm';                  // Topic 5: HRMS & Employee Lifecycle Management / HRMS + CRM (Employee records, onboarding, leave, payroll, performance, CRM integration)
 
 export function classifyIntent(reason: string, mailTopic?: string): OutreachIntent {
   const t = (mailTopic || '').toLowerCase();
-  if (t.includes('vcs')) return 'vcs';
-  if (t.includes('recruitment')) return 'recruitment_services';
-  if (t.includes('software')) return 'software_solutions';
-  if (t.includes('ats') || t.includes('hireiq')) return 'ats_crm';
-  if (t.includes('hrms')) return 'hrms_crm';
+  if (t.includes('vcs') || t.includes('customer support') || t.includes('virtual customer')) return 'vcs';
+  if (t.includes('recruitment') || t.includes('talent acquisition') || t.includes('hiring')) return 'recruitment_services';
+  if (t.includes('digital solutions') || t.includes('hr tech') || t.includes('software')) return 'software_solutions';
+  if (t.includes('hireiq') || t.includes('ats')) return 'ats_crm';
+  if (t.includes('hrms') || t.includes('employee lifecycle')) return 'hrms_crm';
 
   const r = reason.toLowerCase();
-  if (r.includes('vcs') || r.includes('flexible workforce') || r.includes('staffing support') || r.includes('workforce planning')) return 'vcs';
-  if (r.includes('recruitment service') || r.includes('streamline their recruitment') || r.includes('screening and shortlisting') || r.includes('talent acquisition')) return 'recruitment_services';
-  if (r.includes('software solution') || r.includes('technology-driven software') || r.includes('digital tools') || r.includes('simplify workflows')) return 'software_solutions';
-  if (r.includes('hireiq') || r.includes('ats + crm') || r.includes('ats and crm') || (r.includes('ats') && r.includes('crm'))) return 'ats_crm';
-  if (r.includes('hrms + crm') || r.includes('hrms and crm') || r.includes('hrms')) return 'hrms_crm';
+  if (
+    r.includes('virtual customer support') ||
+    r.includes('customer support') ||
+    r.includes('vcs') ||
+    r.includes('live chat') ||
+    r.includes('voice support') ||
+    r.includes('whatsapp') ||
+    r.includes('enquiries') ||
+    r.includes('sla') ||
+    r.includes('flexible workforce') ||
+    r.includes('staffing support') ||
+    r.includes('workforce planning')
+  ) return 'vcs';
+
+  if (
+    r.includes('talent acquisition') ||
+    r.includes('recruitment') ||
+    r.includes('sourcing and screening') ||
+    r.includes('shortlisting') ||
+    r.includes('executive hiring') ||
+    r.includes('contract hiring') ||
+    r.includes('high-volume hiring')
+  ) return 'recruitment_services';
+
+  if (
+    r.includes('digital solutions') ||
+    r.includes('hr technology') ||
+    r.includes('hr tech') ||
+    r.includes('software solution') ||
+    r.includes('workforce dashboard') ||
+    r.includes('workflow automation') ||
+    r.includes('employee self-service') ||
+    r.includes('simplify workflows')
+  ) return 'software_solutions';
+
+  if (
+    r.includes('hireiq') ||
+    r.includes('ats + crm') ||
+    r.includes('ats and crm') ||
+    r.includes('recruitment intelligence') ||
+    r.includes('resume parsing') ||
+    r.includes('candidate evaluation') ||
+    (r.includes('ats') && r.includes('crm'))
+  ) return 'ats_crm';
+
+  if (
+    r.includes('hrms + crm') ||
+    r.includes('hrms and crm') ||
+    r.includes('hrms') ||
+    r.includes('employee lifecycle') ||
+    r.includes('onboarding and offboarding') ||
+    r.includes('employee records')
+  ) return 'hrms_crm';
 
   // Angle 1: Pain point / bottleneck / manual screening overload
   if (
@@ -175,38 +223,38 @@ export function generateSubjectLineVariations(
   switch (intent) {
     case 'vcs':
       return {
-        primary: `flexible staffing support for ${cleanComp}`,
-        direct: `Workforce planning and staffing support for ${cleanComp}`,
-        valueFocused: `Scaling specialized talent capacity at ${cleanComp}`,
-        conversational: `Quick question regarding ${cleanComp}'s staffing requirements`
+        primary: `virtual customer support coverage for ${cleanComp}`,
+        direct: `Dedicated customer support operations for ${cleanComp}`,
+        valueFocused: `SLA-aligned support across chat, voice & email for ${cleanComp}`,
+        conversational: `Handling customer enquiries & support at ${cleanComp}`
       };
     case 'recruitment_services':
       return {
-        primary: `streamlining recruitment at ${cleanComp}`,
-        direct: `Candidate sourcing & shortlisting support for ${cleanComp}`,
-        valueFocused: `Reducing hiring cycle effort for ${cleanComp}`,
-        conversational: `Quick question about ${cleanComp}'s candidate shortlisting`
+        primary: `streamlining talent acquisition at ${cleanComp}`,
+        direct: `End-to-end recruitment & candidate shortlisting for ${cleanComp}`,
+        valueFocused: `Accelerating quality hiring pipelines for ${cleanComp}`,
+        conversational: `Quick question about ${cleanComp}'s hiring pipeline`
       };
     case 'software_solutions':
       return {
-        primary: `digital tools & workflow efficiency for ${cleanComp}`,
-        direct: `Workflow automation solutions for ${cleanComp}`,
-        valueFocused: `Reducing manual operational tasks at ${cleanComp}`,
-        conversational: `Exploring software efficiency at ${cleanComp}`
+        primary: `digital HR & workflow automation for ${cleanComp}`,
+        direct: `HR technology & operations dashboards for ${cleanComp}`,
+        valueFocused: `Reducing administrative HR effort at ${cleanComp}`,
+        conversational: `HR technology & workflow visibility at ${cleanComp}`
       };
     case 'ats_crm':
       return {
-        primary: `cv screening & candidate matching for ${cleanComp}`,
-        direct: `HireIQ: AI candidate evaluation for ${cleanComp}`,
-        valueFocused: `Cutting manual CV screening hours at ${cleanComp}`,
-        conversational: `Quick question about ${cleanComp}'s candidate review process`
+        primary: `HireIQ: AI recruitment intelligence for ${cleanComp}`,
+        direct: `Resume parsing & candidate matching for ${cleanComp}`,
+        valueFocused: `Accelerating candidate shortlisting decisions at ${cleanComp}`,
+        conversational: `Quick question about ${cleanComp}'s candidate screening workflow`
       };
     case 'hrms_crm':
       return {
-        primary: `integrated HRMS & CRM for ${cleanComp}`,
-        direct: `Employee records & CRM workflow management at ${cleanComp}`,
-        valueFocused: `Simplifying HR administration and client tracking at ${cleanComp}`,
-        conversational: `Managing HR and customer workflows at ${cleanComp}`
+        primary: `connected HRMS & workforce operations for ${cleanComp}`,
+        direct: `Employee lifecycle & CRM workflows at ${cleanComp}`,
+        valueFocused: `Centralizing HR management & operations at ${cleanComp}`,
+        conversational: `Managing employee workflows and CRM at ${cleanComp}`
       };
     case 'pain_screening_bottleneck':
       return {
@@ -414,37 +462,37 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
     switch (intent) {
       case 'vcs':
         opening = designation
-          ? `I noticed your role leading ${designation} initiatives at ${cleanCompany}. Managing specialized talent demands across active projects often stretches internal bandwidth.`
-          : `I am reaching out regarding how ${cleanCompany} manages fluctuating talent and project capacity. As requirements expand, sourcing and deploying dependable talent quickly can become a significant operational bottleneck.`;
-        valuePara = `Through TaskNera HR Solutions' VCS offering, we provide flexible workforce and staffing support designed to scale up alongside your project timelines. Whether you need specialized technical talent or dedicated operational pods, we handle the talent qualification so your core team can focus on execution without recruitment delays.`;
-        cta = `Would you be open to a brief 10-minute introductory conversation this Thursday or Friday to see if our talent roster aligns with your upcoming plans?`;
+          ? `I noticed your role leading ${designation} at ${cleanCompany}. Delivering consistent, responsive customer support across multiple channels often places substantial pressure on internal teams.`
+          : `Reaching out regarding how ${cleanCompany} manages inbound customer inquiries and support coverage across channels. Maintaining high service quality while handling fluctuating volume can be an operational challenge.`;
+        valuePara = `Through TaskNera's Virtual Customer Support (VCS), we provide dedicated, human-led support teams across voice, live chat, email, WhatsApp, and social media. Our teams handle enquiries, issue resolution, and follow-ups backed by structured workflows, continuous quality monitoring, and strict SLA-aligned delivery.`;
+        cta = `Would you be open to a brief 10-minute introductory conversation this week to explore if our support pods align with ${cleanCompany}'s customer service goals?`;
         break;
 
       case 'recruitment_services':
         opening = designation
-          ? `I noticed your work as ${designation} at ${cleanCompany}. Keeping up with hiring demands while maintaining quality candidate screening requires considerable internal effort.`
-          : `Reaching out regarding ${cleanCompany}'s ongoing hiring activity. Sifting through high volumes of applicants to surface qualified candidates often pulls recruiters and hiring managers away from core deliverables.`;
-        valuePara = `TaskNera HR Solutions provides end-to-end recruitment support—from proactive sourcing to rigorous preliminary screening. We deliver vetted, role-ready candidate shortlists directly aligned with your specifications, reducing your internal hiring cycle and ensuring you only interview candidates who meet your criteria.`;
-        cta = `Would you be open to a short 10-minute conversation to explore how we could support ${cleanCompany}'s current talent search?`;
+          ? `I noticed your work as ${designation} at ${cleanCompany}. Keeping up with hiring demands across specialized roles while maintaining thorough candidate screening requires significant team bandwidth.`
+          : `Reaching out regarding ${cleanCompany}'s hiring initiatives. Sourcing and screening qualified talent across active requisitions often pulls hiring managers away from strategic priorities.`;
+        valuePara = `TaskNera supports end-to-end recruitment across permanent, contract, executive, IT and non-IT, and high-volume hiring. From candidate sourcing and screening to candidate shortlisting and interview coordination, we help build qualified talent pipelines and streamline recruitment operations.`;
+        cta = `Would you be open to a short 10-minute conversation to explore how we could support ${cleanCompany}'s current talent requirements?`;
         break;
 
       case 'software_solutions':
-        opening = `I am reaching out to see how ${cleanCompany} currently approaches workflow coordination across internal operations and HR. Disconnected tools and manual administrative tasks often introduce friction as teams scale.`;
-        valuePara = `TaskNera HR Solutions builds technology-driven digital tools tailored to streamline day-to-day operations, human resource workflows, and customer management. By automating routine handoffs and centralizing key records, we help organizations eliminate redundant tasks and maintain clear operational visibility.`;
-        cta = `Would it be helpful if I shared a brief 2-minute overview showing how we simplify these workflows for growing teams?`;
+        opening = `I am reaching out to see how ${cleanCompany} currently manages operational visibility across people management and business workflows. Disconnected tools and manual administration frequently create bottlenecks.`;
+        valuePara = `TaskNera delivers HR technology and digital solutions including recruitment intelligence, HRMS platforms, employee self-service portals, workforce dashboards, and workflow automation. Our integrated digital ecosystem connects recruitment pipelines, employee management, and client relationships to improve visibility and reduce repetitive administrative effort.`;
+        cta = `Would it be helpful if I shared a brief 2-minute overview showing how we streamline these operations for growing businesses?`;
         break;
 
       case 'ats_crm':
         opening = designation
-          ? `I noticed your team's recruitment focus at ${cleanCompany}. When managing competitive requisitions, recruiters often spend hours each day manually cross-referencing candidate CVs against complex job criteria.`
+          ? `I noticed your recruitment focus at ${cleanCompany}. When managing competitive requisitions, recruitment teams frequently spend hours sifting through resumes to evaluate qualifications against role criteria.`
           : `When managing active requisitions at ${cleanCompany}, manual resume screening often becomes one of the slowest stages before candidate interviews.`;
-        valuePara = `We built HireIQ by TaskNera to solve this exact bottleneck. Our platform evaluates incoming resumes against your defined job descriptions, generates transparent ATS matching scores, and flags missing mandatory skills in seconds. Combined with built-in candidate CRM tracking, it keeps your pipeline organized without the manual spreadsheet drag.`;
-        cta = `Would you be open to seeing a 90-second walkthrough of how HireIQ matches resumes against a live job description?`;
+        valuePara = `HireIQ by TaskNera is an AI-powered recruitment intelligence platform that supports job-description analysis, resume parsing, candidate-to-role matching, weighted scoring, and structured candidate evaluation. Combined with our planned CRM integration, it connects client accounts, hiring requirements, and communication history directly with recruitment activities for end-to-end visibility.`;
+        cta = `Would you be open to seeing a 90-second walkthrough of how HireIQ evaluates candidates and accelerates shortlisting?`;
         break;
 
       case 'hrms_crm':
-        opening = `Tracking ${cleanCompany}'s operational growth—coordinating employee administration alongside customer management often means juggling separate, disconnected software systems.`;
-        valuePara = `TaskNera HR Solutions offers an integrated HRMS and CRM platform that unifies core workforce activities—such as attendance, leave records, and employee profiles—with structured customer and lead management. This eliminates double data entry, reduces administrative overhead, and gives leadership a single, coherent view of daily operations.`;
+        opening = `Tracking ${cleanCompany}'s growth—managing employee records, onboarding, leave, and payroll alongside client relationships often requires toggling between disconnected software tools.`;
+        valuePara = `TaskNera's HRMS centralizes essential employee lifecycle workflows—including employee records, onboarding and offboarding, attendance, leave, payroll, performance, and training. Connected with our CRM integration, customer accounts and service requirements link directly with workforce operations to create a cohesive business ecosystem.`;
         cta = `Would you be open to a quick 10-minute walkthrough to see how an integrated setup could simplify ${cleanCompany}'s daily operations?`;
         break;
 
@@ -486,13 +534,15 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
     let contextNote = '';
 
     if (intent === 'ats_crm' || intent === 'pain_screening_bottleneck' || intent === 'time_saving') {
-      contextNote = `One pattern we frequently see in recruitment teams is that over 60% of screening time is spent reviewing applicants who do not meet the core mandatory requirements. If your recruiters could cut that first review pass down to seconds, would that meaningfully help your quarterly hiring goals?`;
+      contextNote = `One pattern we frequently see in recruitment teams is that over 60% of screening time is spent reviewing applicants who do not meet mandatory criteria. If your recruiters could cut that initial evaluation pass down to seconds, would that meaningfully help your quarterly hiring goals?`;
     } else if (intent === 'vcs') {
-      contextNote = `Scaling project capacity often brings unexpected recruitment overhead. Having pre-qualified staffing support ready to deploy can make the difference between hitting sprint milestones on time or delaying deliverables.`;
-    } else if (intent === 'hrms_crm') {
-      contextNote = `Managing HR records in one tool and client interactions in another often leads to duplicated administrative effort and blind spots between teams.`;
+      contextNote = `Maintaining responsive customer support during peak enquiry surges or outside standard hours can quickly strain internal bandwidth. Having dedicated, SLA-aligned support across voice, live chat, WhatsApp, and email ensures customer satisfaction without service disruptions.`;
+    } else if (intent === 'recruitment_services') {
+      contextNote = `Balancing fast hiring turnaround with rigorous candidate qualification remains a major challenge. Having dedicated sourcing and shortlisting support across permanent or contract roles keeps talent pipelines active without overburdening your internal team.`;
+    } else if (intent === 'hrms_crm' || intent === 'software_solutions') {
+      contextNote = `Managing HR records in one tool and business relationships in another often leads to duplicated administrative effort and blind spots between teams.`;
     } else {
-      contextNote = `Finding the right balance between operational speed and thorough candidate evaluation remains a major priority for growing teams.`;
+      contextNote = `Finding the right balance between operational speed and thorough execution remains a major priority for growing teams.`;
     }
 
     const cta = `Would you be open to a brief 5-minute conversation later this week to see if there's a practical fit?`;
@@ -505,11 +555,13 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
     let insight = '';
 
     if (intent === 'ats_crm' || intent === 'pain_screening_bottleneck' || intent === 'time_saving') {
-      insight = `A staffing team recently tested HireIQ on several active technical requisitions. By automatically scoring resumes against defined criteria and flagging missing skills upfront, they reduced their average shortlist review time from two days to under three hours.`;
+      insight = `A recruitment team recently deployed HireIQ on several active requisitions. By automatically parsing resumes against role criteria and ranking top candidates upfront, they cut their candidate shortlisting review time from two days to under three hours.`;
     } else if (intent === 'vcs') {
-      insight = `An engineering organization partnering with our VCS team was able to deploy four specialized contributors within five days, allowing them to deliver their quarterly product release without pausing their internal hiring pipeline.`;
-    } else if (intent === 'hrms_crm') {
-      insight = `A growing services firm unified their employee records and client tracking onto our integrated platform, eliminating manual reconciliation and saving their operations manager roughly six hours each week.`;
+      insight = `A business partnering with our Virtual Customer Support team transitioned their live chat, WhatsApp, and email support to our dedicated pods, achieving 98% first-response SLA adherence while reducing customer escalation rates by 35%.`;
+    } else if (intent === 'recruitment_services') {
+      insight = `An organization partnering with our talent acquisition team filled four critical specialized positions within two weeks by leveraging our pre-screened candidate pipeline, reducing their time-to-hire by nearly 50%.`;
+    } else if (intent === 'hrms_crm' || intent === 'software_solutions') {
+      insight = `A growing company centralized their employee lifecycle records and operational workflows onto our platform, eliminating manual reconciliation and saving their operations team over six hours each week.`;
     } else {
       insight = `Teams using our solutions typically reduce their manual administrative coordination by over 50% within the first month of implementation.`;
     }
@@ -520,10 +572,11 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
     // STAGE 3 (Day 7-9): Simple Binary Qualifying Question (40-60 words)
     emailType = 'follow_up_3_qualifying_question';
 
-    const question = `Quick question regarding ${cleanCompany}: is streamlining your current ${
-      intent === 'ats_crm' ? 'resume screening and candidate tracking' :
-      intent === 'vcs' ? 'staffing and talent capacity' :
-      intent === 'hrms_crm' ? 'HR and CRM workflows' : 'hiring operations'
+    const question = `Quick question regarding ${cleanCompany}: is optimizing your current ${
+      intent === 'ats_crm' ? 'resume screening and candidate shortlisting' :
+      intent === 'vcs' ? 'customer support operations and SLA delivery' :
+      intent === 'recruitment_services' ? 'recruitment pipeline and hiring turnaround' :
+      intent === 'hrms_crm' ? 'employee lifecycle and CRM workflows' : 'HR technology and business workflows'
     } an active priority for your team this quarter, or is your current setup already meeting all your needs? Either way, I appreciate your time and perspective.`;
 
     bodyContent = [salutation, question].join('\n\n');
@@ -587,11 +640,11 @@ async function generateWithOpenAI(
 You write natural, consultative, highly professional cold emails that sound like they were written by an experienced enterprise sales consultant.
 
 CORE KNOWLEDGE BASE (Adapt seamlessly based on the selected offering / mailTopic):
-1. VCS: Flexible workforce and staffing support, on-demand specialized contributors and engineering pods, scalable workforce planning that eliminates recruitment lag.
-2. Recruitment Services: End-to-end candidate sourcing, screening, and shortlisting, delivering vetted candidate shortlists to reduce hiring effort and time-to-hire.
-3. Software Solutions: Digital tools and workflow automation for HR, CRM, and operational coordination, eliminating manual administrative tasks and data fragmentation.
-4. ATS + CRM Application — HireIQ by TaskNera: AI-powered candidate evaluation, automated JD parsing, transparent ATS matching scores, missing skill detection, and structured candidate CRM pipelines. Reduces manual resume review time from days to hours.
-5. HRMS + CRM Application: Integrated employee management (attendance, leave, records, payroll) combined with CRM (lead & client interaction tracking) for complete operational visibility and reduced administrative overhead.
+1. Virtual Customer Support (VCS): Dedicated, human-led customer support across voice, live chat, email, WhatsApp, and social media. Helps businesses manage enquiries, resolve issues, handle follow-ups, and maintain service quality through structured workflows, quality monitoring, and SLA-aligned delivery.
+2. Recruitment & Talent Acquisition: End-to-end recruitment across permanent, contract, executive, IT and non-IT, and high-volume hiring. From candidate sourcing and screening to shortlisting and interview coordination, building qualified talent pipelines and streamlining recruitment operations.
+3. HR Technology & Digital Solutions / Software Solutions: Technology-enabled solutions for recruitment and people management: recruitment intelligence, HRMS platforms, employee self-service portals, workforce dashboards, analytics, and workflow automation. In-house CRM connects client relationships, recruitment pipelines, and workforce operations.
+4. HireIQ — ATS & Recruitment Intelligence (ATS + CRM Integration): AI-powered recruitment intelligence platform supporting job-description analysis, resume parsing, candidate-to-role matching, weighted scoring, ranking, and structured candidate evaluation. Planned CRM connects client accounts, hiring requirements, communication history, follow-ups, and business opportunities with recruitment activities.
+5. HRMS & Employee Lifecycle Management (HRMS + CRM Integration): Centralized employee lifecycle management covering employee records, onboarding and offboarding, attendance, leave, payroll, performance, and training. Planned CRM connects customer accounts, business opportunities, and service requirements with workforce operations for a unified business ecosystem.
 6. Custom Offerings: Tailored business solutions as specified in the outreach focus.
 
 STRICT WRITING & COMPLIANCE RULES:

@@ -121,6 +121,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
 };
 
 export const MAIL_TOPICS = [
+  'Virtual Customer Support (VCS)',
+  'Recruitment & Talent Acquisition',
+  'HR Technology & Digital Solutions',
+  'HireIQ — ATS & Recruitment Intelligence',
+  'HRMS & Employee Lifecycle Management',
   'VCS',
   'Recruitment Services',
   'Software Solutions',
