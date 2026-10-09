@@ -104,42 +104,42 @@ export interface OutreachService {
 export const DEFAULT_SERVICES: OutreachService[] = [
   {
     id: 'vcs',
-    name: 'VCS',
-    icon: '👥',
-    tagline: 'Flexible workforce & staffing support',
-    pitch: "TaskNera HR Solutions provides flexible workforce and staffing support to help businesses meet their talent requirements efficiently. We aim to simplify workforce planning, support hiring needs, and help organizations find suitable talent while reducing the time and effort involved in managing staffing requirements. Our services can be tailored to your organization's needs and growth plans.",
+    name: 'Virtual Customer Support (VCS)',
+    icon: '🎧',
+    tagline: 'Dedicated, human-led multi-channel support',
+    pitch: "TaskNera provides dedicated, human-led customer support across voice, live chat, email, WhatsApp, and social media. Our support teams help businesses manage customer enquiries, resolve issues, handle follow-ups, and maintain service quality through structured workflows, quality monitoring, and SLA-aligned delivery.",
     isDefault: true
   },
   {
     id: 'recruitment',
-    name: 'Recruitment Services',
+    name: 'Recruitment & Talent Acquisition',
     icon: '🎯',
-    tagline: 'Streamlined candidate sourcing & shortlisting',
-    pitch: "TaskNera HR Solutions helps businesses streamline their recruitment process, from identifying potential candidates to screening and shortlisting suitable talent. Our goal is to help organizations reduce hiring effort, improve recruitment efficiency, and connect with candidates who match their job requirements. We support businesses in building stronger teams through a more organized and effective hiring process.",
+    tagline: 'End-to-end recruitment across IT, non-IT & executive roles',
+    pitch: "TaskNera supports end-to-end recruitment across permanent, contract, executive, IT and non-IT, and high-volume hiring. From candidate sourcing and screening to shortlisting and interview coordination, we help businesses build relevant talent pipelines and streamline recruitment operations.",
     isDefault: true
   },
   {
     id: 'software',
-    name: 'Software Solutions',
+    name: 'HR Technology & Digital Solutions',
     icon: '💻',
-    tagline: 'Digital tools for HR, CRM & recruitment intelligence',
-    pitch: "TaskNera HR Solutions delivers technology-driven software solutions that help businesses simplify workflows, reduce manual tasks, and improve operational efficiency. Our solutions focus on recruitment intelligence, human resource management, and customer relationship management, enabling organizations to manage essential business activities more effectively through digital tools tailored to their operational needs.",
+    tagline: 'Recruitment intelligence, HRMS platforms & workflow automation',
+    pitch: "TaskNera combines recruitment intelligence and HR technology to help businesses streamline hiring, employee management, and business relationship workflows. With HireIQ ATS and HRMS already in place, TaskNera delivers technology-enabled solutions including recruitment intelligence, HRMS platforms, employee self-service portals, workforce dashboards, analytics, and workflow automation, alongside an in-house CRM designed to connect client relationships, recruitment pipelines, and workforce operations through an integrated digital ecosystem.",
     isDefault: true
   },
   {
     id: 'hireiq',
-    name: 'ATS + CRM Application — HireIQ by TaskNera',
+    name: 'HireIQ — ATS & Recruitment Intelligence',
     icon: '🧠',
-    tagline: 'AI-powered recruitment intelligence & CRM',
-    pitch: "HireIQ by TaskNera is an AI-powered recruitment intelligence solution designed to make hiring smarter and more efficient. It helps recruitment teams analyze job descriptions, evaluate resumes against defined criteria, identify suitable candidates, and organize recruitment activities. Combined with CRM capabilities, it helps teams manage candidate information and recruitment interactions in a more structured workflow, reducing repetitive work and supporting informed hiring decisions.",
+    tagline: 'AI JD analysis, resume scoring & CRM integration',
+    pitch: "HireIQ by TaskNera is an AI-powered recruitment intelligence platform that supports job-description analysis, resume parsing, candidate-to-role matching, weighted scoring, ranking, and structured candidate evaluation. The planned CRM integration extends these capabilities by connecting client accounts, hiring requirements, communication history, follow-ups, and business opportunities with recruitment activities, providing end-to-end visibility from client acquisition and job requirements through candidate selection and placement.",
     isDefault: true
   },
   {
     id: 'hrms_crm',
-    name: 'HRMS + CRM Application',
+    name: 'HRMS & Employee Lifecycle Management',
     icon: '🏢',
-    tagline: 'Integrated employee management & CRM workflows',
-    pitch: "TaskNera HR Solutions offers an integrated HRMS and CRM solution designed to simplify employee management and customer relationship workflows. The HRMS supports essential HR activities such as attendance, leave management, employee records, and payroll workflows, while CRM capabilities help businesses manage leads, customer information, and interactions. Together, these solutions aim to improve coordination, reduce administrative workload, and provide businesses with better visibility into their day-to-day operations.",
+    tagline: 'Centralized employee records & CRM integration',
+    pitch: "TaskNera's HRMS supports essential employee lifecycle and workforce management activities, including employee records, onboarding and offboarding, attendance, leave management, payroll workflows, performance, and training. The planned CRM integration connects customer accounts, business opportunities, and service requirements with relevant workforce operations, helping organizations improve coordination between customer-facing teams and internal people-management processes to create a connected, visible, and efficient business operations ecosystem.",
     isDefault: true
   }
 ];
@@ -179,12 +179,17 @@ export const DEFAULT_SETTINGS: AppSettings = {
 };
 
 export const MAIL_TOPICS = [
+  'Virtual Customer Support (VCS)',
+  'Recruitment & Talent Acquisition',
+  'HR Technology & Digital Solutions',
+  'HireIQ — ATS & Recruitment Intelligence',
+  'HRMS & Employee Lifecycle Management',
+  // Backward compatibility aliases
   'VCS',
   'Recruitment Services',
   'Software Solutions',
   'ATS + CRM Application — HireIQ by TaskNera',
   'HRMS + CRM Application',
-  // Backward compatibility aliases
   'recruitment services',
   'software solutions',
   'ATS + CRM app',
