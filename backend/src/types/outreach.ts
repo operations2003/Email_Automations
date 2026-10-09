@@ -158,4 +158,5 @@ export interface GeneratedEmailResult {
   wordCount: number;
   qualityPassed: boolean;
   qualityNotes: string[];
+  alternativeSubjects?: string[];
 }

@@ -813,7 +813,36 @@ export function AddOutreachModal({
             {generatedResult ? (
               <div className="flex-1 flex flex-col space-y-3">
                 <div>
-                  <label className="block text-[11px] text-gray-400 mb-1">Subject</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] text-gray-400">Subject</label>
+                    {generatedResult.alternativeSubjects && generatedResult.alternativeSubjects.length > 0 && (
+                      <span className="text-[10px] text-gray-400 font-medium">3 AI Angles Available</span>
+                    )}
+                  </div>
+                  {generatedResult.alternativeSubjects && generatedResult.alternativeSubjects.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {generatedResult.alternativeSubjects.map((altSubj, idx) => {
+                        const labels = ['Direct', 'Value', 'Conversational'];
+                        const isSelected = subject === altSubj;
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setSubject(altSubj)}
+                            className={`text-[10px] px-2 py-0.5 rounded border transition-colors cursor-pointer text-left ${
+                              isSelected
+                                ? 'bg-blue-600/20 border-blue-500/50 text-blue-300 font-medium ring-1 ring-blue-500/30'
+                                : 'bg-[#14171c] border-[#23272f] text-gray-400 hover:text-gray-200 hover:border-gray-600'
+                            }`}
+                            title={altSubj}
+                          >
+                            <span className="font-semibold text-gray-400 mr-1">{labels[idx] || `V${idx + 1}`}:</span>
+                            {altSubj.length > 34 ? altSubj.slice(0, 34) + '…' : altSubj}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                   {isEditing ? (
                     <input
                       type="text"

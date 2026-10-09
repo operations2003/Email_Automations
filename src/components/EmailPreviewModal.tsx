@@ -39,9 +39,11 @@ export function EmailPreviewModal({
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+  const [alternativeSubjects, setAlternativeSubjects] = useState<string[]>([]);
 
   useEffect(() => {
     setActiveStage(initialStage);
+    setAlternativeSubjects([]);
   }, [initialStage, campaign]);
 
   useEffect(() => {
@@ -110,6 +112,9 @@ export function EmailPreviewModal({
 
       setSubject(data.generated.subject);
       setBody(data.generated.body);
+      if (data.generated.alternativeSubjects) {
+        setAlternativeSubjects(data.generated.alternativeSubjects);
+      }
       setFeedback('New version created.');
       onRefresh();
     } catch (err: unknown) {
@@ -280,6 +285,32 @@ export function EmailPreviewModal({
                 <span className="font-medium text-white">{subject || '(No subject yet)'}</span>
               )}
             </div>
+
+            {alternativeSubjects && alternativeSubjects.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-[#1f242d]">
+                <span className="text-[10px] text-gray-400 mr-1">Angles:</span>
+                {alternativeSubjects.map((altSubj, idx) => {
+                  const labels = ['Direct', 'Value', 'Conversational'];
+                  const isSelected = subject === altSubj;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSubject(altSubj)}
+                      className={`text-[10px] px-2 py-0.5 rounded border transition-colors cursor-pointer text-left ${
+                        isSelected
+                          ? 'bg-blue-600/20 border-blue-500/50 text-blue-300 font-medium ring-1 ring-blue-500/30'
+                          : 'bg-[#14171c] border-[#23272f] text-gray-400 hover:text-gray-200 hover:border-gray-600'
+                      }`}
+                      title={altSubj}
+                    >
+                      <span className="font-semibold text-gray-400 mr-1">{labels[idx] || `V${idx + 1}`}:</span>
+                      {altSubj.length > 32 ? altSubj.slice(0, 32) + '…' : altSubj}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Email Body */}
