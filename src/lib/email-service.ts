@@ -1,6 +1,8 @@
 import { AppSettings } from '@/types/outreach';
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
+import { isSuppressed, addToSuppression, getUnsubscribeHeaders, generateUnsubscribeToken } from './suppression';
+import { findCampaignById, saveCampaign, addHistoryEvent } from './db';
 
 function formatFromAddress(senderName?: string, senderEmail?: string): string {
   const envFrom = (process.env.EMAIL_FROM || '').trim();
@@ -45,12 +47,13 @@ function escapeHtml(text: string): string {
 
 /**
  * Produces clean, responsive, personal 1:1 business HTML formatting.
- * Avoids aggressive newsletter styling, marketing banners, and heavy buttons.
- * Renders as a crisp, professional correspondence.
+ * Includes RFC 8058 and CAN-SPAM compliant opt-out footer.
  */
 export function formatProfessionalEmailHtml(
   body: string,
-  signature?: string
+  signature?: string,
+  unsubscribeUrl?: string,
+  companyName: string = 'TaskNera Solutions'
 ): string {
   // Split paragraphs by double newlines
   const paragraphs = body
@@ -76,6 +79,16 @@ export function formatProfessionalEmailHtml(
     `;
   }
 
+  let optOutHtml = '';
+  if (unsubscribeUrl) {
+    optOutHtml = `
+      <div style="margin-top: 36px; padding-top: 16px; border-top: 1px solid #f1f5f9; font-size: 11px; line-height: 1.5; color: #94a3b8; text-align: left;">
+        <p style="margin: 0 0 4px 0;">Sent by ${escapeHtml(companyName)} &bull; Business Operations</p>
+        <p style="margin: 0;">If you prefer not to receive future emails regarding these services, you can <a href="${unsubscribeUrl}" style="color: #64748b; text-decoration: underline;">unsubscribe here</a>.</p>
+      </div>
+    `;
+  }
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -90,19 +103,66 @@ export function formatProfessionalEmailHtml(
   <div style="max-width: 600px; margin: 0 auto; text-align: left;">
     ${paragraphsHtml}
     ${signatureHtml}
+    ${optOutHtml}
   </div>
 </body>
 </html>`;
+}
+
+/**
+ * Checks whether an error is a hard bounce (invalid address / mailbox not found)
+ */
+function isHardBounce(errorMessage: string): boolean {
+  const msg = errorMessage.toLowerCase();
+  return (
+    msg.includes('550') ||
+    msg.includes('551') ||
+    msg.includes('552') ||
+    msg.includes('553') ||
+    msg.includes('554') ||
+    msg.includes('user not found') ||
+    msg.includes('user unknown') ||
+    msg.includes('mailbox unavailable') ||
+    msg.includes('recipient address rejected') ||
+    msg.includes('does not exist') ||
+    msg.includes('address rejected')
+  );
 }
 
 export async function sendOutreachEmail(
   payload: SendEmailPayload,
   settings: AppSettings
 ): Promise<SendEmailResult> {
+  const cleanRecipient = payload.to.trim().toLowerCase();
+
+  // 0. Deliverability Safeguard: Check suppression list
+  if (await isSuppressed(cleanRecipient)) {
+    throw new Error(
+      `Delivery Aborted: Recipient "${cleanRecipient}" is on the suppression list (previously unsubscribed, bounced, or flagged). Email was not sent to protect your domain reputation.`
+    );
+  }
+
   const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   const now = new Date().toISOString();
-  const fullBody = payload.signature ? `${payload.body}\n\n${payload.signature}` : payload.body;
-  const htmlBody = formatProfessionalEmailHtml(payload.body, payload.signature);
+
+  // Generate RFC 8058 unsubscribe token & headers
+  const unsubToken = generateUnsubscribeToken(cleanRecipient, payload.campaignId);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://tasknera.com');
+  const unsubscribeUrl = `${baseUrl}/api/unsubscribe?token=${encodeURIComponent(unsubToken)}`;
+  const unsubHeaders = settings.enableUnsubscribeHeader !== false ? getUnsubscribeHeaders(cleanRecipient, payload.campaignId, baseUrl) : {};
+
+  // Attach clean opt-out text to plain-text body as well
+  let fullBody = payload.signature ? `${payload.body}\n\n${payload.signature}` : payload.body;
+  if (settings.enableUnsubscribeFooter !== false) {
+    fullBody += `\n\n---\nOpt out of future communications: ${unsubscribeUrl}`;
+  }
+
+  const htmlBody = formatProfessionalEmailHtml(
+    payload.body,
+    payload.signature,
+    settings.enableUnsubscribeFooter !== false ? unsubscribeUrl : undefined,
+    settings.companyName || 'TaskNera Solutions'
+  );
 
   // 1. SMTP Provider (Gmail, Outlook, Amazon SES, Custom SMTP)
   if (settings.provider === 'smtp') {
@@ -139,13 +199,19 @@ export async function sendOutreachEmail(
     try {
       const fromEmail = smtpUser || settings.senderEmail || 'operations@tasknera.com';
       const fromName = settings.senderName || process.env.EMAIL_SENDER_NAME || 'TaskNera Operations';
+
       const info = await transporter.sendMail({
         from: `"${fromName}" <${fromEmail}>`,
         to: payload.to,
         cc: payload.cc ? payload.cc.split(',').map(s => s.trim()).filter(Boolean) : undefined,
         subject: payload.subject,
         text: fullBody,
-        html: htmlBody
+        html: htmlBody,
+        headers: {
+          ...unsubHeaders,
+          'X-Entity-Ref-ID': payload.campaignId || messageId,
+          'Feedback-ID': `outreach:${payload.stage}:tasknera`
+        }
       });
 
       return {
@@ -156,6 +222,33 @@ export async function sendOutreachEmail(
       };
     } catch (err: unknown) {
       const e = err as Error;
+
+      // Handle Hard Bounce
+      if (isHardBounce(e.message)) {
+        await addToSuppression(cleanRecipient, 'bounced', payload.campaignId, e.message);
+        if (payload.campaignId) {
+          try {
+            const camp = await findCampaignById(payload.campaignId);
+            if (camp) {
+              camp.status = 'Bounced';
+              camp.replyStatus = 'Bounced';
+              camp.lastActivity = `Hard bounce detected: ${e.message}`;
+              camp.lastActivityTimestamp = now;
+              await saveCampaign(camp);
+              await addHistoryEvent(payload.campaignId, {
+                type: 'bounced',
+                title: 'Email Bounced (Hard Bounce)',
+                description: `Recipient mail server rejected address: ${e.message}. Address added to suppression list.`,
+                timestamp: now
+              });
+            }
+          } catch {
+            // ignore non-fatal history update
+          }
+        }
+        throw new Error(`SMTP Delivery Failed (Hard Bounce): ${e.message}. Address automatically suppressed.`);
+      }
+
       if (
         e.message.includes('535') ||
         e.message.includes('BadCredentials') ||
@@ -193,7 +286,8 @@ export async function sendOutreachEmail(
         cc: payload.cc ? payload.cc.split(',').map(s => s.trim()).filter(Boolean) : undefined,
         subject: payload.subject,
         text: fullBody,
-        html: htmlBody
+        html: htmlBody,
+        headers: unsubHeaders
       });
 
       if (error) {
@@ -217,11 +311,14 @@ export async function sendOutreachEmail(
       };
     } catch (err: unknown) {
       const e = err as Error;
+      if (isHardBounce(e.message)) {
+        await addToSuppression(cleanRecipient, 'bounced', payload.campaignId, e.message);
+      }
       throw new Error(e.message || 'Failed to dispatch email via Resend.');
     }
   }
 
-  // 3. Simulated Sandbox Mode (Records delivery in local DB and dashboard without dispatching network emails)
+  // 3. Simulated Sandbox Mode
   return {
     success: true,
     messageId,

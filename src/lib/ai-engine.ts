@@ -1,7 +1,7 @@
 import { EmailGenerationPayload, GeneratedEmailResult } from '@/types/outreach';
 
 // BANNED_CLICHES constant for quality validation
-const BANNED_CLICHES = [
+export const BANNED_CLICHES = [
   'hope this email finds you well',
   'hope you\'re doing well', 
   'i hope you are well',
@@ -177,32 +177,6 @@ export function classifyIntent(reason: string, mailTopic?: string): OutreachInte
   return 'time_saving';
 }
 
-// Banned clichés to guarantee deliverability, natural voice, and avoid spam filters
-export const BANNED_CLICHES = [
-  "hope you're doing well",
-  "hope this email finds you well",
-  "i am writing to introduce",
-  "we would love to connect",
-  "please let me know if you're interested",
-  "touching base",
-  "just checking in",
-  "bump this to the top of your inbox",
-  "bumping this to the top",
-  "act now",
-  "limited time",
-  "guaranteed results",
-  "100% free",
-  "10x your",
-  "revolutionary",
-  "exclusive opportunity",
-  "urgent",
-  "game-changer",
-  "synergy",
-  "disruptive",
-  "cutting-edge",
-  "streamline your operations today"
-];
-
 // Helper to extract clean first name and optional designation
 export function parseRecipientDetails(recipientName?: string): { firstName: string; fullName: string; designation?: string } {
   if (!recipientName || !recipientName.trim()) {
@@ -239,21 +213,38 @@ export function parseRecipientDetails(recipientName?: string): { firstName: stri
   };
 }
 
-// Generates 3 professional alternative subject lines (Direct, Value-Focused, Conversational)
+// Helper to deterministically or randomly pick variations to prevent fingerprinting
+export function selectVariant(items: string[], seedKey: string = ''): string {
+  if (!items || items.length === 0) return '';
+  if (!seedKey) {
+    return items[Math.floor(Math.random() * items.length)];
+  }
+  let hash = 0;
+  for (let i = 0; i < seedKey.length; i++) {
+    hash = (hash << 5) - hash + seedKey.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % items.length;
+  return items[index];
+}
+
+// Generates professional alternative subject lines (Direct, Value-Focused, Conversational)
 export function generateSubjectLineVariations(
   company: string,
   intent: OutreachIntent,
-  topic?: string
+  topic?: string,
+  seedKey?: string
 ): { primary: string; direct: string; valueFocused: string; conversational: string } {
   const cleanComp = company.trim() || 'your team';
+  const seed = seedKey || `${cleanComp}_${intent}`;
 
   // Natural, contextual subject lines based on intent
   const subjectTemplates = {
     vcs: {
-      primary: [`Customer support for ${cleanComp}`, `Supporting ${cleanComp}'s customers`, `${cleanComp} customer service`],
-      direct: [`Customer support team for ${cleanComp}`, `VCS for ${cleanComp}`, `Customer service support`],
+      primary: [`Customer support for ${cleanComp}`, `Supporting ${cleanComp}'s customers`, `${cleanComp} customer service`, `Quick question regarding ${cleanComp}'s support`],
+      direct: [`Customer support team for ${cleanComp}`, `VCS for ${cleanComp}`, `Customer service support`, `${cleanComp} support team / VCS`],
       valueFocused: [`Reduce support workload at ${cleanComp}`, `Scale customer service for ${cleanComp}`, `Customer support that grows with you`],
-      conversational: [`Quick question about customer support`, `Helping with customer inquiries`, `Customer service at ${cleanComp}`]
+      conversational: [`Quick question about customer support`, `Helping with customer inquiries`, `Customer service at ${cleanComp}`, `Quick question regarding ${cleanComp}`]
     },
     recruitment_services: {
       primary: [`Hiring support for ${cleanComp}`, `Recruitment help for ${cleanComp}`, `${cleanComp} talent acquisition`],
@@ -319,47 +310,14 @@ export function generateSubjectLineVariations(
     conversational: [`Quick question`, `Helping with operations`, `Business question`]
   };
 
-  const templates = subjectTemplates[intent] || defaultTemplates;
-  
-  // Add randomization to avoid repetitive patterns
-  const getRandomTemplate = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const templates = (subjectTemplates as Record<string, any>)[intent] || defaultTemplates;
 
   return {
-    primary: getRandomTemplate(templates.primary),
-    direct: getRandomTemplate(templates.direct),
-    valueFocused: getRandomTemplate(templates.valueFocused),
-    conversational: getRandomTemplate(templates.conversational)
+    primary: selectVariant(templates.primary, seed + '_p'),
+    direct: selectVariant(templates.direct, seed + '_d'),
+    valueFocused: selectVariant(templates.valueFocused, seed + '_v'),
+    conversational: selectVariant(templates.conversational, seed + '_c')
   };
-}
-      return {
-        primary: `managing applicant volume at ${cleanComp}`,
-        direct: `High-volume candidate matching for ${cleanComp}`,
-        valueFocused: `Auto-ranking candidate pools for ${cleanComp}`,
-        conversational: `Quick question on ${cleanComp}'s applicant volume`
-      };
-    case 'recruiter_productivity':
-      return {
-        primary: `recruiter desk capacity at ${cleanComp}`,
-        direct: `Placement velocity & candidate evaluation for ${cleanComp}`,
-        valueFocused: `Accelerating candidate submittal speed at ${cleanComp}`,
-        conversational: `Shortlist turnaround for ${cleanComp}`
-      };
-    case 'soft_cta_curiosity':
-      return {
-        primary: `quick question about ${cleanComp}'s recruitment workflow`,
-        direct: `Candidate matching & screening at ${cleanComp}`,
-        valueFocused: `Saving recruiter time on CV review for ${cleanComp}`,
-        conversational: `Quick question for ${cleanComp}`
-      };
-    case 'time_saving':
-    default:
-      return {
-        primary: `saving recruiter hours on cv screening at ${cleanComp}`,
-        direct: `Candidate screening turnaround for ${cleanComp}`,
-        valueFocused: `Saving 8-10 hours weekly on resume review at ${cleanComp}`,
-        conversational: `Quick note regarding ${cleanComp}'s candidate review process`
-      };
-  }
 }
 
 export function wordCount(text: string): number {
@@ -491,6 +449,90 @@ function sanitizeEmailBody(raw: string): string {
   return cleaned;
 }
 
+export interface SpamRiskAssessment {
+  score: number; // 0 - 100 (0 = cleanest, 100 = critical spam danger)
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  flags: string[];
+  recommendations: string[];
+}
+
+/**
+ * Evaluates cold outreach content against modern mailbox spam heuristics
+ */
+export function analyzeSpamRisk(subject: string, body: string): SpamRiskAssessment {
+  const flags: string[] = [];
+  const recommendations: string[] = [];
+  let score = 0;
+
+  const lowerSub = (subject || '').toLowerCase();
+  const lowerBody = (body || '').toLowerCase();
+
+  // 1. High risk spam words
+  const highRiskWords = [
+    '100% free', 'guaranteed', 'risk-free', 'urgent', 'act now', 'apply now',
+    'earn money', 'make money', 'fast cash', 'no risk', 'unlimited', 'winner',
+    'credit card', 'congratulations', 'no catch', 'cancel anytime', 'call now',
+    'click here', 'buy now'
+  ];
+
+  for (const word of highRiskWords) {
+    if (lowerBody.includes(word) || lowerSub.includes(word)) {
+      score += 25;
+      flags.push(`Spam trigger phrase detected: "${word}"`);
+    }
+  }
+
+  // 2. Generic cold outreach clichés
+  const mediumRisk = [
+    'just checking in', 'touching base', 'bumping this', 'synergy', 'game-changer',
+    'special promotion', 'limited time offer'
+  ];
+  for (const word of mediumRisk) {
+    if (lowerBody.includes(word) || lowerSub.includes(word)) {
+      score += 15;
+      flags.push(`Generic cliché detected: "${word}"`);
+    }
+  }
+
+  // 3. Punctuation & all-caps checks
+  const exclamations = (body.match(/!/g) || []).length + (subject.match(/!/g) || []).length;
+  if (exclamations > 2) {
+    score += 20;
+    flags.push(`Multiple exclamation marks detected (${exclamations})`);
+    recommendations.push('Remove exclamation marks from professional B2B outreach.');
+  }
+
+  if (subject && subject === subject.toUpperCase() && subject.length > 8) {
+    score += 35;
+    flags.push('All-caps subject line detected.');
+    recommendations.push('Write subject lines in standard sentence case.');
+  }
+
+  // 4. Repetitive template fingerprinting check
+  if (
+    lowerBody.includes('disconnected tools and manual administration frequently create bottlenecks') &&
+    lowerSub.includes('digital hr & workflow automation')
+  ) {
+    score += 30;
+    flags.push('Template matches previously flagged repetitive copy (detected by Gmail heuristic filter).');
+    recommendations.push('Use dynamic variations and conversational openers to avoid identical hash matching.');
+  }
+
+  score = Math.min(100, Math.max(0, score));
+  const riskLevel = score >= 50 ? 'HIGH' : score >= 25 ? 'MEDIUM' : 'LOW';
+
+  if (riskLevel === 'LOW') {
+    recommendations.push('Content is clean, natural, and low risk for heuristic spam filters.');
+  }
+
+  return {
+    score,
+    riskLevel,
+    flags,
+    recommendations
+  };
+}
+
 // High-performing local synthesis engine based on TaskNera HR Solutions & AI ATS Framework
 // Produces 85-140 words for initial emails and 50-85 words for follow-ups
 function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResult {
@@ -509,6 +551,9 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
   const cleanCompany = companyName.trim() || 'your company';
   const context = analyzeRecipientContext(recipientName, cleanCompany, payload.companyWebsite, reason);
 
+  // Dynamic seed ensuring every recipient and campaign gets distinct phrasing
+  const seed = `${cleanCompany}_${context.firstName || 'team'}_${followUpNumber}_${Math.random()}`;
+
   // Natural, varied greetings
   const greetings = context.firstName ? [
     `Hi ${context.firstName},`,
@@ -517,11 +562,11 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
   ] : [
     `Hi there,`,
     `Hello,`,
-    `Hi,`
+    `Hi ${cleanCompany} team,`
   ];
 
-  const greeting = greetings[Math.floor(Math.random() * greetings.length)];
-  const subjects = generateSubjectLineVariations(cleanCompany, intent, mailTopic);
+  const greeting = selectVariant(greetings, seed + '_greet');
+  const subjects = generateSubjectLineVariations(cleanCompany, intent, mailTopic, seed);
   const subject = subjects.primary;
   const alternativeSubjects = [subjects.direct, subjects.valueFocused, subjects.conversational];
 
@@ -567,7 +612,7 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
     bodyContent = [
       greeting,
       followUpOpenings[Math.floor(Math.random() * followUpOpenings.length)],
-      followUpValues[intent] || followUpValues.software_solutions,
+      followUpValues[intent as keyof typeof followUpValues] || followUpValues.software_solutions,
       followUpCTAs[Math.floor(Math.random() * followUpCTAs.length)]
     ].join('\n\n');
   } else if (followUpNumber === 2) {
@@ -583,7 +628,7 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
 
     bodyContent = [
       greeting,
-      insights[intent] || insights.software_solutions,
+      insights[intent as keyof typeof insights] || insights.software_solutions,
       `That's exactly what we help companies like ${cleanCompany} solve.`,
       `Would it be helpful to see how this works in practice?`
     ].join('\n\n');
@@ -624,82 +669,6 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
   return {
     subject,
     body: bodyContent,
-    emailType,
-    tone,
-    wordCount: quality.wordCount,
-    qualityPassed: quality.valid,
-    qualityNotes: quality.notes,
-    alternativeSubjects
-  };
-}
-    // STAGE 1 (Day 2-3): Respectful Reminder & Problem Re-frame (50-75 words)
-    emailType = 'follow_up_1_problem_reframe';
-
-    const hook = `Following up on my note from earlier this week regarding ${cleanCompany}'s workflow.`;
-    let contextNote = '';
-
-    if (intent === 'ats_crm' || intent === 'pain_screening_bottleneck' || intent === 'time_saving') {
-      contextNote = `One pattern we frequently see in recruitment teams is that over 60% of screening time is spent reviewing applicants who do not meet mandatory criteria. If your recruiters could cut that initial evaluation pass down to seconds, would that meaningfully help your quarterly hiring goals?`;
-    } else if (intent === 'vcs') {
-      contextNote = `Maintaining responsive customer support during peak enquiry surges or outside standard hours can quickly strain internal bandwidth. Having dedicated, SLA-aligned support across voice, live chat, WhatsApp, and email ensures customer satisfaction without service disruptions.`;
-    } else if (intent === 'recruitment_services') {
-      contextNote = `Balancing fast hiring turnaround with rigorous candidate qualification remains a major challenge. Having dedicated sourcing and shortlisting support across permanent or contract roles keeps talent pipelines active without overburdening your internal team.`;
-    } else if (intent === 'hrms_crm' || intent === 'software_solutions') {
-      contextNote = `Managing HR records in one tool and business relationships in another often leads to duplicated administrative effort and blind spots between teams.`;
-    } else {
-      contextNote = `Finding the right balance between operational speed and thorough execution remains a major priority for growing teams.`;
-    }
-
-    const cta = `Would you be open to a brief 5-minute conversation later this week to see if there's a practical fit?`;
-    bodyContent = [salutation, hook, contextNote, cta].join('\n\n');
-  } else if (followUpNumber === 2) {
-    // STAGE 2 (Day 4-6): Micro Workflow Insight & Proof (55-80 words)
-    emailType = 'follow_up_2_micro_proof';
-
-    const leadIn = `I wanted to share a brief practical example that may be relevant to ${cleanCompany}:`;
-    let insight = '';
-
-    if (intent === 'ats_crm' || intent === 'pain_screening_bottleneck' || intent === 'time_saving') {
-      insight = `A recruitment team recently deployed HireIQ on several active requisitions. By automatically parsing resumes against role criteria and ranking top candidates upfront, they cut their candidate shortlisting review time from two days to under three hours.`;
-    } else if (intent === 'vcs') {
-      insight = `A business partnering with our Virtual Customer Support team transitioned their live chat, WhatsApp, and email support to our dedicated pods, achieving 98% first-response SLA adherence while reducing customer escalation rates by 35%.`;
-    } else if (intent === 'recruitment_services') {
-      insight = `An organization partnering with our talent acquisition team filled four critical specialized positions within two weeks by leveraging our pre-screened candidate pipeline, reducing their time-to-hire by nearly 50%.`;
-    } else if (intent === 'hrms_crm' || intent === 'software_solutions') {
-      insight = `A growing company centralized their employee lifecycle records and operational workflows onto our platform, eliminating manual reconciliation and saving their operations team over six hours each week.`;
-    } else {
-      insight = `Teams using our solutions typically reduce their manual administrative coordination by over 50% within the first month of implementation.`;
-    }
-
-    const cta = `Would it be useful if I sent over a short 1-page summary of how they structured it?`;
-    bodyContent = [salutation, leadIn, insight, cta].join('\n\n');
-  } else if (followUpNumber === 3) {
-    // STAGE 3 (Day 7-9): Simple Binary Qualifying Question (40-60 words)
-    emailType = 'follow_up_3_qualifying_question';
-
-    const question = `Quick question regarding ${cleanCompany}: is optimizing your current ${
-      intent === 'ats_crm' ? 'resume screening and candidate shortlisting' :
-      intent === 'vcs' ? 'customer support operations and SLA delivery' :
-      intent === 'recruitment_services' ? 'recruitment pipeline and hiring turnaround' :
-      intent === 'hrms_crm' ? 'employee lifecycle and CRM workflows' : 'HR technology and business workflows'
-    } an active priority for your team this quarter, or is your current setup already meeting all your needs? Either way, I appreciate your time and perspective.`;
-
-    bodyContent = [salutation, question].join('\n\n');
-  } else {
-    // STAGE 4 (Day 10+): Permission-Based Breakup / Closing Loop (35-50 words)
-    emailType = 'follow_up_4_breakup';
-
-    const breakup = `I don't want to clutter your inbox if the timing isn't right for ${cleanCompany}. I'll assume your team is currently focused elsewhere and step back for now.\n\nIf this ever becomes a priority down the road, please feel free to reach back out anytime. Wishing you and ${cleanCompany} continued success.`;
-
-    bodyContent = [salutation, breakup].join('\n\n');
-  }
-
-  const cleanBody = sanitizeEmailBody(bodyContent);
-  const quality = validateEmailQuality(subject, cleanBody, cleanCompany, reason, previousEmails, followUpNumber);
-
-  return {
-    subject,
-    body: cleanBody,
     emailType,
     tone,
     wordCount: quality.wordCount,
@@ -766,30 +735,31 @@ function generateContextualOpening(context: any, companyName: string, intent: Ou
   
   const openings = {
     vcs: [
+      `I came across ${companyName} while looking at VCS hiring and wanted to ask you a quick question: are you planning to build the support team in-house, or would an external team assist with the workload?`,
       hasPersonalization ? 
-        `Hi ${firstName}, I came across your work at ${companyName} and thought you might find this relevant.` :
-        `Hi, I wanted to reach out about something that might be relevant for ${companyName}.`,
+        `I came across your work at ${companyName} and thought you might find this relevant.` :
+        `I wanted to reach out about something that might be relevant for ${companyName}.`,
       hasPersonalization ? 
-        `Hi ${firstName}, I noticed ${companyName}'s growth and wanted to share something that could be helpful.` :
-        `Hi there, I've been following ${companyName} and wanted to share something that caught my attention.`
+        `I noticed ${companyName}'s growth and wanted to share something that could be helpful.` :
+        `I've been following ${companyName} and wanted to share something that caught my attention.`
     ],
     recruitment_services: [
       designation ? 
-        `Hi ${firstName}, saw your role as ${designation} at ${companyName} and thought this might resonate.` :
-        `Hi, I wanted to reach out regarding something that might be relevant for your hiring needs.`,
+        `Saw your role as ${designation} at ${companyName} and thought this might resonate.` :
+        `I wanted to reach out regarding something that might be relevant for your hiring needs.`,
       hasPersonalization ? 
-        `Hi ${firstName}, I've been thinking about the hiring challenges facing companies like ${companyName}.` :
-        `Hi there, I wanted to discuss something that might help with your talent acquisition efforts.`
+        `I've been thinking about the hiring challenges facing companies like ${companyName}.` :
+        `I wanted to discuss something that might help with your talent acquisition efforts.`
     ],
     software_solutions: [
-      `Hi ${firstName || 'there'}, I wanted to share something that might streamline your operations at ${companyName}.`,
+      `I wanted to share something that might streamline your operations at ${companyName}.`,
       hasPersonalization ? 
-        `Hi ${firstName}, I noticed how ${companyName} is growing and thought you might find this interesting.` :
-        `Hi, I came across ${companyName} and wanted to share something that could be valuable.`
+        `I noticed how ${companyName} is growing and thought you might find this interesting.` :
+        `I came across ${companyName} and wanted to share something that could be valuable.`
     ]
   };
 
-  const categoryOpenings = openings[intent] || openings.software_solutions;
+  const categoryOpenings = openings[intent as keyof typeof openings] || openings.software_solutions;
   return categoryOpenings[Math.floor(Math.random() * categoryOpenings.length)];
 }
 
@@ -798,7 +768,7 @@ function generateNaturalValueProp(intent: OutreachIntent, context: any, companyN
   const { industry, rolePains } = context;
   
   const valueProp = {
-    vcs: `We handle customer support across phone, chat, email, and WhatsApp - essentially becoming an extension of your team. Our people follow your processes and maintain your service standards while you focus on growing the business.`,
+    vcs: `At TaskNera, we help businesses handle day-to-day customer support, including calls, chats, emails, and follow-ups through dedicated human pods. We essentially become an extension of your team, following your processes and maintaining your service standards while you focus on growing the business.`,
     
     recruitment_services: industry === 'technology' ? 
       `We handle the entire recruitment process for tech companies - from sourcing developers to screening and coordinating interviews. It's like having a dedicated hiring team without the overhead.` :
@@ -811,12 +781,13 @@ function generateNaturalValueProp(intent: OutreachIntent, context: any, companyN
     hrms_crm: `Our HRMS handles everything from employee records to payroll, and connects with your customer management. It's designed for businesses that want their people operations and client work to flow together seamlessly.`
   };
 
-  return valueProp[intent] || valueProp.software_solutions;
+  return valueProp[intent as keyof typeof valueProp] || valueProp.software_solutions;
 }
 
 // Natural, conversational CTAs
 function generateNaturalCTA(intent: OutreachIntent, companyName: string, context: any) {
   const ctas = [
+    `If you're already covered, no worries at all. I thought I'd ask in case extra support capacity is useful right now.`,
     `Worth a quick chat to see if this makes sense for ${companyName}?`,
     `Would you be open to a brief conversation about how this could work for your team?`,
     `Interested in seeing how this might fit with what you're building at ${companyName}?`,

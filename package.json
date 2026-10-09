@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "security:scan": "node scripts/scan-secrets.mjs",
-    "test:security": "node tests/security-email.test.mjs"
+    "test:security": "node tests/security-email.test.mjs",
+    "test:deliverability": "npx tsx tests/deliverability.test.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.53.0",

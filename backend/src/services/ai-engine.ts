@@ -212,50 +212,103 @@ export function parseRecipientDetails(recipientName?: string): { firstName: stri
   };
 }
 
-// Generates 3 professional alternative subject lines (Direct, Value-Focused, Conversational)
+// Helper to deterministically or randomly pick variations to prevent fingerprinting
+export function selectVariant(items: string[], seedKey: string = ''): string {
+  if (!items || items.length === 0) return '';
+  if (!seedKey) {
+    return items[Math.floor(Math.random() * items.length)];
+  }
+  let hash = 0;
+  for (let i = 0; i < seedKey.length; i++) {
+    hash = (hash << 5) - hash + seedKey.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % items.length;
+  return items[index];
+}
+
+// Generates professional alternative subject lines (Direct, Value-Focused, Conversational)
 export function generateSubjectLineVariations(
   company: string,
   intent: OutreachIntent,
-  topic?: string
+  topic?: string,
+  seedKey?: string
 ): { primary: string; direct: string; valueFocused: string; conversational: string } {
   const cleanComp = company.trim() || 'your team';
+  const seed = seedKey || `${cleanComp}_${intent}`;
 
   switch (intent) {
-    case 'vcs':
+    case 'vcs': {
+      const primaries = [
+        `virtual customer support pods for ${cleanComp}`,
+        `dedicated multi-channel support for ${cleanComp}`,
+        `customer inquiry coverage & SLA delivery for ${cleanComp}`,
+        `omnichannel customer support operations for ${cleanComp}`
+      ];
       return {
-        primary: `virtual customer support coverage for ${cleanComp}`,
+        primary: selectVariant(primaries, seed),
         direct: `Dedicated customer support operations for ${cleanComp}`,
         valueFocused: `SLA-aligned support across chat, voice & email for ${cleanComp}`,
         conversational: `Handling customer enquiries & support at ${cleanComp}`
       };
-    case 'recruitment_services':
+    }
+    case 'recruitment_services': {
+      const primaries = [
+        `streamlining talent acquisition at ${cleanComp}`,
+        `recruitment pipeline support for ${cleanComp}`,
+        `accelerating hiring turnaround for ${cleanComp}`,
+        `candidate sourcing & shortlisting support for ${cleanComp}`
+      ];
       return {
-        primary: `streamlining talent acquisition at ${cleanComp}`,
+        primary: selectVariant(primaries, seed),
         direct: `End-to-end recruitment & candidate shortlisting for ${cleanComp}`,
         valueFocused: `Accelerating quality hiring pipelines for ${cleanComp}`,
         conversational: `Quick question about ${cleanComp}'s hiring pipeline`
       };
-    case 'software_solutions':
+    }
+    case 'software_solutions': {
+      const primaries = [
+        `streamlining business workflows at ${cleanComp}`,
+        `operational visibility & HR technology for ${cleanComp}`,
+        `connecting employee workflows at ${cleanComp}`,
+        `workflow automation & workforce operations for ${cleanComp}`,
+        `digital HR & operational visibility at ${cleanComp}`
+      ];
       return {
-        primary: `digital HR & workflow automation for ${cleanComp}`,
+        primary: selectVariant(primaries, seed),
         direct: `HR technology & operations dashboards for ${cleanComp}`,
         valueFocused: `Reducing administrative HR effort at ${cleanComp}`,
         conversational: `HR technology & workflow visibility at ${cleanComp}`
       };
-    case 'ats_crm':
+    }
+    case 'ats_crm': {
+      const primaries = [
+        `HireIQ: AI recruitment intelligence for ${cleanComp}`,
+        `accelerating candidate matching at ${cleanComp}`,
+        `resume screening & candidate evaluation for ${cleanComp}`,
+        `screening turnaround & candidate matching for ${cleanComp}`
+      ];
       return {
-        primary: `HireIQ: AI recruitment intelligence for ${cleanComp}`,
+        primary: selectVariant(primaries, seed),
         direct: `Resume parsing & candidate matching for ${cleanComp}`,
         valueFocused: `Accelerating candidate shortlisting decisions at ${cleanComp}`,
         conversational: `Quick question about ${cleanComp}'s candidate screening workflow`
       };
-    case 'hrms_crm':
+    }
+    case 'hrms_crm': {
+      const primaries = [
+        `connected HRMS & workforce operations for ${cleanComp}`,
+        `centralizing employee management at ${cleanComp}`,
+        `unifying HR records and CRM workflows for ${cleanComp}`,
+        `workforce visibility & employee operations at ${cleanComp}`
+      ];
       return {
-        primary: `connected HRMS & workforce operations for ${cleanComp}`,
+        primary: selectVariant(primaries, seed),
         direct: `Employee lifecycle & CRM workflows at ${cleanComp}`,
         valueFocused: `Centralizing HR management & operations at ${cleanComp}`,
         conversational: `Managing employee workflows and CRM at ${cleanComp}`
       };
+    }
     case 'pain_screening_bottleneck':
       return {
         primary: `${cleanComp} shortlist turnaround`,
@@ -285,13 +338,19 @@ export function generateSubjectLineVariations(
         conversational: `Quick question for ${cleanComp}`
       };
     case 'time_saving':
-    default:
+    default: {
+      const primaries = [
+        `saving recruiter hours on CV screening at ${cleanComp}`,
+        `candidate screening turnaround for ${cleanComp}`,
+        `shortening resume review time at ${cleanComp}`
+      ];
       return {
-        primary: `saving recruiter hours on cv screening at ${cleanComp}`,
+        primary: selectVariant(primaries, seed),
         direct: `Candidate screening turnaround for ${cleanComp}`,
         valueFocused: `Saving 8-10 hours weekly on resume review at ${cleanComp}`,
         conversational: `Quick note regarding ${cleanComp}'s candidate review process`
       };
+    }
   }
 }
 
@@ -424,6 +483,90 @@ function sanitizeEmailBody(raw: string): string {
   return cleaned;
 }
 
+export interface SpamRiskAssessment {
+  score: number; // 0 - 100 (0 = cleanest, 100 = critical spam danger)
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  flags: string[];
+  recommendations: string[];
+}
+
+/**
+ * Evaluates cold outreach content against modern mailbox spam heuristics
+ */
+export function analyzeSpamRisk(subject: string, body: string): SpamRiskAssessment {
+  const flags: string[] = [];
+  const recommendations: string[] = [];
+  let score = 0;
+
+  const lowerSub = (subject || '').toLowerCase();
+  const lowerBody = (body || '').toLowerCase();
+
+  // 1. High risk spam words
+  const highRiskWords = [
+    '100% free', 'guaranteed', 'risk-free', 'urgent', 'act now', 'apply now',
+    'earn money', 'make money', 'fast cash', 'no risk', 'unlimited', 'winner',
+    'credit card', 'congratulations', 'no catch', 'cancel anytime', 'call now',
+    'click here', 'buy now'
+  ];
+
+  for (const word of highRiskWords) {
+    if (lowerBody.includes(word) || lowerSub.includes(word)) {
+      score += 25;
+      flags.push(`Spam trigger phrase detected: "${word}"`);
+    }
+  }
+
+  // 2. Generic cold outreach clichés
+  const mediumRisk = [
+    'just checking in', 'touching base', 'bumping this', 'synergy', 'game-changer',
+    'special promotion', 'limited time offer'
+  ];
+  for (const word of mediumRisk) {
+    if (lowerBody.includes(word) || lowerSub.includes(word)) {
+      score += 15;
+      flags.push(`Generic cliché detected: "${word}"`);
+    }
+  }
+
+  // 3. Punctuation & all-caps checks
+  const exclamations = (body.match(/!/g) || []).length + (subject.match(/!/g) || []).length;
+  if (exclamations > 2) {
+    score += 20;
+    flags.push(`Multiple exclamation marks detected (${exclamations})`);
+    recommendations.push('Remove exclamation marks from professional B2B outreach.');
+  }
+
+  if (subject && subject === subject.toUpperCase() && subject.length > 8) {
+    score += 35;
+    flags.push('All-caps subject line detected.');
+    recommendations.push('Write subject lines in standard sentence case.');
+  }
+
+  // 4. Repetitive template fingerprinting check
+  if (
+    lowerBody.includes('disconnected tools and manual administration frequently create bottlenecks') &&
+    lowerSub.includes('digital hr & workflow automation')
+  ) {
+    score += 30;
+    flags.push('Template matches previously flagged repetitive copy (detected by Gmail heuristic filter).');
+    recommendations.push('Use dynamic variations and conversational openers to avoid identical hash matching.');
+  }
+
+  score = Math.min(100, Math.max(0, score));
+  const riskLevel = score >= 50 ? 'HIGH' : score >= 25 ? 'MEDIUM' : 'LOW';
+
+  if (riskLevel === 'LOW') {
+    recommendations.push('Content is clean, natural, and low risk for heuristic spam filters.');
+  }
+
+  return {
+    score,
+    riskLevel,
+    flags,
+    recommendations
+  };
+}
+
 // High-performing local synthesis engine based on TaskNera HR Solutions & AI ATS Framework
 // Produces 85-140 words for initial emails and 50-85 words for follow-ups
 function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResult {
@@ -442,10 +585,13 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
   const cleanCompany = companyName.trim() || 'your company';
   const { firstName, designation } = parseRecipientDetails(recipientName);
 
+  // Dynamic seed ensuring every recipient and campaign gets distinct phrasing
+  const seed = `${cleanCompany}_${firstName || 'team'}_${followUpNumber}_${Math.random()}`;
+
   // Natural greeting
   const salutation = firstName ? `Hi ${firstName},` : `Hi ${cleanCompany} team,`;
 
-  const subjects = generateSubjectLineVariations(cleanCompany, intent, mailTopic);
+  const subjects = generateSubjectLineVariations(cleanCompany, intent, mailTopic, seed);
   const subject = subjects.primary;
   const alternativeSubjects = [subjects.direct, subjects.valueFocused, subjects.conversational];
 
@@ -460,41 +606,119 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
     let cta = '';
 
     switch (intent) {
-      case 'vcs':
-        opening = designation
-          ? `I noticed your role leading ${designation} at ${cleanCompany}. Delivering consistent, responsive customer support across multiple channels often places substantial pressure on internal teams.`
-          : `Reaching out regarding how ${cleanCompany} manages inbound customer inquiries and support coverage across channels. Maintaining high service quality while handling fluctuating volume can be an operational challenge.`;
-        valuePara = `Through TaskNera's Virtual Customer Support (VCS), we provide dedicated, human-led support teams across voice, live chat, email, WhatsApp, and social media. Our teams handle enquiries, issue resolution, and follow-ups backed by structured workflows, continuous quality monitoring, and strict SLA-aligned delivery.`;
-        cta = `Would you be open to a brief 10-minute introductory conversation this week to explore if our support pods align with ${cleanCompany}'s customer service goals?`;
+      case 'vcs': {
+        const openings = [
+          `I came across ${cleanCompany} while looking at VCS hiring and wanted to ask you a quick question: are you planning to build the support team in-house, or would an external team assist with the workload?`,
+          designation
+            ? `I noticed your role leading ${designation} at ${cleanCompany}. Delivering consistent, responsive customer support across channels often places substantial pressure on internal teams.`
+            : `Reaching out regarding how ${cleanCompany} manages inbound customer inquiries and support coverage across channels. Maintaining high service quality while handling fluctuating volume can be an operational challenge.`,
+          `Reaching out regarding ${cleanCompany}'s customer engagement operations. Providing 24/7 responsiveness across live chat, voice, and email without overworking internal teams is a common challenge for scaling organizations.`,
+          `Curious how your team at ${cleanCompany} balances customer inquiry volume with fast response SLAs. Scaling internal support pods can quickly create bandwidth constraints.`
+        ];
+        const values = [
+          `At TaskNera, we help businesses handle day-to-day customer support, including calls, chats, emails, and follow-ups through dedicated human pods.`,
+          `Through TaskNera's Virtual Customer Support (VCS), we provide dedicated, human-led support teams across voice, live chat, email, WhatsApp, and social media. Our teams handle enquiries, issue resolution, and follow-ups backed by structured workflows, continuous quality monitoring, and strict SLA-aligned delivery.`,
+          `TaskNera provides managed customer support pods operating across chat, email, voice, and WhatsApp. Our teams integrate directly into your existing support tools, handling inbound inquiries and tier-1 resolutions with strict SLA compliance.`,
+          `We partner with growing businesses to provide dedicated, professionally trained support pods. From managing surge volume to providing after-hours coverage, our teams ensure every customer inquiry receives prompt, high-touch resolution.`
+        ];
+        const ctas = [
+          `If you're already covered, no worries at all. I thought I'd ask in case extra support capacity is useful for ${cleanCompany} right now.`,
+          `Would you be open to a brief 5-minute introductory chat this week to explore if extra support capacity could help ${cleanCompany}?`,
+          `Would you be open to a quick chat to see how our dedicated support pods compare with your current setup?`,
+          `Would it make sense to connect for a few minutes this week to share how we help teams streamline their customer support operations?`
+        ];
+        opening = selectVariant(openings, seed + '_op');
+        valuePara = selectVariant(values, seed + '_val');
+        cta = selectVariant(ctas, seed + '_cta');
         break;
+      }
 
-      case 'recruitment_services':
-        opening = designation
-          ? `I noticed your work as ${designation} at ${cleanCompany}. Keeping up with hiring demands across specialized roles while maintaining thorough candidate screening requires significant team bandwidth.`
-          : `Reaching out regarding ${cleanCompany}'s hiring initiatives. Sourcing and screening qualified talent across active requisitions often pulls hiring managers away from strategic priorities.`;
-        valuePara = `TaskNera supports end-to-end recruitment across permanent, contract, executive, IT and non-IT, and high-volume hiring. From candidate sourcing and screening to candidate shortlisting and interview coordination, we help build qualified talent pipelines and streamline recruitment operations.`;
-        cta = `Would you be open to a short 10-minute conversation to explore how we could support ${cleanCompany}'s current talent requirements?`;
+      case 'recruitment_services': {
+        const openings = [
+          designation
+            ? `I noticed your work as ${designation} at ${cleanCompany}. Keeping up with hiring demands across specialized roles while maintaining thorough candidate screening requires significant team bandwidth.`
+            : `Reaching out regarding ${cleanCompany}'s hiring initiatives. Sourcing and screening qualified talent across active requisitions often pulls hiring managers away from strategic priorities.`,
+          `Reaching out regarding ${cleanCompany}'s recruitment operations. Finding pre-qualified talent across competitive positions while keeping time-to-hire low is a key priority for expanding teams.`,
+          `Curious how your team at ${cleanCompany} manages candidate pipelines across upcoming technical and operational requisitions.`
+        ];
+        const values = [
+          `TaskNera supports end-to-end recruitment across permanent, contract, executive, IT and non-IT, and high-volume hiring. From candidate sourcing and screening to candidate shortlisting and interview coordination, we help build qualified talent pipelines and streamline recruitment operations.`,
+          `Through our specialized recruitment practice, we deliver pre-screened shortlists across permanent and contract roles. Our consultants handle sourcing, technical screening, and evaluation so your hiring leaders only spend time interviewing top matches.`,
+          `We support organizations by building tailored candidate shortlists within days, accelerating placement velocity while ensuring strict qualification alignment.`
+        ];
+        const ctas = [
+          `Would you be open to a short 10-minute conversation to explore how we could support ${cleanCompany}'s current talent requirements?`,
+          `Would you be open to a brief call this week to compare notes on your current hiring priorities?`,
+          `Would it be helpful to see a sample talent pipeline for the roles ${cleanCompany} is currently looking to fill?`
+        ];
+        opening = selectVariant(openings, seed + '_op');
+        valuePara = selectVariant(values, seed + '_val');
+        cta = selectVariant(ctas, seed + '_cta');
         break;
+      }
 
-      case 'software_solutions':
-        opening = `I am reaching out to see how ${cleanCompany} currently manages operational visibility across people management and business workflows. Disconnected tools and manual administration frequently create bottlenecks.`;
-        valuePara = `TaskNera delivers HR technology and digital solutions including recruitment intelligence, HRMS platforms, employee self-service portals, workforce dashboards, and workflow automation. Our integrated digital ecosystem connects recruitment pipelines, employee management, and client relationships to improve visibility and reduce repetitive administrative effort.`;
-        cta = `Would it be helpful if I shared a brief 2-minute overview showing how we streamline these operations for growing businesses?`;
+      case 'software_solutions': {
+        const openings = [
+          `I noticed ${cleanCompany}'s growth and wanted to reach out regarding how your team manages business workflows and workforce operations. As teams scale, disjointed software tools frequently create administrative friction.`,
+          `Reaching out to see how ${cleanCompany} currently manages operational visibility across people management and business workflows. Connecting separate systems often frees up substantial internal bandwidth.`,
+          `Curious how your team at ${cleanCompany} handles workflow automation and employee administration. Many growing companies find that manual spreadsheets and disparate tools consume significant operational hours.`,
+          `Wanted to check in regarding ${cleanCompany}'s approach to workforce operations and digital HR systems. Centralizing day-to-day administrative tasks can free up substantial bandwidth for core priorities.`
+        ];
+        const values = [
+          `TaskNera delivers HR technology and digital solutions including recruitment intelligence, HRMS platforms, employee self-service portals, workforce dashboards, and workflow automation. Our integrated digital ecosystem connects recruitment pipelines, employee management, and client relationships to improve visibility and reduce repetitive administrative effort.`,
+          `Through TaskNera's digital solutions, we help organizations connect recruitment pipelines, employee lifecycle records, and client workflows into a cohesive ecosystem that reduces repetitive administrative tasks and enhances team visibility.`,
+          `We support growing organizations with modular HR technology and business workflow systems—centralizing employee records, onboarding, leave management, and reporting to simplify day-to-day operations.`
+        ];
+        const ctas = [
+          `Would it be helpful if I shared a brief 2-minute overview showing how we streamline these operations for growing businesses?`,
+          `Would you be open to a quick 10-minute introductory conversation this week to see if this aligns with ${cleanCompany}'s operational goals?`,
+          `Would it be helpful if I shared a brief 90-second summary of how we help companies connect their people and workflow operations?`
+        ];
+        opening = selectVariant(openings, seed + '_op');
+        valuePara = selectVariant(values, seed + '_val');
+        cta = selectVariant(ctas, seed + '_cta');
         break;
+      }
 
-      case 'ats_crm':
-        opening = designation
-          ? `I noticed your recruitment focus at ${cleanCompany}. When managing competitive requisitions, recruitment teams frequently spend hours sifting through resumes to evaluate qualifications against role criteria.`
-          : `When managing active requisitions at ${cleanCompany}, manual resume screening often becomes one of the slowest stages before candidate interviews.`;
-        valuePara = `HireIQ by TaskNera is an AI-powered recruitment intelligence platform that supports job-description analysis, resume parsing, candidate-to-role matching, weighted scoring, and structured candidate evaluation. Combined with our planned CRM integration, it connects client accounts, hiring requirements, and communication history directly with recruitment activities for end-to-end visibility.`;
-        cta = `Would you be open to seeing a 90-second walkthrough of how HireIQ evaluates candidates and accelerates shortlisting?`;
+      case 'ats_crm': {
+        const openings = [
+          designation
+            ? `I noticed your recruitment focus at ${cleanCompany}. When managing competitive requisitions, recruitment teams frequently spend hours sifting through resumes to evaluate qualifications against role criteria.`
+            : `When managing active requisitions at ${cleanCompany}, manual resume screening often becomes one of the slowest stages before candidate interviews.`,
+          `Curious how your recruiting desk at ${cleanCompany} currently handles high-volume resume screening on specialized job descriptions.`
+        ];
+        const values = [
+          `HireIQ by TaskNera is an AI-powered recruitment intelligence platform that supports job-description analysis, resume parsing, candidate-to-role matching, weighted scoring, and structured candidate evaluation. Combined with our planned CRM integration, it connects client accounts, hiring requirements, and communication history directly with recruitment activities for end-to-end visibility.`,
+          `HireIQ automatically screens and ranks incoming CVs against your mandatory requirements in seconds, providing objective match scores and cutting shortlist preparation time by up to 70%.`
+        ];
+        const ctas = [
+          `Would you be open to seeing a 90-second walkthrough of how HireIQ evaluates candidates and accelerates shortlisting?`,
+          `Would you be open to a quick 10-minute demonstration on a live requisition?`
+        ];
+        opening = selectVariant(openings, seed + '_op');
+        valuePara = selectVariant(values, seed + '_val');
+        cta = selectVariant(ctas, seed + '_cta');
         break;
+      }
 
-      case 'hrms_crm':
-        opening = `Tracking ${cleanCompany}'s growth—managing employee records, onboarding, leave, and payroll alongside client relationships often requires toggling between disconnected software tools.`;
-        valuePara = `TaskNera's HRMS centralizes essential employee lifecycle workflows—including employee records, onboarding and offboarding, attendance, leave, payroll, performance, and training. Connected with our CRM integration, customer accounts and service requirements link directly with workforce operations to create a cohesive business ecosystem.`;
-        cta = `Would you be open to a quick 10-minute walkthrough to see how an integrated setup could simplify ${cleanCompany}'s daily operations?`;
+      case 'hrms_crm': {
+        const openings = [
+          `Tracking ${cleanCompany}'s growth—managing employee records, onboarding, leave, and payroll alongside client relationships often requires toggling between disconnected software tools.`,
+          `Reaching out regarding how ${cleanCompany} manages internal people operations. Consolidating employee lifecycle data with daily business workflows helps eliminate operational blind spots.`
+        ];
+        const values = [
+          `TaskNera's HRMS centralizes essential employee lifecycle workflows—including employee records, onboarding and offboarding, attendance, leave, payroll, performance, and training. Connected with our CRM integration, customer accounts and service requirements link directly with workforce operations to create a cohesive business ecosystem.`,
+          `Our HRMS platform unifies employee records, onboarding, payroll processing, and attendance with CRM workflows, giving your leadership complete visibility in a single interface.`
+        ];
+        const ctas = [
+          `Would you be open to a quick 10-minute walkthrough to see how an integrated setup could simplify ${cleanCompany}'s daily operations?`,
+          `Would it make sense to connect for 5 minutes this week to explore if this could streamline your team's administrative workflow?`
+        ];
+        opening = selectVariant(openings, seed + '_op');
+        valuePara = selectVariant(values, seed + '_val');
+        cta = selectVariant(ctas, seed + '_cta');
         break;
+      }
 
       case 'pain_screening_bottleneck':
         opening = `Managing active hiring requisitions at ${cleanCompany} often leads to consultants spending hours filtering through mismatched resumes just to identify a few viable candidates.`;
@@ -530,7 +754,12 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
     // STAGE 1 (Day 2-3): Respectful Reminder & Problem Re-frame (50-75 words)
     emailType = 'follow_up_1_problem_reframe';
 
-    const hook = `Following up on my note from earlier this week regarding ${cleanCompany}'s workflow.`;
+    const hookVariations = [
+      `Following up on my note from earlier this week regarding ${cleanCompany}'s workflow.`,
+      `Circling back briefly on my previous email regarding ${cleanCompany}'s operations.`,
+      `Quick follow-up on my note from a couple of days ago.`
+    ];
+    const hook = selectVariant(hookVariations, seed + '_fu1hook');
     let contextNote = '';
 
     if (intent === 'ats_crm' || intent === 'pain_screening_bottleneck' || intent === 'time_saving') {

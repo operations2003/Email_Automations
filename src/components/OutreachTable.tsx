@@ -57,7 +57,9 @@ export const ALL_STATUSES: OutreachStatus[] = [
   'Not Interested',
   'Closed',
   'Completed - No Response',
-  'Follow-Up Paused'
+  'Follow-Up Paused',
+  'Bounced',
+  'Unsubscribed'
 ];
 
 export function OutreachTable({
@@ -141,6 +143,10 @@ export function OutreachTable({
         return 'bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold';
       case 'Follow-Up Paused':
         return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Bounced':
+        return 'bg-rose-50 text-rose-700 border-rose-200 font-semibold';
+      case 'Unsubscribed':
+        return 'bg-purple-50 text-purple-700 border-purple-200 font-semibold';
       case 'Completed - No Response':
       case 'Closed':
       case 'Not Interested':
@@ -151,6 +157,12 @@ export function OutreachTable({
   };
 
   const getScheduleSummary = (c: OutreachCampaign) => {
+    if (c.replyStatus === 'Bounced' || c.status === 'Bounced') {
+      return <span className="text-rose-600 text-xs font-medium">Bounced (Suppressed)</span>;
+    }
+    if (c.replyStatus === 'Unsubscribed' || c.status === 'Unsubscribed') {
+      return <span className="text-purple-600 text-xs font-medium">Unsubscribed</span>;
+    }
     if (c.replyStatus === 'Replied') {
       return <span className="text-emerald-600 text-xs font-medium">Replied (Sequence closed)</span>;
     }

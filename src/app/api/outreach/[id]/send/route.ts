@@ -4,6 +4,7 @@ import { getSettings } from '@/lib/settings';
 import { sendOutreachEmail } from '@/lib/email-service';
 import { generateOutreachEmail } from '@/lib/ai-engine';
 import { getUserFromRequest } from '@/lib/auth';
+import { isSuppressed } from '@/lib/suppression';
 
 export async function POST(
   req: NextRequest,
@@ -27,6 +28,16 @@ export async function POST(
     if (!campaign.email || !campaign.email.includes('@')) {
       return NextResponse.json(
         { success: false, error: 'Invalid or missing recipient email address.' },
+        { status: 400 }
+      );
+    }
+
+    if (await isSuppressed(campaign.email)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Recipient ${campaign.email} is on the suppression list (unsubscribed or bounced). Email sending aborted to protect domain reputation.`
+        },
         { status: 400 }
       );
     }

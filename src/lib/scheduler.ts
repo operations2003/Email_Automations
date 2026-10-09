@@ -2,12 +2,14 @@ import { readCampaigns, saveCampaign, addHistoryEvent } from './db';
 import { getSettings } from './settings';
 import { generateOutreachEmail } from './ai-engine';
 import { sendOutreachEmail } from './email-service';
+import { isSuppressed } from './suppression';
 import { OutreachCampaign } from '@/types/outreach';
 
 export interface SchedulerExecutionReport {
   timestamp: string;
   checkedCount: number;
   processedCount: number;
+  suppressedSkippedCount: number;
   logs: Array<{
     campaignId: string;
     companyName: string;
@@ -23,17 +25,33 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
   const now = new Date();
   const logs: SchedulerExecutionReport['logs'] = [];
   let processedCount = 0;
+  let suppressedSkippedCount = 0;
 
   for (const campaign of campaigns) {
-    // 1. Critical Stop Check: If recipient replied or campaign is paused/closed
+    // 1. Critical Stop Check: If recipient replied, unsubscribed, bounced, or campaign is paused/closed
     if (
       campaign.replyStatus === 'Replied' ||
+      campaign.replyStatus === 'Bounced' ||
+      campaign.replyStatus === 'Unsubscribed' ||
       campaign.status === 'Follow-Up Paused' ||
       campaign.status === 'Closed' ||
       campaign.status === 'Completed - No Response' ||
       campaign.status === 'Draft' ||
-      campaign.status === 'Ready to Send'
+      campaign.status === 'Ready to Send' ||
+      campaign.status === 'Bounced' ||
+      campaign.status === 'Unsubscribed'
     ) {
+      continue;
+    }
+
+    // 2. Deliverability Protection: Check suppression list before any follow-up
+    if (await isSuppressed(campaign.email)) {
+      campaign.status = 'Unsubscribed';
+      campaign.replyStatus = 'Unsubscribed';
+      campaign.lastActivity = 'Suppressed recipient detected: Sequence permanently paused';
+      campaign.updatedAt = now.toISOString();
+      await saveCampaign(campaign);
+      suppressedSkippedCount++;
       continue;
     }
 
@@ -44,6 +62,12 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
     if (campaign.initialSentAt && !campaign.followUp1SentAt && campaign.followUp1ScheduledAt) {
       const scheduledTime = new Date(campaign.followUp1ScheduledAt);
       if (scheduledTime <= now) {
+        // Enforce natural sending throttle if this is not the first send in this run
+        if (processedCount > 0) {
+          const jitterMs = 1500 + Math.floor(Math.random() * 2000);
+          await new Promise(r => setTimeout(r, jitterMs));
+        }
+
         // Generate Follow-up 1 if not yet generated
         let subject = campaign.followUp1Subject;
         let body = campaign.followUp1Body;
@@ -82,8 +106,8 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
           settings
         );
 
-        const sentTimestamp = now.toISOString();
-        const nextScheduled = new Date(now.getTime() + intervalMs).toISOString();
+        const sentTimestamp = new Date().toISOString();
+        const nextScheduled = new Date(Date.now() + intervalMs).toISOString();
 
         campaign.followUp1Subject = subject;
         campaign.followUp1Body = body;
@@ -120,6 +144,11 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
     if (campaign.followUp1SentAt && !campaign.followUp2SentAt && campaign.followUp2ScheduledAt) {
       const scheduledTime = new Date(campaign.followUp2ScheduledAt);
       if (scheduledTime <= now) {
+        if (processedCount > 0) {
+          const jitterMs = 1500 + Math.floor(Math.random() * 2000);
+          await new Promise(r => setTimeout(r, jitterMs));
+        }
+
         let subject = campaign.followUp2Subject;
         let body = campaign.followUp2Body;
 
@@ -156,8 +185,8 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
           settings
         );
 
-        const sentTimestamp = now.toISOString();
-        const nextScheduled = new Date(now.getTime() + intervalMs).toISOString();
+        const sentTimestamp = new Date().toISOString();
+        const nextScheduled = new Date(Date.now() + intervalMs).toISOString();
 
         campaign.followUp2Subject = subject;
         campaign.followUp2Body = body;
@@ -194,6 +223,11 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
     if (campaign.followUp2SentAt && !campaign.followUp3SentAt && campaign.followUp3ScheduledAt) {
       const scheduledTime = new Date(campaign.followUp3ScheduledAt);
       if (scheduledTime <= now) {
+        if (processedCount > 0) {
+          const jitterMs = 1500 + Math.floor(Math.random() * 2000);
+          await new Promise(r => setTimeout(r, jitterMs));
+        }
+
         let subject = campaign.followUp3Subject;
         let body = campaign.followUp3Body;
 
@@ -230,7 +264,7 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
           settings
         );
 
-        const sentTimestamp = now.toISOString();
+        const sentTimestamp = new Date().toISOString();
 
         campaign.followUp3Subject = subject;
         campaign.followUp3Body = body;
@@ -267,6 +301,7 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
     timestamp: now.toISOString(),
     checkedCount: campaigns.length,
     processedCount,
+    suppressedSkippedCount,
     logs
   };
 }

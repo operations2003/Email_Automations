@@ -29,7 +29,16 @@ import {
   Users,
   UserCheck,
   ListPlus,
-  UploadCloud
+  UploadCloud,
+  ShieldCheck,
+  ShieldAlert,
+  Globe,
+  Activity,
+  Ban,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  Sliders
 } from 'lucide-react';
 
 interface SettingsViewProps {
@@ -60,6 +69,38 @@ export function SettingsView({ settings, onUpdateSettings, campaigns = [], onRef
   const [testEmailTo, setTestEmailTo] = useState('');
   const [testingEmail, setTestingEmail] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Deliverability, DNS & Reputation states
+  const [verifyingDns, setVerifyingDns] = useState(false);
+  const [dnsReport, setDnsReport] = useState<{
+    domain: string;
+    checkedAt: string;
+    overallScore: number;
+    overallStatus: 'EXCELLENT' | 'GOOD' | 'WARNING' | 'CRITICAL';
+    spf: any;
+    dkim: any;
+    dmarc: any;
+    mx: any;
+    deliverabilitySummary: string;
+  } | null>(null);
+
+  const [checkingReputation, setCheckingReputation] = useState(false);
+  const [reputationReport, setReputationReport] = useState<{
+    domain: string;
+    reputationStatus: 'CLEAN' | 'NEUTRAL' | 'FLAGGED';
+    blacklistsChecked: any[];
+    ipChecks: any[];
+    riskFactors: string[];
+    recommendations: string[];
+  } | null>(null);
+
+  const [suppressions, setSuppressions] = useState<any[]>([]);
+  const [loadingSuppressions, setLoadingSuppressions] = useState(false);
+  const [showSuppressionModal, setShowSuppressionModal] = useState(false);
+  const [manualSuppressEmail, setManualSuppressEmail] = useState('');
+  const [manualSuppressReason, setManualSuppressReason] = useState('unsubscribed');
+  const [addingSuppression, setAddingSuppression] = useState(false);
+  const [showDeliverabilityGuide, setShowDeliverabilityGuide] = useState(false);
 
   // Custom Services state
   const [showAddService, setShowAddService] = useState(false);
@@ -443,6 +484,88 @@ export function SettingsView({ settings, onUpdateSettings, campaigns = [], onRef
       });
     } finally {
       setTestingEmail(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSuppressions();
+  }, []);
+
+  const handleVerifyDns = async () => {
+    setVerifyingDns(true);
+    try {
+      const emailDomain = formData.senderEmail?.includes('@') ? formData.senderEmail.split('@')[1] : 'tasknera.com';
+      const res = await fetch(`/api/settings/verify-domain?domain=${encodeURIComponent(emailDomain)}&provider=${formData.provider}`);
+      const data = await res.json();
+      if (data.success && data.report) {
+        setDnsReport(data.report);
+      }
+    } catch (err) {
+      console.error('DNS verification failed:', err);
+    } finally {
+      setVerifyingDns(false);
+    }
+  };
+
+  const handleCheckReputation = async () => {
+    setCheckingReputation(true);
+    try {
+      const emailDomain = formData.senderEmail?.includes('@') ? formData.senderEmail.split('@')[1] : 'tasknera.com';
+      const res = await fetch(`/api/settings/check-reputation?domain=${encodeURIComponent(emailDomain)}&smtpHost=${formData.smtpHost || ''}`);
+      const data = await res.json();
+      if (data.success && data.report) {
+        setReputationReport(data.report);
+      }
+    } catch (err) {
+      console.error('Reputation check failed:', err);
+    } finally {
+      setCheckingReputation(false);
+    }
+  };
+
+  const loadSuppressions = async () => {
+    setLoadingSuppressions(true);
+    try {
+      const res = await fetch('/api/suppression');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.suppressions)) {
+        setSuppressions(data.suppressions);
+      }
+    } catch (err) {
+      console.error('Failed to load suppressions:', err);
+    } finally {
+      setLoadingSuppressions(false);
+    }
+  };
+
+  const handleAddSuppression = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualSuppressEmail || !manualSuppressEmail.includes('@')) return;
+    setAddingSuppression(true);
+    try {
+      const res = await fetch('/api/suppression', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: manualSuppressEmail, reason: manualSuppressReason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setManualSuppressEmail('');
+        await loadSuppressions();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAddingSuppression(false);
+    }
+  };
+
+  const handleRemoveSuppression = async (email: string) => {
+    try {
+      await fetch(`/api/suppression?email=${encodeURIComponent(email)}`, { method: 'DELETE' });
+      await loadSuppressions();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -1053,6 +1176,453 @@ Fintech Hub, partnerships@fintechhub.com, Rahul`}
             )}
           </div>
         </div>
+
+        {/* Deliverability, Authentication & Spam Prevention Hub */}
+        <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <h3 className="text-xs font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                Deliverability, Authentication &amp; Spam Prevention
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Verify SPF, DKIM &amp; DMARC authentication, audit sender reputation, and control sending cadence to guarantee inbox placement.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleVerifyDns}
+                disabled={verifyingDns}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-medium transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {verifyingDns ? <RefreshCw className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
+                <span>Verify Domain DNS</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleCheckReputation}
+                disabled={checkingReputation}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {checkingReputation ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3" />}
+                <span>Check Reputation</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  loadSuppressions();
+                  setShowSuppressionModal(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium transition-colors cursor-pointer"
+              >
+                <Ban className="h-3 w-3 text-rose-500" />
+                <span>Suppression List ({suppressions.length})</span>
+              </button>
+            </div>
+          </div>
+
+          {/* DNS Verification Results */}
+          {dnsReport && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-900">Domain Authentication:</span>
+                  <span className="text-xs font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    {dnsReport.domain}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                    dnsReport.overallStatus === 'EXCELLENT'
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                      : dnsReport.overallStatus === 'GOOD'
+                      ? 'bg-blue-50 text-blue-800 border-blue-300'
+                      : 'bg-amber-50 text-amber-800 border-amber-300'
+                  }`}>
+                    {dnsReport.overallScore}% &bull; {dnsReport.overallStatus}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                {dnsReport.deliverabilitySummary}
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                {/* SPF */}
+                <div className="rounded-lg bg-white p-3 border border-slate-200 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-800">SPF Record (Sender Policy Framework)</span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      dnsReport.spf.status === 'pass'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : dnsReport.spf.status === 'warning'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-rose-100 text-rose-800'
+                    }`}>
+                      {dnsReport.spf.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600">{dnsReport.spf.details}</p>
+                  {dnsReport.spf.rawRecord && (
+                    <code className="block text-[10px] font-mono text-slate-700 bg-slate-50 p-1 rounded overflow-x-auto">
+                      {dnsReport.spf.rawRecord}
+                    </code>
+                  )}
+                  {dnsReport.spf.recommendations?.length > 0 && (
+                    <div className="text-[10px] text-amber-700 space-y-0.5 pt-1">
+                      {dnsReport.spf.recommendations.map((rec: string, i: number) => (
+                        <p key={i}>&bull; {rec}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* DKIM */}
+                <div className="rounded-lg bg-white p-3 border border-slate-200 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-800">DKIM (DomainKeys Identified Mail)</span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      dnsReport.dkim.status === 'pass'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : dnsReport.dkim.status === 'warning'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-rose-100 text-rose-800'
+                    }`}>
+                      {dnsReport.dkim.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600">{dnsReport.dkim.details}</p>
+                  <div className="text-[10px] space-y-1 pt-1">
+                    {dnsReport.dkim.selectorsChecked?.map((sel: any, i: number) => (
+                      <div key={i} className="flex items-center justify-between bg-slate-50 px-2 py-0.5 rounded">
+                        <span className="font-mono text-slate-700">{sel.selector}._domainkey</span>
+                        <span className={sel.found ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
+                          {sel.found ? 'Verified' : 'Not configured'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* DMARC */}
+                <div className="rounded-lg bg-white p-3 border border-slate-200 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-800">DMARC Policy</span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      dnsReport.dmarc.status === 'pass'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : dnsReport.dmarc.status === 'warning'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-rose-100 text-rose-800'
+                    }`}>
+                      {dnsReport.dmarc.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600">{dnsReport.dmarc.details}</p>
+                  {dnsReport.dmarc.rawRecord && (
+                    <code className="block text-[10px] font-mono text-slate-700 bg-slate-50 p-1 rounded overflow-x-auto">
+                      {dnsReport.dmarc.rawRecord}
+                    </code>
+                  )}
+                  {dnsReport.dmarc.recommendations?.length > 0 && (
+                    <div className="text-[10px] text-slate-600 space-y-0.5 pt-1">
+                      {dnsReport.dmarc.recommendations.map((rec: string, i: number) => (
+                        <p key={i}>&bull; {rec}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* MX */}
+                <div className="rounded-lg bg-white p-3 border border-slate-200 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-800">MX Inbound &amp; Bounce Handling</span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      dnsReport.mx.status === 'pass' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                    }`}>
+                      {dnsReport.mx.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600">{dnsReport.mx.details}</p>
+                  {dnsReport.mx.servers && (
+                    <div className="text-[10px] font-mono text-slate-700 bg-slate-50 p-1 rounded max-h-16 overflow-y-auto">
+                      {dnsReport.mx.servers.slice(0, 3).map((srv: string, i: number) => (
+                        <div key={i}>{srv}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Reputation Results */}
+          {reputationReport && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-slate-900">Blacklist &amp; IP Reputation:</span>
+                  <span className="text-xs font-mono text-slate-700">{reputationReport.domain}</span>
+                </div>
+                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                  reputationReport.reputationStatus === 'CLEAN'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                    : 'bg-rose-50 text-rose-800 border-rose-300'
+                }`}>
+                  STATUS: {reputationReport.reputationStatus}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {reputationReport.blacklistsChecked.map((bl: any, i: number) => (
+                  <div key={i} className="bg-white p-2.5 rounded-lg border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-slate-800">{bl.listName}</div>
+                      <div className="text-[10px] text-slate-500">{bl.host}</div>
+                    </div>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      bl.listed ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
+                    }`}>
+                      {bl.listed ? 'LISTED' : 'CLEAN'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {reputationReport.recommendations?.length > 0 && (
+                <div className="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 space-y-1">
+                  <span className="font-semibold text-slate-800">Reputation Guidance:</span>
+                  {reputationReport.recommendations.map((r: string, i: number) => (
+                    <p key={i}>&bull; {r}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Sending Cadence & Controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Daily Sending Limit (Per Mailbox)
+              </label>
+              <input
+                type="number"
+                min={10}
+                max={500}
+                value={formData.dailySendingLimit || 50}
+                onChange={e => setFormData({ ...formData, dailySendingLimit: parseInt(e.target.value) || 50 })}
+                className="w-full rounded-lg bg-white border border-slate-200 py-2 px-3 text-xs text-slate-900 font-mono focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
+              />
+              <p className="text-[10px] text-slate-500 mt-1">
+                Recommended: 40-60/day per Google Workspace account to stay under algorithmic radar.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Minimum Dispatch Interval (Seconds)
+              </label>
+              <input
+                type="number"
+                min={15}
+                max={300}
+                value={formData.minIntervalSeconds || 45}
+                onChange={e => setFormData({ ...formData, minIntervalSeconds: parseInt(e.target.value) || 45 })}
+                className="w-full rounded-lg bg-white border border-slate-200 py-2 px-3 text-xs text-slate-900 font-mono focus:border-slate-800 focus:ring-1 focus:ring-slate-800 focus:outline-none"
+              />
+              <p className="text-[10px] text-slate-500 mt-1">
+                Adds natural jitter delays between automated emails to prevent machine-burst triggers.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-700">
+              <input
+                type="checkbox"
+                checked={formData.enableUnsubscribeHeader !== false}
+                onChange={e => setFormData({ ...formData, enableUnsubscribeHeader: e.target.checked })}
+                className="rounded border-slate-300 text-slate-900 focus:ring-slate-800"
+              />
+              <span className="font-medium">
+                Enable RFC 8058 One-Click <code className="font-mono text-slate-900">List-Unsubscribe</code> Headers (Google &amp; Yahoo Mandatory)
+              </span>
+            </label>
+
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-700">
+              <input
+                type="checkbox"
+                checked={formData.enableUnsubscribeFooter !== false}
+                onChange={e => setFormData({ ...formData, enableUnsubscribeFooter: e.target.checked })}
+                className="rounded border-slate-300 text-slate-900 focus:ring-slate-800"
+              />
+              <span className="font-medium">
+                Include compliant recipient opt-out link and business entity footer in outgoing email body
+              </span>
+            </label>
+          </div>
+
+          {/* Deliverability Guide Accordion */}
+          <div className="pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setShowDeliverabilityGuide(!showDeliverabilityGuide)}
+              className="w-full flex items-center justify-between text-left p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-800 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2 text-xs font-semibold">
+                <HelpCircle className="h-4 w-4 text-slate-600" />
+                <span>Why Do Some Emails Reach Inbox While Others Land in Spam? (Deliverability Breakdown)</span>
+              </div>
+              {showDeliverabilityGuide ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+
+            {showDeliverabilityGuide && (
+              <div className="mt-3 p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3 text-xs text-slate-700 leading-relaxed">
+                <div>
+                  <h4 className="font-bold text-slate-900 flex items-center gap-1.5">
+                    1. Identical Content Fingerprinting
+                  </h4>
+                  <p className="mt-0.5 text-slate-600">
+                    When multiple emails share identical text (e.g. static cold templates), Gmail computes a fuzzy hash. If any recipient flags it as spam, all future identical emails land in Spam with the banner <em>&quot;This message is similar to messages that were identified as spam in the past.&quot;</em> The system now dynamically spins opening lines, value propositions, and subject lines to ensure every message is uniquely worded.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-slate-900 flex items-center gap-1.5">
+                    2. Domain Authentication (SPF, DKIM, DMARC Alignment)
+                  </h4>
+                  <p className="mt-0.5 text-slate-600">
+                    In 2024, Google and Yahoo reject or spam-box emails sent without verified SPF and DKIM signatures. Your sender domain (@tasknera.com) must have matching SPF records and DKIM selectors. Sending via Resend requires verifying Resend DNS keys, while sending via Gmail SMTP requires Google Workspace DKIM signing.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-slate-900 flex items-center gap-1.5">
+                    3. Mandatory RFC 8058 One-Click Unsubscribe
+                  </h4>
+                  <p className="mt-0.5 text-slate-600">
+                    Google penalizes senders who do not provide easy opt-outs. When recipients have no clear way to unsubscribe, they click &quot;Report Spam&quot;, destroying sender domain reputation. With RFC 8058 headers and opt-out footers enabled, recipients can unsubscribe cleanly without damaging domain trust.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-slate-900 flex items-center gap-1.5">
+                    4. Burst Sending vs Cadence Throttling
+                  </h4>
+                  <p className="mt-0.5 text-slate-600">
+                    Sending 30 emails in 2 seconds flags automated rate limits at Google MX servers. Safe cold outreach requires sending emails spaced out by 30 to 60 seconds with randomized jitter to emulate authentic human correspondence.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-slate-900 flex items-center gap-1.5">
+                    5. Hard Bounce Suppression
+                  </h4>
+                  <p className="mt-0.5 text-slate-600">
+                    A bounce rate exceeding 2-3% triggers immediate mailbox restrictions. The system now automatically detects hard bounces and unsubscribes, immediately placing them on the suppression list to prevent future touches.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Suppression List Modal */}
+        {showSuppressionModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+            <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[85vh] flex flex-col">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Ban className="h-5 w-5 text-rose-600" />
+                  <h3 className="text-sm font-bold text-slate-900">Email Suppression &amp; Opt-Out List</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSuppressionModal(false)}
+                  className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-600">
+                Addresses on this list are permanently blocked from all initial emails and automated follow-ups to protect domain sender reputation.
+              </p>
+
+              {/* Add manual suppression */}
+              <form onSubmit={handleAddSuppression} className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="contact@domain.com"
+                  value={manualSuppressEmail}
+                  onChange={e => setManualSuppressEmail(e.target.value)}
+                  className="flex-1 rounded-lg bg-white border border-slate-200 py-1.5 px-3 text-xs text-slate-900 font-mono focus:outline-none"
+                />
+                <select
+                  value={manualSuppressReason}
+                  onChange={e => setManualSuppressReason(e.target.value)}
+                  className="rounded-lg bg-white border border-slate-200 py-1.5 px-2 text-xs text-slate-800"
+                >
+                  <option value="unsubscribed">Unsubscribed</option>
+                  <option value="bounced">Bounced</option>
+                  <option value="complaint">Complaint</option>
+                  <option value="manual">Manual</option>
+                </select>
+                <button
+                  type="submit"
+                  disabled={addingSuppression || !manualSuppressEmail}
+                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold disabled:opacity-50 cursor-pointer"
+                >
+                  Add
+                </button>
+              </form>
+
+              {/* List */}
+              <div className="flex-1 overflow-y-auto space-y-2 border border-slate-100 rounded-xl p-2 min-h-[160px]">
+                {loadingSuppressions ? (
+                  <div className="py-8 text-center text-xs text-slate-400">Loading suppression list...</div>
+                ) : suppressions.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-400">
+                    No suppressed contacts yet. Unsubscribes and hard bounces will automatically appear here.
+                  </div>
+                ) : (
+                  suppressions.map((sup, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+                      <div>
+                        <div className="font-mono font-medium text-slate-900">{sup.email}</div>
+                        <div className="text-[10px] text-slate-500">
+                          {sup.reason.toUpperCase()} &bull; {new Date(sup.createdAt).toLocaleDateString()}
+                          {sup.notes && ` &bull; ${sup.notes}`}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSuppression(sup.email)}
+                        className="text-xs text-rose-600 hover:text-rose-800 font-medium cursor-pointer px-2 py-1"
+                        title="Remove from suppression"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 text-right">
+                <button
+                  type="button"
+                  onClick={() => setShowSuppressionModal(false)}
+                  className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Sender Info */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
