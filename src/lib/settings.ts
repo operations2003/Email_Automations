@@ -18,7 +18,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   senderEmail: process.env.EMAIL_FROM || process.env.EMAIL_USER || process.env.SMTP_USER || 'operations@tasknera.com',
   defaultCc: process.env.DEFAULT_CC || 'operations@tasknera.com',
   companyName: process.env.COMPANY_NAME || 'TaskNera Solutions',
-  emailSignature: `Best regards,\nOperations Team\nTaskNera Solutions\nhttps://tasknera.io | operations@tasknera.com`,
+  emailSignature: `Best regards,\nOperations Team\nTaskNera Solutions\nhttps://tasknera.com | operations@tasknera.com`,
   aiTone: 'Professional',
   followUpIntervalDays: 2,
   maxFollowUps: 3,

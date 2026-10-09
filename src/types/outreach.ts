@@ -169,7 +169,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   senderEmail: 'swati@tasknera.com',
   defaultCc: 'team@tasknera.com',
   companyName: 'TaskNera Solutions',
-  emailSignature: `Best regards,\nSwati Verma\nTaskNera Solutions\nhttps://tasknera.io | swati@tasknera.com`,
+  emailSignature: `Best regards,\nSwati Verma\nTaskNera Solutions\nhttps://tasknera.com | swati@tasknera.com`,
   aiTone: 'Professional',
   followUpIntervalDays: 2,
   maxFollowUps: 3,

@@ -636,7 +636,7 @@ async function generateWithOpenAI(
       ? 'Follow-Up 3 (STRICTLY 40 to 60 words. Simple, respectful qualifying question asking if this area is an active priority this quarter, or if their current workflow is already meeting their needs).'
       : 'Follow-Up 4 (STRICTLY 35 to 50 words. Polite permission-based breakup closing loop. Assumes timing is not right, respectfully steps back with zero pressure, leaves contact details open for the future).';
 
-  const systemPrompt = `You are an elite B2B sales copywriter and outbound strategist for TaskNera HR Solutions (https://tasknera.io).
+  const systemPrompt = `You are an elite B2B sales copywriter and outbound strategist for TaskNera HR Solutions (https://tasknera.com).
 You write natural, consultative, highly professional cold emails that sound like they were written by an experienced enterprise sales consultant.
 
 CORE KNOWLEDGE BASE (Adapt seamlessly based on the selected offering / mailTopic):
