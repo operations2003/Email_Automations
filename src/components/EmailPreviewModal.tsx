@@ -66,6 +66,7 @@ export function EmailPreviewModal({
   if (!isOpen || !campaign) return null;
 
   const handleSend = async () => {
+    if (isSending) return;
     setIsSending(true);
     setFeedback(null);
     try {
@@ -79,20 +80,23 @@ export function EmailPreviewModal({
         })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not send email');
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || data.message || 'Could not send email');
+      }
 
+      const providerName = data.delivery?.provider === 'resend' ? 'Resend' : data.delivery?.provider || 'provider';
       const msg =
         data.delivery?.provider === 'simulated_sandbox'
-          ? 'Email saved in Sandbox mode. Set up SMTP in Settings to send real emails.'
-          : `Email sent via ${data.delivery?.provider}!`;
+          ? 'Email saved in Sandbox mode. Connect Resend or SMTP to send real emails.'
+          : `✓ Email successfully sent via ${providerName}!${data.delivery?.messageId ? ` (ID: ${data.delivery.messageId})` : ''}`;
       setFeedback(msg);
       setTimeout(() => {
         onRefresh();
         onClose();
-      }, 1500);
+      }, 2000);
     } catch (err: unknown) {
       const e = err as Error;
-      setFeedback(`Error: ${e.message}`);
+      setFeedback(`Error sending email: ${e.message}`);
     } finally {
       setIsSending(false);
     }
@@ -398,8 +402,17 @@ export function EmailPreviewModal({
               disabled={isSending || !body}
               className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-sm cursor-pointer"
             >
-              <Send className="h-3 w-3" />
-              <span>{isSent ? 'Send Again' : 'Send Email'}</span>
+              {isSending ? (
+                <>
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="h-3 w-3" />
+                  <span>{isSent ? 'Send Again' : 'Send Email'}</span>
+                </>
+              )}
             </button>
           </div>
         </div>

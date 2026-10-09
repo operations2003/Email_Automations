@@ -3,16 +3,32 @@ import { findCampaignById, saveCampaign, addHistoryEvent } from '@/lib/db';
 import { getSettings } from '@/lib/settings';
 import { sendOutreachEmail } from '@/lib/email-service';
 import { generateOutreachEmail } from '@/lib/ai-engine';
+import { getUserFromRequest } from '@/lib/auth';
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = getUserFromRequest(req);
+    if (user && user.role !== 'admin' && user.role !== 'employee') {
+      return NextResponse.json(
+        { success: false, error: 'You do not have permission to send emails.' },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const campaign = await findCampaignById(id);
     if (!campaign) {
       return NextResponse.json({ success: false, error: 'Campaign not found' }, { status: 404 });
+    }
+
+    if (!campaign.email || !campaign.email.includes('@')) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid or missing recipient email address.' },
+        { status: 400 }
+      );
     }
 
     const payload = await req.json().catch(() => ({}));

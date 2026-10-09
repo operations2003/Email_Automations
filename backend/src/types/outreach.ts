@@ -108,15 +108,16 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  senderName: 'Swati Verma',
-  senderEmail: 'swati@tasknera.com',
-  defaultCc: 'sales@mycompany.com',
+  senderName: 'TaskNera Operations',
+  senderEmail: process.env.EMAIL_FROM || 'operations@tasknera.com',
+  defaultCc: 'operations@tasknera.com',
   companyName: 'TaskNera Solutions',
-  emailSignature: `Best regards,\nSwati Verma\nBusiness Development & Partnerships\nTaskNera Solutions\nDirect: +1 (555) 349-8821 | https://tasknera.io`,
+  emailSignature: `Best regards,\nOperations Team\nTaskNera Solutions\nhttps://tasknera.io | operations@tasknera.com`,
   aiTone: 'Professional',
   followUpIntervalDays: 2,
   maxFollowUps: 3,
-  provider: 'simulated',
+  provider: (process.env.RESEND_API_KEY ? 'resend' : 'smtp') as AppSettings['provider'],
+  resendApiKey: process.env.RESEND_API_KEY || '',
   openAiApiKey: '',
 };
 

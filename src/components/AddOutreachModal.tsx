@@ -258,6 +258,7 @@ export function AddOutreachModal({
   };
 
   const handleGenerateAndSend = async () => {
+    if (isSending) return;
     if (!companyName.trim()) {
       setError('Please enter or select a company name.');
       return;
@@ -377,6 +378,7 @@ export function AddOutreachModal({
   };
 
   const handleSendEmail = async () => {
+    if (isSending) return;
     setIsSending(true);
     setError(null);
 
@@ -929,7 +931,7 @@ export function AddOutreachModal({
                       disabled={isSending}
                       className="flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
                     >
-                      <Send className="h-3 w-3" />
+                      {isSending ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
                       <span>{isSending ? 'Sending...' : 'Send Email'}</span>
                     </button>
                   </div>
