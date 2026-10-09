@@ -159,52 +159,52 @@ export function EmailPreviewModal({
   const isSent = Boolean(getStageSentAt());
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-3xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl my-8 text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="relative w-full max-w-3xl rounded-xl border border-slate-200 bg-white p-6 shadow-xl my-8 text-slate-900">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-gray-900 tracking-tight">
+              <h3 className="text-base font-semibold text-slate-900 tracking-tight">
                 {campaign.companyName}
               </h3>
               {campaign.mailTopic && (
-                <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-[#7c3aed] border border-purple-200">
+                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 border border-slate-200">
                   {campaign.mailTopic}
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Why emailing: {campaign.reason}
+            <p className="text-xs text-slate-500 mt-0.5">
+              Target reason: {campaign.reason}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors cursor-pointer"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Stage Tabs */}
-        <div className="mt-4 flex items-center gap-1.5 border-b border-gray-200 pb-3">
+        <div className="mt-4 flex items-center gap-1.5 border-b border-slate-100 pb-3">
           <button
             onClick={() => setActiveStage('initial')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               activeStage === 'initial'
-                ? 'bg-[#7c3aed] text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
-            First Email
+            Initial Email
             {campaign.initialSentAt && <span className="text-[10px] text-emerald-400">✓</span>}
           </button>
           <button
             onClick={() => setActiveStage('followup_1')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               activeStage === 'followup_1'
-                ? 'bg-[#7c3aed] text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Follow-up 1 (Day 2)
@@ -212,10 +212,10 @@ export function EmailPreviewModal({
           </button>
           <button
             onClick={() => setActiveStage('followup_2')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               activeStage === 'followup_2'
-                ? 'bg-[#7c3aed] text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Follow-up 2 (Day 4)
@@ -223,10 +223,10 @@ export function EmailPreviewModal({
           </button>
           <button
             onClick={() => setActiveStage('followup_3')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
               activeStage === 'followup_3'
-                ? 'bg-[#7c3aed] text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             Follow-up 3 (Day 6)
@@ -236,19 +236,19 @@ export function EmailPreviewModal({
 
         {/* Feedback alert */}
         {feedback && (
-          <div className="mt-3 rounded-lg border border-purple-200 bg-purple-50 p-2.5 text-xs text-[#7c3aed] font-medium">
+          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800 font-medium">
             {feedback}
           </div>
         )}
 
         {/* Email Client Mockup Window */}
-        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50/70 overflow-hidden shadow-sm">
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/50 overflow-hidden shadow-xs">
           {/* Email Headers */}
-          <div className="border-b border-gray-200 p-3 space-y-2 text-xs bg-gray-50/90">
+          <div className="border-b border-slate-200/80 p-3 space-y-2 text-xs bg-slate-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 w-12 font-medium">From:</span>
-                <span className="text-gray-800">
+                <span className="text-slate-500 w-12 font-medium">From:</span>
+                <span className="text-slate-800">
                   {settings.senderName} &lt;{settings.senderEmail}&gt;
                 </span>
               </div>
@@ -258,41 +258,41 @@ export function EmailPreviewModal({
                   {new Date(getStageSentAt()!).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                 </span>
               ) : (
-                <span className="flex items-center gap-1 rounded bg-gray-200/80 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                <span className="flex items-center gap-1 rounded bg-slate-200/70 px-2 py-0.5 text-[10px] font-medium text-slate-600">
                   <Clock className="h-3 w-3" /> Not sent yet
                 </span>
               )}
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 w-12 font-medium">To:</span>
-              <span className="text-gray-800 font-mono">{campaign.email}</span>
+              <span className="text-slate-500 w-12 font-medium">To:</span>
+              <span className="text-slate-800 font-mono">{campaign.email}</span>
             </div>
 
             {campaign.ccEmails && (
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 w-12 font-medium">CC:</span>
-                <span className="text-gray-600 font-mono">{campaign.ccEmails}</span>
+                <span className="text-slate-500 w-12 font-medium">CC:</span>
+                <span className="text-slate-600 font-mono">{campaign.ccEmails}</span>
               </div>
             )}
 
-            <div className="flex items-center gap-2 pt-1 border-t border-gray-200">
-              <span className="text-gray-500 w-12 font-medium">Subject:</span>
+            <div className="flex items-center gap-2 pt-1 border-t border-slate-200">
+              <span className="text-slate-500 w-12 font-medium">Subject:</span>
               {isEditing ? (
                 <input
                   type="text"
                   value={subject}
                   onChange={e => setSubject(e.target.value)}
-                  className="flex-1 rounded-lg bg-white border border-gray-200 p-1.5 text-xs text-gray-900 focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed]"
+                  className="flex-1 rounded-lg bg-white border border-slate-200 p-1.5 text-xs text-slate-900 focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800"
                 />
               ) : (
-                <span className="font-semibold text-gray-900">{subject || '(No subject yet)'}</span>
+                <span className="font-semibold text-slate-900">{subject || '(No subject yet)'}</span>
               )}
             </div>
 
             {alternativeSubjects && alternativeSubjects.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-[#1f242d]">
-                <span className="text-[10px] text-gray-400 mr-1">Angles:</span>
+              <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-slate-200">
+                <span className="text-[10px] text-slate-500 mr-1 font-medium">Angles:</span>
                 {alternativeSubjects.map((altSubj, idx) => {
                   const labels = ['Direct', 'Value', 'Conversational'];
                   const isSelected = subject === altSubj;
@@ -301,14 +301,14 @@ export function EmailPreviewModal({
                       key={idx}
                       type="button"
                       onClick={() => setSubject(altSubj)}
-                      className={`text-[10px] px-2 py-0.5 rounded border transition-colors cursor-pointer text-left ${
+                      className={`text-[10px] px-2 py-0.5 rounded-md border transition-colors cursor-pointer text-left ${
                         isSelected
-                          ? 'bg-blue-600/20 border-blue-500/50 text-blue-300 font-medium ring-1 ring-blue-500/30'
-                          : 'bg-[#14171c] border-[#23272f] text-gray-400 hover:text-gray-200 hover:border-gray-600'
+                          ? 'bg-slate-900 border-slate-900 text-white font-medium'
+                          : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                       }`}
                       title={altSubj}
                     >
-                      <span className="font-semibold text-gray-400 mr-1">{labels[idx] || `V${idx + 1}`}:</span>
+                      <span className={`font-semibold mr-1 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>{labels[idx] || `V${idx + 1}`}:</span>
                       {altSubj.length > 32 ? altSubj.slice(0, 32) + '…' : altSubj}
                     </button>
                   );
@@ -324,26 +324,26 @@ export function EmailPreviewModal({
                 rows={9}
                 value={body}
                 onChange={e => setBody(e.target.value)}
-                className="w-full rounded-lg bg-white border border-gray-200 p-3 text-xs text-gray-900 focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] whitespace-pre-line leading-relaxed"
+                className="w-full rounded-lg bg-white border border-slate-200 p-3 text-xs text-slate-900 focus:outline-none focus:border-slate-800 focus:ring-1 focus:ring-slate-800 whitespace-pre-line leading-relaxed"
               />
             ) : body ? (
               <div className="space-y-4">
-                <div className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">
+                <div className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
                   {body}
                 </div>
                 {/* Signature */}
                 {settings.emailSignature && (
-                  <div className="pt-3 border-t border-gray-200 text-xs text-gray-500 whitespace-pre-line">
+                  <div className="pt-3 border-t border-slate-200 text-xs text-slate-500 whitespace-pre-line">
                     {settings.emailSignature}
                   </div>
                 )}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500 text-xs">
+              <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500 text-xs">
                 <p>This email has not been written yet.</p>
                 <button
                   onClick={handleRegenerate}
-                  className="mt-2.5 px-3 py-1.5 rounded-lg bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-semibold cursor-pointer shadow-sm"
+                  className="mt-2.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium cursor-pointer shadow-xs"
                 >
                   Write this email
                 </button>
@@ -353,19 +353,19 @@ export function EmailPreviewModal({
         </div>
 
         {/* Footer */}
-        <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3">
+        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
           <div className="flex items-center gap-2">
             <button
               onClick={handleRegenerate}
               disabled={isRegenerating}
-              className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer font-medium"
             >
               <RefreshCw className={`h-3 w-3 inline mr-1 ${isRegenerating ? 'animate-spin' : ''}`} />
-              Try Another Version
+              Regenerate
             </button>
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer font-medium"
             >
               <FileEdit className="h-3 w-3 inline mr-1" />
               {isEditing ? 'Done' : 'Edit'}
@@ -373,13 +373,13 @@ export function EmailPreviewModal({
             <button
               onClick={handleCopy}
               disabled={!body}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors cursor-pointer disabled:opacity-40"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer disabled:opacity-40 font-medium"
               title="Copy subject and body to clipboard"
             >
               {isCopied ? (
                 <>
                   <Check className="h-3 w-3 text-emerald-600" />
-                  <span className="text-emerald-700 font-semibold">Copied!</span>
+                  <span className="text-emerald-700 font-medium">Copied</span>
                 </>
               ) : (
                 <>
@@ -393,14 +393,14 @@ export function EmailPreviewModal({
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-800 cursor-pointer"
+              className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-800 cursor-pointer font-medium"
             >
               Close
             </button>
             <button
               onClick={handleSend}
               disabled={isSending || !body}
-              className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
             >
               {isSending ? (
                 <>

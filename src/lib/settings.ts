@@ -84,11 +84,7 @@ export async function getSettings(): Promise<AppSettings> {
     const data = await fs.readFile(SETTINGS_FILE, 'utf-8');
     const parsed = JSON.parse(data);
     const services = parsed.services && parsed.services.length > 0 ? parsed.services : DEFAULT_SERVICES;
-<<<<<<< Updated upstream
-    inMemorySettings = applyEnvFallbacks({ ...DEFAULT_SETTINGS, ...parsed, services });
-=======
     inMemorySettings = applyEnvOverrides({ ...DEFAULT_SETTINGS, ...parsed, services });
->>>>>>> Stashed changes
     return inMemorySettings;
   } catch {
     // If on serverless, attempt to read bundled settings.json
@@ -97,21 +93,13 @@ export async function getSettings(): Promise<AppSettings> {
         const bundled = await fs.readFile(BUNDLED_SETTINGS_FILE, 'utf-8');
         const parsed = JSON.parse(bundled);
         const services = parsed.services && parsed.services.length > 0 ? parsed.services : DEFAULT_SERVICES;
-<<<<<<< Updated upstream
-        inMemorySettings = applyEnvFallbacks({ ...DEFAULT_SETTINGS, ...parsed, services });
-=======
         inMemorySettings = applyEnvOverrides({ ...DEFAULT_SETTINGS, ...parsed, services });
->>>>>>> Stashed changes
         return inMemorySettings;
       } catch {
         // ignore
       }
     }
-<<<<<<< Updated upstream
-    return DEFAULT_SETTINGS;
-=======
     return applyEnvOverrides(inMemorySettings);
->>>>>>> Stashed changes
   }
 }
 

@@ -2,21 +2,22 @@
 
 @layer base {
   :root {
-    --background: #f3f4f8;
-    --foreground: #111827;
+    --background: #f8fafc;
+    --foreground: #0f172a;
     --card: #ffffff;
-    --card-foreground: #111827;
-    --border: #e5e7eb;
-    --primary: #7c3aed;
+    --card-foreground: #0f172a;
+    --border: #e2e8f0;
+    --primary: #0f172a;
     --primary-foreground: #ffffff;
-    --muted: #6b7280;
+    --accent: #3b82f6;
+    --muted: #64748b;
   }
 }
 
 body {
-  background-color: #f3f4f8;
-  color: #111827;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Helvetica, Arial, sans-serif;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -43,15 +44,15 @@ body {
 /* Crisp table styling */
 .clean-table th,
 .clean-table td {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .clean-table tr:hover td {
-  background-color: rgba(124, 58, 237, 0.04);
+  background-color: #f8fafc;
 }
 
 /* Subtle panel utility */
 .glass-panel {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
 }
