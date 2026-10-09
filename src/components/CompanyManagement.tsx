@@ -213,15 +213,15 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
   return (
     <div className="space-y-6">
       {/* Header and Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#23272f] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-[#7c3aed] shadow-xs">
               <Building2 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white tracking-tight">Company Directory</h3>
-              <p className="text-xs text-gray-400">
+              <h3 className="text-base font-bold text-gray-900 tracking-tight">Company Directory</h3>
+              <p className="text-xs text-gray-500">
                 Manage target companies for cold outreach campaigns. Both employees and administrators can add and update companies.
               </p>
             </div>
@@ -230,20 +230,20 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
 
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-500" />
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
             <input
               type="text"
               placeholder="Search companies..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="rounded-lg bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none w-48 sm:w-60"
+              className="rounded-xl bg-white border border-gray-200 py-1.5 pl-9 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none w-48 sm:w-60 shadow-xs"
             />
           </div>
 
           <button
             onClick={handleStartAdd}
             disabled={saving}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors shadow-sm disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-xl text-xs font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Company</span>
@@ -253,19 +253,19 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
 
       {/* Success/Error Alerts */}
       {success && (
-        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center gap-2 text-xs text-emerald-300">
-          <Check className="w-4 h-4 shrink-0 text-emerald-400" />
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs text-emerald-800">
+          <Check className="w-4 h-4 shrink-0 text-emerald-600" />
           <span>{success}</span>
         </div>
       )}
 
       {error && (
-        <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg flex items-center justify-between text-xs text-rose-300">
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between text-xs text-rose-800">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{error}</span>
           </div>
-          <button onClick={() => setError(null)} className="text-rose-400 hover:text-rose-200">
+          <button onClick={() => setError(null)} className="text-rose-500 hover:text-rose-700 cursor-pointer">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -273,17 +273,17 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
 
       {/* Add / Edit Form Modal */}
       {showForm && (
-        <div className="p-5 bg-[#14171c] border border-[#2b303c] rounded-xl shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-[#23272f] pb-3">
+        <div className="p-6 bg-white border border-gray-200 rounded-2xl shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-blue-400" />
-              <h4 className="text-sm font-semibold text-white">
+              <Sparkles className="w-4 h-4 text-[#7c3aed]" />
+              <h4 className="text-sm font-bold text-gray-900">
                 {editingId ? 'Edit Company Details' : 'Add New Target Company'}
               </h4>
             </div>
             <button
               onClick={handleCancelForm}
-              className="text-gray-400 hover:text-white p-1 rounded-md transition-colors"
+              className="text-gray-400 hover:text-gray-700 p-1 rounded-md transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -291,16 +291,16 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                Company Name <span className="text-rose-400">*</span>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Company Name <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-500" />
+                <Building2 className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                   placeholder="e.g. Acme Corporation"
                   disabled={saving}
                 />
@@ -308,16 +308,16 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1.5">
-                Primary Contact Email <span className="text-rose-400">*</span>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Primary Contact Email <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-500" />
+                <Mail className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none font-mono"
+                  className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none font-mono"
                   placeholder="e.g. hr@acme.com or founder@acme.com"
                   disabled={saving}
                 />
@@ -325,16 +325,16 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                 Website URL
               </label>
               <div className="relative">
-                <Globe className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-500" />
+                <Globe className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
                 <input
                   type="url"
                   value={formData.website}
                   onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none font-mono"
+                  className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none font-mono"
                   placeholder="e.g. https://acme.com"
                   disabled={saving}
                 />
@@ -342,16 +342,16 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                 Industry / Sector
               </label>
               <div className="relative">
-                <Briefcase className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-500" />
+                <Briefcase className="absolute left-3 top-2.5 h-3.5 w-3.5 text-gray-400" />
                 <input
                   type="text"
                   value={formData.industry}
                   onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
-                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 pl-8 pr-3 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl bg-white border border-gray-200 py-2 pl-9 pr-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                   placeholder="e.g. SaaS, Fintech, Healthcare, Staffing"
                   disabled={saving}
                 />
@@ -359,32 +359,32 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-300 mb-1.5">
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                 Notes &amp; Description
               </label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 rows={3}
-                className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] p-2.5 text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none resize-none"
+                className="w-full rounded-xl bg-white border border-gray-200 p-3 text-xs text-gray-900 placeholder-gray-400 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none resize-none"
                 placeholder="Background notes, target positions, recruitment mandate requirements..."
                 disabled={saving}
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#23272f]">
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-gray-100">
             <button
               onClick={handleCancelForm}
               disabled={saving}
-              className="px-3 py-1.5 border border-[#23272f] text-gray-300 rounded-lg hover:bg-[#1a1e24] text-xs font-medium transition-colors disabled:opacity-50"
+              className="px-3.5 py-1.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saving || !formData.name.trim() || !formData.email.trim()}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors shadow-sm disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-xl text-xs font-semibold transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{saving ? 'Saving...' : editingId ? 'Update Company' : 'Save Company'}</span>
@@ -397,23 +397,23 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
       <div className="space-y-3">
         {loading ? (
           <div className="text-center py-12 text-gray-400 text-xs">
-            <Building2 className="w-8 h-8 mx-auto mb-2 text-gray-600 animate-pulse" />
+            <Building2 className="w-8 h-8 mx-auto mb-2 text-[#7c3aed] animate-pulse" />
             Loading company directory...
           </div>
         ) : filteredCompanies.length === 0 ? (
-          <div className="text-center py-12 rounded-xl border border-dashed border-[#23272f] bg-[#14171c]/50 p-8">
-            <Building2 className="w-10 h-10 mx-auto mb-3 text-gray-600" />
-            <h4 className="text-sm font-semibold text-white mb-1">
+          <div className="text-center py-12 rounded-2xl border border-dashed border-gray-200 bg-white p-8">
+            <Building2 className="w-10 h-10 mx-auto mb-3 text-gray-400" />
+            <h4 className="text-sm font-bold text-gray-900 mb-1">
               {searchQuery ? 'No companies matching your search' : 'No target companies added yet'}
             </h4>
-            <p className="text-xs text-gray-400 mb-4 max-w-sm mx-auto">
+            <p className="text-xs text-gray-500 mb-4 max-w-sm mx-auto">
               {searchQuery
                 ? `No company names or emails match "${searchQuery}". Try a different search term.`
                 : 'Both employees and admins can add target companies here to launch tailored email campaigns.'}
             </p>
             <button
               onClick={handleStartAdd}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Your First Company</span>
@@ -424,20 +424,20 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
             {filteredCompanies.map((company) => (
               <div
                 key={company.id}
-                className="group relative p-4 bg-[#14171c] border border-[#23272f] hover:border-[#333a46] rounded-xl transition-all shadow-sm flex flex-col justify-between"
+                className="group relative p-5 bg-white border border-gray-200 hover:border-purple-200 rounded-2xl transition-all shadow-sm hover:shadow-md flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-                        <Building2 className="w-4 h-4" />
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-9 w-9 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-[#7c3aed] shrink-0 shadow-xs">
+                        <Building2 className="w-4.5 h-4.5" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-white group-hover:text-blue-300 transition-colors">
+                        <h4 className="text-sm font-bold text-gray-900 group-hover:text-[#7c3aed] transition-colors">
                           {company.name}
                         </h4>
                         {company.industry && (
-                          <span className="inline-block text-[10px] uppercase font-semibold text-gray-400 tracking-wider">
+                          <span className="inline-block text-[10px] uppercase font-bold text-gray-500 tracking-wider">
                             {company.industry}
                           </span>
                         )}
@@ -445,11 +445,11 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
                     </div>
 
                     {/* Quick action buttons */}
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       {onStartOutreach && (
                         <button
                           onClick={() => onStartOutreach(company)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-600/15 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-[11px] font-medium transition-colors"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-[#7c3aed] text-[#7c3aed] hover:text-white border border-purple-200 text-[11px] font-semibold transition-colors cursor-pointer"
                           title={`Send outreach email to ${company.name}`}
                         >
                           <Send className="w-3 h-3" />
@@ -460,7 +460,7 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
                       <button
                         onClick={() => handleStartEdit(company)}
                         disabled={saving}
-                        className="p-1 text-gray-400 hover:text-white hover:bg-[#23272f] rounded-md transition-colors"
+                        className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                         title="Edit company"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -470,7 +470,7 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
                         <button
                           onClick={() => handleDelete(company.id, company.name)}
                           disabled={saving}
-                          className="p-1 text-gray-400 hover:text-rose-400 hover:bg-[#23272f] rounded-md transition-colors"
+                          className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                           title="Delete company (Admin only)"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -479,20 +479,20 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
                     </div>
                   </div>
 
-                  <div className="space-y-1.5 text-xs text-gray-400 pt-1">
+                  <div className="space-y-1.5 text-xs text-gray-600 pt-1">
                     <div className="flex items-center gap-2">
-                      <Mail className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                      <span className="font-mono text-gray-300">{company.email}</span>
+                      <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <span className="font-mono text-gray-800">{company.email}</span>
                     </div>
 
                     {company.website && (
                       <div className="flex items-center gap-2">
-                        <Globe className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                        <Globe className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         <a
                           href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-400 hover:underline truncate"
+                          className="text-[#7c3aed] hover:underline truncate font-medium"
                         >
                           {company.website}
                         </a>
@@ -500,21 +500,21 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
                     )}
 
                     {company.description && (
-                      <p className="text-[11px] text-gray-400 line-clamp-2 pt-1 border-t border-[#1e232b] mt-1.5">
+                      <p className="text-[11px] text-gray-500 line-clamp-2 pt-2 border-t border-gray-100 mt-2">
                         {company.description}
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 mt-3 border-t border-[#1e232b] text-[10px] text-gray-500">
+                <div className="flex items-center justify-between pt-3 mt-3 border-t border-gray-100 text-[10px] text-gray-400">
                   <div className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-gray-600" />
+                    <Clock className="w-3 h-3 text-gray-400" />
                     <span>Added {new Date(company.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
                   {company.createdBy && (
                     <div className="flex items-center gap-1">
-                      <User className="w-3 h-3 text-gray-600" />
+                      <User className="w-3 h-3 text-gray-400" />
                       <span>by {company.createdBy}</span>
                     </div>
                   )}

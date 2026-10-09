@@ -283,16 +283,16 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#23272f]">
+      <div className="flex items-center justify-between pb-3 border-b border-gray-200">
         <div>
-          <h2 className="text-base font-semibold text-white tracking-tight">Settings</h2>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <h2 className="text-base font-bold text-gray-900 tracking-tight">Settings</h2>
+          <p className="text-xs text-gray-500 mt-0.5">
             Set your sender info, email connection (Gmail / SMTP), and follow-up timing.
           </p>
         </div>
 
         {saved && (
-          <div className="flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 border border-emerald-500/20">
+          <div className="flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 border border-emerald-200 shadow-xs">
             <Check className="h-3.5 w-3.5" />
             Settings saved
           </div>
@@ -301,21 +301,21 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
 
       {/* Provider Status Alert */}
       {formData.provider === 'simulated' ? (
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3.5 flex items-start gap-3 text-xs text-amber-200">
-          <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 flex items-start gap-3 text-xs text-amber-900">
+          <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <p className="font-medium text-amber-300">Test Sandbox Mode is On</p>
-            <p className="text-gray-300 mt-0.5 text-[11px]">
+            <p className="font-bold text-amber-900">Test Sandbox Mode is On</p>
+            <p className="text-amber-800 mt-0.5 text-[11px] leading-relaxed">
               Emails are only saved inside the app for testing. <strong>No real emails are sent to inboxes</strong>. To send real emails, choose <strong>Gmail / SMTP</strong> below and save.
             </p>
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3.5 flex items-start gap-3 text-xs text-emerald-200">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 flex items-start gap-3 text-xs text-emerald-900">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
           <div>
-            <p className="font-medium text-emerald-300">Live Email Sending is Active ({formData.provider.toUpperCase()})</p>
-            <p className="text-gray-300 mt-0.5 text-[11px]">
+            <p className="font-bold text-emerald-900">Live Email Sending is Active ({formData.provider.toUpperCase()})</p>
+            <p className="text-emerald-800 mt-0.5 text-[11px]">
               When you click send, real emails will be delivered to recipients.
             </p>
           </div>
@@ -324,14 +324,14 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email Delivery Provider */}
-        <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4 space-y-3.5">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-            <Server className="h-3.5 w-3.5 text-blue-400" />
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4 shadow-sm">
+          <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+            <Server className="h-4 w-4 text-[#7c3aed]" />
             How to send emails
           </h3>
 
           <div>
-            <label className="block text-xs font-medium text-gray-300 mb-1">
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
               Sending method
             </label>
             <select
@@ -342,7 +342,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                   provider: e.target.value as AppSettings['provider']
                 })
               }
-              className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-3 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none cursor-pointer"
             >
               <option value="simulated">Test Sandbox (Save in app only, do not send real emails)</option>
               <option value="smtp">Gmail / Google Workspace / SMTP (Send real emails)</option>
@@ -352,98 +352,98 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
 
           {/* SMTP Fields */}
           {formData.provider === 'smtp' && (
-            <div className="pt-3 border-t border-[#23272f] space-y-3">
+            <div className="pt-3 border-t border-gray-100 space-y-3.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-400">Quick setup:</span>
+                <span className="text-xs font-medium text-gray-500">Quick setup presets:</span>
                 <div className="flex gap-1.5">
                   <button
                     type="button"
                     onClick={() => applyPreset('gmail')}
-                    className="px-2 py-0.5 rounded border border-[#23272f] text-[11px] text-gray-300 hover:bg-[#23272f]"
+                    className="px-2.5 py-1 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-700 hover:bg-gray-100 cursor-pointer"
                   >
                     Gmail / Google
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('outlook')}
-                    className="px-2 py-0.5 rounded border border-[#23272f] text-[11px] text-gray-300 hover:bg-[#23272f]"
+                    className="px-2.5 py-1 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-700 hover:bg-gray-100 cursor-pointer"
                   >
                     Outlook / 365
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset('custom')}
-                    className="px-2 py-0.5 rounded border border-[#23272f] text-[11px] text-gray-300 hover:bg-[#23272f]"
+                    className="px-2.5 py-1 rounded-lg border border-gray-200 text-[11px] font-medium text-gray-700 hover:bg-gray-100 cursor-pointer"
                   >
                     Custom SMTP
                   </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-xs text-gray-300 mb-1">SMTP Server</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">SMTP Server</label>
                   <input
                     type="text"
                     placeholder="smtp.gmail.com"
                     value={formData.smtpHost || ''}
                     onChange={e => setFormData({ ...formData, smtpHost: e.target.value })}
-                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs text-gray-300 mb-1">Port</label>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Port</label>
                     <input
                       type="number"
                       placeholder="465"
                       value={formData.smtpPort || 465}
                       onChange={e => setFormData({ ...formData, smtpPort: parseInt(e.target.value) || 465 })}
-                      className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-blue-500 focus:outline-none"
+                      className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-300 mb-1">Security</label>
-                    <label className="flex items-center gap-2 mt-1.5 cursor-pointer">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">Security</label>
+                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={formData.smtpSecure ?? true}
                         onChange={e => setFormData({ ...formData, smtpSecure: e.target.checked })}
-                        className="rounded border-gray-700 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-gray-300 text-[#7c3aed] focus:ring-0 accent-[#7c3aed]"
                       />
-                      <span className="text-xs text-gray-300">SSL Enabled</span>
+                      <span className="text-xs text-gray-700 font-medium">SSL Enabled</span>
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-300 mb-1">Your Email</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Your Email</label>
                   <input
                     type="text"
                     placeholder="yourname@gmail.com"
                     value={formData.smtpUser || ''}
                     onChange={e => setFormData({ ...formData, smtpUser: e.target.value })}
-                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-300 mb-1">App Password</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">App Password</label>
                   <input
                     type="password"
                     placeholder="16-letter App Password"
                     value={formData.smtpPass || ''}
                     onChange={e => setFormData({ ...formData, smtpPass: e.target.value })}
-                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div className="rounded-md bg-blue-500/10 p-2.5 text-[11px] text-blue-200 flex items-start gap-2 border border-blue-500/20">
-                <Info className="h-3.5 w-3.5 text-blue-400 shrink-0 mt-0.5" />
-                <span>
-                  <strong>Google Workspace (@tasknera.com) & Gmail Requirement:</strong> Google requires a 16-character <strong>App Password</strong> (e.g. <code>abcd efgh ijkl mnop</code>) for automated SMTP email sending. If your password is not accepted, generate an App Password at <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="underline text-blue-300 font-medium">myaccount.google.com/apppasswords</a> and paste it above.
+              <div className="rounded-xl bg-purple-50 p-3 text-[11px] text-gray-700 flex items-start gap-2.5 border border-purple-200">
+                <Info className="h-4 w-4 text-[#7c3aed] shrink-0 mt-0.5" />
+                <span className="leading-relaxed">
+                  <strong className="text-gray-900">Google Workspace (@tasknera.com) & Gmail Requirement:</strong> Google requires a 16-character <strong>App Password</strong> (e.g. <code>abcd efgh ijkl mnop</code>) for automated SMTP email sending. If your password is not accepted, generate an App Password at <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer" className="underline text-[#7c3aed] font-semibold">myaccount.google.com/apppasswords</a> and paste it above.
                 </span>
               </div>
             </div>
@@ -451,21 +451,21 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
 
           {/* Resend Fields */}
           {formData.provider === 'resend' && (
-            <div className="pt-3 border-t border-[#23272f]">
-              <label className="block text-xs text-gray-300 mb-1">Resend API Key</label>
+            <div className="pt-3 border-t border-gray-100">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Resend API Key</label>
               <input
                 type="password"
                 placeholder="re_..."
                 value={formData.resendApiKey || ''}
                 onChange={e => setFormData({ ...formData, resendApiKey: e.target.value })}
-                className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
               />
             </div>
           )}
 
           {/* Test Email */}
-          <div className="pt-3 border-t border-[#23272f]">
-            <label className="block text-xs font-medium text-gray-300 mb-1">
+          <div className="pt-3 border-t border-gray-100">
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
               Test your email connection
             </label>
             <div className="flex gap-2">
@@ -474,18 +474,18 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                 placeholder="your-own-email@example.com"
                 value={testEmailTo}
                 onChange={e => setTestEmailTo(e.target.value)}
-                className="flex-1 rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-blue-500 focus:outline-none"
+                className="flex-1 rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
               />
               <button
                 type="button"
                 onClick={handleSendTestEmail}
                 disabled={testingEmail || !testEmailTo}
-                className="flex items-center gap-1.5 rounded-md bg-blue-600 hover:bg-blue-500 px-3 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 shrink-0"
+                className="flex items-center gap-1.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] px-4 py-2 text-xs font-semibold text-white transition-colors disabled:opacity-50 shrink-0 cursor-pointer shadow-sm"
               >
                 {testingEmail ? (
-                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <Send className="h-3 w-3" />
+                  <Send className="h-3.5 w-3.5" />
                 )}
                 <span>Send Test</span>
               </button>
@@ -493,100 +493,100 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
 
             {testResult && (
               <div
-                className={`mt-2 rounded-md border p-2.5 text-xs flex items-start gap-2 ${
+                className={`mt-2.5 rounded-xl border p-3 text-xs flex items-start gap-2 ${
                   testResult.success
-                    ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-300'
-                    : 'border-rose-500/20 bg-rose-500/5 text-rose-300'
+                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    : 'border-rose-200 bg-rose-50 text-rose-800'
                 }`}
               >
                 {testResult.success ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
                 ) : (
-                  <AlertCircle className="h-3.5 w-3.5 text-rose-400 shrink-0 mt-0.5" />
+                  <AlertCircle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
                 )}
-                <span className="text-[11px]">{testResult.message}</span>
+                <span className="text-[11px] font-medium">{testResult.message}</span>
               </div>
             )}
           </div>
         </div>
 
         {/* Sender Info */}
-        <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4 space-y-3.5">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-            <User className="h-3.5 w-3.5 text-blue-400" />
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4 shadow-sm">
+          <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+            <User className="h-4 w-4 text-[#7c3aed]" />
             Your Information
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs text-gray-300 mb-1">Your Name</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Your Name</label>
               <input
                 type="text"
                 value={formData.senderName}
                 onChange={e => setFormData({ ...formData, senderName: e.target.value })}
-                className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-gray-300 mb-1">Your Email</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Your Email</label>
               <input
                 type="email"
                 value={formData.senderEmail}
                 onChange={e => setFormData({ ...formData, senderEmail: e.target.value })}
-                className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-gray-300 mb-1">Your Company Name</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Your Company Name</label>
               <input
                 type="text"
                 value={formData.companyName}
                 onChange={e => setFormData({ ...formData, companyName: e.target.value })}
-                className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-gray-300 mb-1">Default CC Email</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Default CC Email</label>
               <input
                 type="text"
                 value={formData.defaultCc}
                 onChange={e => setFormData({ ...formData, defaultCc: e.target.value })}
-                className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
               />
             </div>
           </div>
         </div>
 
         {/* Signature */}
-        <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4 space-y-2">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-            <Mail className="h-3.5 w-3.5 text-blue-400" />
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-2 shadow-sm">
+          <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+            <Mail className="h-4 w-4 text-[#7c3aed]" />
             Email Signature
           </h3>
-          <p className="text-[11px] text-gray-400">
+          <p className="text-[11px] text-gray-500">
             This will be attached at the end of every email you send.
           </p>
           <textarea
             rows={4}
             value={formData.emailSignature}
             onChange={e => setFormData({ ...formData, emailSignature: e.target.value })}
-            className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] p-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none whitespace-pre-line leading-relaxed font-sans"
+            className="w-full rounded-xl bg-white border border-gray-200 p-3 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none whitespace-pre-line leading-relaxed font-sans"
           />
         </div>
 
         {/* Timing */}
-        <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4 space-y-3">
-          <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-            <Clock className="h-3.5 w-3.5 text-blue-400" />
-            Follow-up Timing
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4 shadow-sm">
+          <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+            <Clock className="h-4 w-4 text-[#7c3aed]" />
+            Follow-up Timing & Style
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             <div>
-              <label className="block text-xs text-gray-300 mb-1">Days between follow-ups</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Days between follow-ups</label>
               <input
                 type="number"
                 min={1}
@@ -595,12 +595,12 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                 onChange={e =>
                   setFormData({ ...formData, followUpIntervalDays: parseInt(e.target.value) || 2 })
                 }
-                className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 font-mono focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 font-mono focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-gray-300 mb-1">Writing style</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Writing style</label>
               <select
                 value={formData.aiTone}
                 onChange={e =>
@@ -609,7 +609,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                     aiTone: e.target.value as AppSettings['aiTone']
                   })
                 }
-                className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none cursor-pointer"
               >
                 <option value="Professional">Professional</option>
                 <option value="Consultative">Consultative</option>
@@ -622,14 +622,14 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
         </div>
 
         {/* Custom Services & Offerings */}
-        <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4 space-y-3.5">
-          <div className="flex items-center justify-between">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                <Briefcase className="h-3.5 w-3.5 text-blue-400" />
+              <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-[#7c3aed]" />
                 Services & Offerings
               </h3>
-              <p className="text-[11px] text-gray-400 mt-0.5">
+              <p className="text-[11px] text-gray-500 mt-0.5">
                 Customize the TaskNera services and offerings available when composing outreach emails.
               </p>
             </div>
@@ -637,7 +637,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
               <button
                 type="button"
                 onClick={handleResetServices}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[#23272f] hover:bg-[#1a1f26] text-gray-400 hover:text-gray-200 text-xs transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-100 text-gray-600 hover:text-gray-900 text-xs font-medium transition-colors cursor-pointer"
                 title="Reset to default TaskNera services"
               >
                 <RotateCcw className="h-3 w-3" />
@@ -646,7 +646,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
               <button
                 type="button"
                 onClick={handleStartAddService}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm"
               >
                 <Plus className="h-3 w-3" />
                 <span>Add Service</span>
@@ -656,37 +656,37 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
 
           {/* Inline Add / Edit Form */}
           {showAddService && (
-            <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-3.5 space-y-3">
+            <div className="rounded-2xl border border-purple-200 bg-purple-50/50 p-4 space-y-3.5 shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-blue-400 flex items-center gap-1.5">
+                <span className="text-xs font-bold text-[#7c3aed] flex items-center gap-1.5">
                   <Sparkles className="h-3.5 w-3.5" />
                   {editingServiceId ? 'Edit Service' : 'Add New Service'}
                 </span>
                 <button
                   type="button"
                   onClick={handleCancelServiceForm}
-                  className="text-xs text-gray-400 hover:text-gray-200"
+                  className="text-xs text-gray-500 hover:text-gray-800 font-medium cursor-pointer"
                 >
                   Cancel
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="md:col-span-2">
-                  <label className="block text-[11px] font-medium text-gray-300 mb-1">
-                    Service Name <span className="text-rose-400">*</span>
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                    Service Name <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     placeholder="e.g. DevOps & Cloud Consulting"
                     value={serviceForm.name}
                     onChange={e => setServiceForm({ ...serviceForm, name: e.target.value })}
-                    className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
                     Icon / Emoji
                   </label>
                   <div className="flex gap-1.5">
@@ -696,7 +696,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                       placeholder="🚀"
                       value={serviceForm.icon}
                       onChange={e => setServiceForm({ ...serviceForm, icon: e.target.value })}
-                      className="w-14 rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 text-center text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                      className="w-14 rounded-xl bg-white border border-gray-200 py-2 text-center text-xs text-gray-900 focus:border-[#7c3aed] focus:outline-none"
                     />
                     <div className="flex items-center gap-1 overflow-x-auto text-xs">
                       {['🎯', '💻', '🤖', '📋', '🚀', '⚡', '☁️', '🛡️'].map(emoji => (
@@ -704,7 +704,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                           key={emoji}
                           type="button"
                           onClick={() => setServiceForm({ ...serviceForm, icon: emoji })}
-                          className="px-1.5 py-1 rounded hover:bg-[#23272f] text-xs transition-colors"
+                          className="px-1.5 py-1 rounded hover:bg-gray-100 text-xs transition-colors cursor-pointer"
                         >
                           {emoji}
                         </button>
@@ -715,7 +715,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                <label className="block text-[11px] font-semibold text-gray-700 mb-1">
                   Short Tagline
                 </label>
                 <input
@@ -723,22 +723,22 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                   placeholder="e.g. Cloud migration, CI/CD, and AWS cost reduction"
                   value={serviceForm.tagline}
                   onChange={e => setServiceForm({ ...serviceForm, tagline: e.target.value })}
-                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl bg-white border border-gray-200 py-2 px-3 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-medium text-gray-300 mb-1">
-                  Outreach Goal / Email Pitch <span className="text-rose-400">*</span>
+                <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                  Outreach Goal / Email Pitch <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={2}
                   placeholder="e.g. Introduce TaskNera's cloud architecture review and DevOps pipeline setup for engineering teams."
                   value={serviceForm.pitch}
                   onChange={e => setServiceForm({ ...serviceForm, pitch: e.target.value })}
-                  className="w-full rounded-md bg-[#0d0f12] border border-[#23272f] py-1.5 px-2.5 text-xs text-gray-200 focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl bg-white border border-gray-200 p-2.5 text-xs text-gray-900 focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] focus:outline-none"
                 />
-                <span className="text-[10px] text-gray-400">
+                <span className="text-[10px] text-gray-500">
                   This pitch text will be filled into the outreach goal and guide the email writer.
                 </span>
               </div>
@@ -747,7 +747,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                 <button
                   type="button"
                   onClick={handleCancelServiceForm}
-                  className="px-3 py-1 rounded-md border border-[#23272f] hover:bg-[#23272f] text-gray-300 text-xs"
+                  className="px-3.5 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-100 text-gray-700 text-xs font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -755,7 +755,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                   type="button"
                   onClick={handleSaveService}
                   disabled={!serviceForm.name.trim() || !serviceForm.pitch.trim()}
-                  className="px-3 py-1 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium disabled:opacity-50"
+                  className="px-4 py-1.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white text-xs font-semibold disabled:opacity-50 cursor-pointer shadow-sm"
                 >
                   {editingServiceId ? 'Update Service' : 'Add to Services'}
                 </button>
@@ -764,20 +764,20 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
           )}
 
           {/* Current Services List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {currentServices.map(service => (
               <div
                 key={service.id}
-                className="group relative flex flex-col justify-between p-3 rounded-lg border border-[#23272f] bg-[#0d0f12] hover:border-gray-600 transition-all"
+                className="group relative flex flex-col justify-between p-4 rounded-2xl border border-gray-200 bg-gray-50/70 hover:border-purple-200 hover:bg-white transition-all shadow-xs"
               >
                 <div>
-                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-base">{service.icon || '💼'}</span>
+                      <span className="text-lg">{service.icon || '💼'}</span>
                       <div>
-                        <h4 className="text-xs font-semibold text-white">{service.name}</h4>
+                        <h4 className="text-xs font-bold text-gray-900">{service.name}</h4>
                         {service.tagline && (
-                          <p className="text-[10px] text-blue-400 font-medium">{service.tagline}</p>
+                          <p className="text-[10px] text-[#7c3aed] font-medium">{service.tagline}</p>
                         )}
                       </div>
                     </div>
@@ -785,22 +785,22 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
                       <button
                         type="button"
                         onClick={() => handleStartEditService(service)}
-                        className="p-1 rounded hover:bg-[#23272f] text-gray-400 hover:text-gray-200"
+                        className="p-1 rounded-md hover:bg-gray-200 text-gray-500 hover:text-gray-900 cursor-pointer"
                         title="Edit service"
                       >
-                        <Edit2 className="h-3 w-3" />
+                        <Edit2 className="h-3.5 w-3.5" />
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDeleteService(service.id)}
-                        className="p-1 rounded hover:bg-rose-500/10 text-gray-400 hover:text-rose-400"
+                        className="p-1 rounded-md hover:bg-rose-50 text-gray-400 hover:text-rose-600 cursor-pointer"
                         title="Delete service"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
-                  <p className="text-[11px] text-gray-400 leading-relaxed bg-[#14171c] p-2 rounded border border-[#23272f]/60 mt-1">
+                  <p className="text-[11px] text-gray-600 leading-relaxed bg-white p-2.5 rounded-xl border border-gray-200 mt-1">
                     {service.pitch}
                   </p>
                 </div>
@@ -810,60 +810,60 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
         </div>
 
         {/* Database Connectivity */}
-        <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4 space-y-3.5">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-              <Database className="h-3.5 w-3.5 text-emerald-400" />
+            <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+              <Database className="h-4 w-4 text-emerald-600" />
               Database Storage
             </h3>
             <button
               type="button"
               onClick={testDatabase}
               disabled={testingDb}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#0d0f12] hover:bg-[#1a1f26] border border-[#23272f] text-gray-300 text-xs transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-xs font-semibold transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
             >
               {testingDb ? (
-                <RefreshCw className="h-3 w-3 animate-spin text-emerald-400" />
+                <RefreshCw className="h-3 w-3 animate-spin text-emerald-600" />
               ) : (
-                <Database className="h-3 w-3 text-emerald-400" />
+                <Database className="h-3 w-3 text-emerald-600" />
               )}
               Test Connection
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-            <div className="p-2.5 rounded-md bg-[#0d0f12] border border-[#23272f]">
-              <span className="text-[10px] text-gray-400">Database Type</span>
-              <p className="font-medium text-white">MongoDB Atlas</p>
-              <p className="text-[10px] text-gray-400 font-mono">cluster0.2ba7uww</p>
+            <div className="p-3 rounded-xl bg-gray-50 border border-gray-200">
+              <span className="text-[10px] text-gray-500 font-medium">Database Type</span>
+              <p className="font-bold text-gray-900 mt-0.5">MongoDB Atlas</p>
+              <p className="text-[10px] text-gray-500 font-mono">cluster0.2ba7uww</p>
             </div>
 
-            <div className="p-2.5 rounded-md bg-[#0d0f12] border border-[#23272f]">
-              <span className="text-[10px] text-gray-400">Database Name</span>
-              <p className="font-medium text-white">tasknera</p>
-              <p className="text-[10px] text-gray-400">Automatic local fallback</p>
+            <div className="p-3 rounded-xl bg-gray-50 border border-gray-200">
+              <span className="text-[10px] text-gray-500 font-medium">Database Name</span>
+              <p className="font-bold text-gray-900 mt-0.5">tasknera</p>
+              <p className="text-[10px] text-gray-500">Automatic local fallback</p>
             </div>
 
-            <div className="p-2.5 rounded-md bg-[#0d0f12] border border-[#23272f]">
-              <span className="text-[10px] text-gray-400">Cloud Sync</span>
+            <div className="p-3 rounded-xl bg-gray-50 border border-gray-200">
+              <span className="text-[10px] text-gray-500 font-medium">Cloud Sync</span>
               <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                <span className="text-emerald-400 font-medium">Automatic</span>
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="text-emerald-700 font-bold">Automatic</span>
               </div>
-              <p className="text-[10px] text-gray-400">Saves online and offline</p>
+              <p className="text-[10px] text-gray-500">Saves online and offline</p>
             </div>
           </div>
 
           {dbResult?.tested && (
             <div
-              className={`p-3 rounded-md border text-xs flex items-center justify-between ${
+              className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
                 dbResult.connected
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                  : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                  : 'bg-amber-50 border-amber-200 text-amber-900'
               }`}
             >
               <div>
-                <p className="font-medium">
+                <p className="font-bold">
                   {dbResult.connected
                     ? `Connected to MongoDB Atlas (${dbResult.databaseName || 'tasknera'})`
                     : 'MongoDB connection offline. Using local files.'}
@@ -879,7 +879,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
         </div>
 
         {/* Company Management */}
-        <div className="rounded-lg border border-[#23272f] bg-[#14171c] p-4">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
           <CompanyManagement isAdmin={isAdmin} />
         </div>
 
@@ -888,7 +888,7 @@ export function SettingsView({ settings, onUpdateSettings }: SettingsViewProps) 
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-1.5 rounded-md bg-blue-600 hover:bg-blue-500 px-4 py-2 text-xs font-medium text-white transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] px-5 py-2.5 text-xs font-semibold text-white transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
           >
             {saving ? (
               <RefreshCw className="h-3.5 w-3.5 animate-spin" />

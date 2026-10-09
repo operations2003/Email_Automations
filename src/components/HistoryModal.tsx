@@ -46,31 +46,31 @@ export function HistoryModal({ campaign, isOpen, onClose }: HistoryModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div className="relative w-full max-w-3xl rounded-xl border border-[#23272f] bg-[#14171c] p-6 shadow-2xl my-8 max-h-[85vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+      <div className="relative w-full max-w-3xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl my-8 max-h-[85vh] flex flex-col text-gray-900">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#23272f] pb-4">
+        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-white tracking-tight">
+              <h3 className="text-base font-semibold text-gray-900 tracking-tight">
                 {campaign.companyName}
               </h3>
-              <span className="font-mono text-xs text-gray-400">
+              <span className="font-mono text-xs text-gray-500">
                 ({campaign.email})
               </span>
               {campaign.mailTopic && (
-                <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-medium text-blue-400 border border-blue-500/20">
+                <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-[#7c3aed] border border-purple-200">
                   {campaign.mailTopic}
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-400 mt-0.5">
-              Status: <span className="text-gray-200 font-medium">{campaign.status}</span> · Reply: <span className="text-emerald-400 font-medium">{campaign.replyStatus}</span>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Status: <span className="text-gray-800 font-semibold">{campaign.status}</span> · Reply: <span className="text-emerald-600 font-semibold">{campaign.replyStatus}</span>
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 hover:bg-[#23272f] hover:text-white"
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -81,45 +81,45 @@ export function HistoryModal({ campaign, isOpen, onClose }: HistoryModalProps) {
           {/* Sequence Overview Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
             {/* Initial */}
-            <div className="rounded-lg border border-[#23272f] bg-[#0d0f12] p-3 text-xs">
-              <span className="text-[11px] font-semibold text-gray-400 block mb-1">
+            <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs">
+              <span className="text-[11px] font-semibold text-gray-500 block mb-1">
                 First Email
               </span>
-              <p className="font-medium text-gray-200 line-clamp-1">{campaign.initialSubject || 'Draft'}</p>
-              <p className="text-[10px] text-gray-400 font-mono mt-1">
+              <p className="font-medium text-gray-800 line-clamp-1">{campaign.initialSubject || 'Draft'}</p>
+              <p className="text-[10px] text-gray-500 font-mono mt-1">
                 {campaign.initialSentAt ? formatDate(campaign.initialSentAt) : 'Not sent yet'}
               </p>
             </div>
 
             {/* FU 1 */}
-            <div className="rounded-lg border border-[#23272f] bg-[#0d0f12] p-3 text-xs">
-              <span className="text-[11px] font-semibold text-gray-400 block mb-1">
+            <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs">
+              <span className="text-[11px] font-semibold text-gray-500 block mb-1">
                 Follow-up 1 (Day 2)
               </span>
-              <p className="font-medium text-gray-200 line-clamp-1">{campaign.followUp1Subject || 'Scheduled'}</p>
-              <p className="text-[10px] text-gray-400 font-mono mt-1">
+              <p className="font-medium text-gray-800 line-clamp-1">{campaign.followUp1Subject || 'Scheduled'}</p>
+              <p className="text-[10px] text-gray-500 font-mono mt-1">
                 {campaign.followUp1SentAt ? formatDate(campaign.followUp1SentAt) : campaign.followUp1ScheduledAt ? `Due ${formatDate(campaign.followUp1ScheduledAt)}` : 'Waiting'}
               </p>
             </div>
 
             {/* FU 2 */}
-            <div className="rounded-lg border border-[#23272f] bg-[#0d0f12] p-3 text-xs">
-              <span className="text-[11px] font-semibold text-gray-400 block mb-1">
+            <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs">
+              <span className="text-[11px] font-semibold text-gray-500 block mb-1">
                 Follow-up 2 (Day 4)
               </span>
-              <p className="font-medium text-gray-200 line-clamp-1">{campaign.followUp2Subject || 'Scheduled'}</p>
-              <p className="text-[10px] text-gray-400 font-mono mt-1">
+              <p className="font-medium text-gray-800 line-clamp-1">{campaign.followUp2Subject || 'Scheduled'}</p>
+              <p className="text-[10px] text-gray-500 font-mono mt-1">
                 {campaign.followUp2SentAt ? formatDate(campaign.followUp2SentAt) : campaign.followUp2ScheduledAt ? `Due ${formatDate(campaign.followUp2ScheduledAt)}` : 'Waiting'}
               </p>
             </div>
 
             {/* FU 3 */}
-            <div className="rounded-lg border border-[#23272f] bg-[#0d0f12] p-3 text-xs">
-              <span className="text-[11px] font-semibold text-gray-400 block mb-1">
+            <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-3 text-xs">
+              <span className="text-[11px] font-semibold text-gray-500 block mb-1">
                 Follow-up 3 (Day 6)
               </span>
-              <p className="font-medium text-gray-200 line-clamp-1">{campaign.followUp3Subject || 'Final follow-up'}</p>
-              <p className="text-[10px] text-gray-400 font-mono mt-1">
+              <p className="font-medium text-gray-800 line-clamp-1">{campaign.followUp3Subject || 'Final follow-up'}</p>
+              <p className="text-[10px] text-gray-500 font-mono mt-1">
                 {campaign.followUp3SentAt ? formatDate(campaign.followUp3SentAt) : campaign.followUp3ScheduledAt ? `Due ${formatDate(campaign.followUp3ScheduledAt)}` : 'Waiting'}
               </p>
             </div>
@@ -127,39 +127,39 @@ export function HistoryModal({ campaign, isOpen, onClose }: HistoryModalProps) {
 
           {/* Event Stream */}
           <div>
-            <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-gray-400" />
               Email History
             </h4>
 
-            <div className="relative pl-5 space-y-3 border-l border-[#23272f] ml-2">
+            <div className="relative pl-5 space-y-3 border-l border-gray-200 ml-2">
               {campaign.history && campaign.history.length > 0 ? (
                 campaign.history.map(item => (
                   <div key={item.id} className="relative">
-                    <div className="absolute -left-[25px] top-1.5 h-2.5 w-2.5 rounded-full bg-blue-500 border border-[#14171c]" />
-                    <div className="rounded-lg border border-[#23272f] bg-[#0d0f12] p-3">
+                    <div className="absolute -left-[25px] top-1.5 h-2.5 w-2.5 rounded-full bg-[#7c3aed] border-2 border-white shadow-xs" />
+                    <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-xs">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-gray-200">{item.title}</span>
+                        <span className="text-xs font-semibold text-gray-900">{item.title}</span>
                         <span className="text-[10px] text-gray-400 font-mono">
                           {formatDate(item.timestamp)}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 leading-relaxed">{item.description}</p>
+                      <p className="text-xs text-gray-600 leading-relaxed">{item.description}</p>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-gray-400">No activity recorded yet.</p>
+                <p className="text-xs text-gray-500">No activity recorded yet.</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-3 border-t border-[#23272f] pt-3 flex justify-end">
+        <div className="mt-3 border-t border-gray-200 pt-3 flex justify-end">
           <button
             onClick={onClose}
-            className="rounded-md border border-[#23272f] px-3.5 py-1 text-xs font-medium text-gray-300 hover:bg-[#23272f]"
+            className="rounded-lg border border-gray-200 px-3.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
           >
             Close
           </button>

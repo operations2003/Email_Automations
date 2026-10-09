@@ -1,22 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import {
-  ShieldCheck,
-  UserCheck,
-  Lock,
-  Mail,
-  ArrowRight,
-  Sparkles,
-  KeyRound,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export function LoginScreen() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,159 +25,134 @@ export function LoginScreen() {
 
     const res = await login(email, password);
     if (!res.success) {
-      setError(res.error || 'Authentication failed. Please verify credentials.');
+      setError(res.error || 'Authentication failed. Please check your email and password.');
     }
     setLoading(false);
   };
 
-  const handleQuickLogin = async (targetEmail: string, targetPass: string) => {
-    setEmail(targetEmail);
-    setPassword(targetPass);
-    setError(null);
-    setLoading(true);
-    const res = await login(targetEmail, targetPass);
-    if (!res.success) {
-      setError(res.error || 'Login failed');
-    }
-    setLoading(false);
-  };
 
   return (
-    <div className="min-h-screen bg-[#0d0f12] text-gray-100 flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600/10 border border-blue-500/20 text-blue-400 mb-2 shadow-lg shadow-blue-500/10">
-            <Sparkles className="h-6 w-6 text-blue-400" />
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">AutoReach AI</h1>
-          <p className="text-xs text-gray-400">
-            Role-Based Access Control • Sign in to continue
-          </p>
-        </div>
+    <div className="min-h-screen h-screen max-h-screen bg-[#f3f4f8] text-gray-900 flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden font-sans select-none">
+      {/* Main Split Card Container */}
+      <div className="w-full max-w-4xl max-h-[92vh] rounded-3xl bg-white shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-gray-100">
 
-        {/* Login Card */}
-        <div className="rounded-2xl border border-[#23272f] bg-[#14171c] p-6 sm:p-8 shadow-2xl space-y-6">
-          {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
+        {/* Left Column: Clean White Form */}
+        <div className="lg:col-span-6 p-6 sm:p-8 lg:p-10 flex flex-col justify-between">
+          <div>
+            {/* Brand Logo Header */}
+            <div className="flex items-center gap-2 mb-6">
+              <div className="h-5 w-2.5 rounded-xs bg-[#7c3aed]" />
+              <span className="font-bold text-sm text-gray-900 tracking-tight">AutoReach AI</span>
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">
-                Work Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+            {/* Greetings Header */}
+            <div className="space-y-1 mb-5">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight leading-tight">
+                Hello,<br />
+                Welcome Back
+              </h1>
+              <p className="text-xs text-gray-500 font-normal">
+                Sign in to access your company outreach workspace
+              </p>
+            </div>
+
+            {/* Error Banner */}
+            {error && (
+              <div className="flex items-center gap-2 p-2.5 mb-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs">
+                <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />
+                <span className="truncate">{error}</span>
+              </div>
+            )}
+
+            {/* Sign-in Form */}
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              <div>
                 <input
                   type="email"
                   required
                   placeholder="name@tasknera.com"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="w-full rounded-xl bg-[#0d0f12] border border-[#23272f] py-2.5 pl-9 pr-3 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono transition-colors"
+                  className="w-full rounded-xl bg-white border border-gray-200 py-2.5 px-3.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] transition-colors"
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">
-                Password
-              </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   placeholder="••••••••••••"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full rounded-xl bg-[#0d0f12] border border-[#23272f] py-2.5 pl-9 pr-3 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono transition-colors"
+                  className="w-full rounded-xl bg-white border border-gray-200 py-2.5 pl-3.5 pr-10 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#7c3aed] focus:ring-1 focus:ring-[#7c3aed] transition-colors"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 py-2.5 text-xs font-semibold text-white shadow-lg shadow-blue-600/25 transition-all hover:scale-[1.01] disabled:opacity-50 mt-2"
-            >
-              {loading ? (
-                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
+              {/* Remember Me & Forgot Password */}
+              <div className="flex items-center justify-between text-xs pt-0.5">
+                <label className="flex items-center gap-2 cursor-pointer select-none text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={e => setRememberMe(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-gray-300 text-[#7c3aed] focus:ring-0 cursor-pointer accent-[#7c3aed]"
+                  />
+                  <span className="text-[11px]">Remember me</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setError('Please contact your administrator (sheetalbedi@tasknera.com) to reset your credentials.')}
+                  className="text-gray-400 hover:text-[#7c3aed] transition-colors text-[11px] cursor-pointer"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+
+              {/* Solid Purple Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl bg-[#7c3aed] hover:bg-[#6d28d9] py-2.5 text-xs font-semibold text-white shadow-sm hover:shadow transition-all active:scale-[0.99] disabled:opacity-50 mt-1 cursor-pointer"
+              >
+                {loading ? (
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                ) : (
                   <span>Sign In</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Quick Login Role Selectors */}
-          <div className="border-t border-[#23272f] pt-5 space-y-3">
-            <span className="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-center">
-              Quick Role Sign-In
-            </span>
-
-            <div className="grid grid-cols-1 gap-2.5">
-              {/* Admin Card */}
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('sheetalbedi@tasknera.com', 'tasknera@2003')}
-                className="flex items-start gap-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-left transition-colors group"
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                  <ShieldCheck className="h-4 w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-300">Sheetal Bedi (Admin)</span>
-                    <span className="text-[10px] font-semibold uppercase px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400">
-                      Full Admin
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-400 font-mono truncate">sheetalbedi@tasknera.com</p>
-                  <p className="text-[10px] text-gray-500 mt-0.5">
-                    Settings, API keys, delete targets & full oversight
-                  </p>
-                </div>
+                )}
               </button>
+            </form>
 
-              {/* Employee Card - Atul */}
+            {/* Footer with Sign Up */}
+            <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
+              <span>Don&apos;t have an account? </span>
               <button
                 type="button"
-                onClick={() => handleQuickLogin('atul@tasknera.com', 'atul@1010')}
-                className="flex items-start gap-3 p-3 rounded-xl border border-blue-500/30 bg-blue-500/5 hover:bg-blue-500/10 text-left transition-colors group"
+                className="text-[#7c3aed] font-semibold hover:underline cursor-pointer"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                  <UserCheck className="h-4 w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-blue-300">Atul (Employee)</span>
-                    <span className="text-[10px] font-semibold uppercase px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400">
-                      Employee
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-400 font-mono truncate">atul@tasknera.com</p>
-                  <p className="text-[10px] text-gray-500 mt-0.5">
-                    Draft, generate, send outreach & record replies
-                  </p>
-                </div>
+                Sign Up
               </button>
             </div>
           </div>
         </div>
 
-        {/* Security badge footer */}
-        <div className="text-center">
-          <p className="text-[11px] text-gray-500 flex items-center justify-center gap-1.5">
-            <KeyRound className="h-3 w-3" />
-            <span>Secure Role-Based Access Control (RBAC) Active</span>
-          </p>
+        {/* Right Column: Clean Solid Purple Illustration Container - Nothing Extra */}
+        <div className="hidden lg:flex lg:col-span-6 bg-[#7c3aed] p-6 lg:p-8 items-center justify-center overflow-hidden rounded-r-3xl relative">
+          <div className="relative w-full aspect-square max-w-[340px] rounded-2xl overflow-hidden shadow-lg bg-[#7c3aed]">
+            <Image
+              src="/auth-banner.jpg"
+              alt="AutoReach AI Security and Authentication"
+              fill
+              priority
+              className="object-cover"
+            />
+          </div>
         </div>
       </div>
     </div>

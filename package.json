@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "test:db": "node test-mongo.mjs",
-    "test:rbac": "node test-rbac.mjs"
+    "lint": "eslint"
   },
   "dependencies": {
     "lucide-react": "^1.53.0",
