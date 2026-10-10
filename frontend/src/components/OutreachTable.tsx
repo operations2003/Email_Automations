@@ -49,7 +49,6 @@ export const ALL_STATUSES: OutreachStatus[] = [
   'Draft',
   'Ready to Send',
   'Initial Email Sent',
-  'Follow-Up Scheduled',
   'Follow-Up 1 Sent',
   'Follow-Up 2 Sent',
   'Follow-Up 3 Sent',
@@ -58,8 +57,7 @@ export const ALL_STATUSES: OutreachStatus[] = [
   'Meeting Scheduled',
   'Not Interested',
   'Closed',
-  'Completed - No Response',
-  'Follow-Up Paused'
+  'Completed - No Response'
 ];
 
 export function OutreachTable({
