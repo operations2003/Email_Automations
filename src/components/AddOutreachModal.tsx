@@ -5,7 +5,6 @@ import { GeneratedEmailResult, OutreachService } from '@/types/outreach';
 import { Company } from '@/types/company';
 import {
   X,
-  Send,
   RefreshCw,
   AlertTriangle,
   Building2,
@@ -901,18 +900,9 @@ export function AddOutreachModal({
                     <button
                       type="button"
                       onClick={handleSaveDraft}
-                      className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-900 font-medium cursor-pointer"
+                      className="rounded-lg bg-slate-900 hover:bg-slate-800 px-3.5 py-1.5 text-xs font-medium text-white transition-colors cursor-pointer shadow-xs"
                     >
                       Save Draft
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleSendEmail}
-                      disabled={isSending}
-                      className="flex items-center gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
-                    >
-                      {isSending ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                      <span>{isSending ? 'Sending...' : 'Send Email'}</span>
                     </button>
                   </div>
                 </div>
