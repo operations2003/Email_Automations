@@ -241,76 +241,76 @@ export function generateSubjectLineVariations(
   const seed = seedKey || `${cleanComp}_${intent}`;
 
   // Ultra-simple 2-4 word subject lines engineered for primary inbox placement
-  // Using exact "Quick question about [topic]" pattern as requested
+  // Using exact "Quick Question About [topic]" pattern with proper capitalization
   const subjectTemplates = {
     vcs: {
-      primary: [`Quick question about customer support`, `Quick question about ${cleanComp}`, `Quick question about support`, `Question about customer support`],
-      direct: [`Customer support question`, `Support inquiry`, `${cleanComp} support question`],
-      valueFocused: [`${cleanComp} customer support`, `Support team question`, `Customer service inquiry`],
-      conversational: [`Quick question about support`, `Question about ${cleanComp}`, `Brief support question`]
+      primary: [`Quick Question About Customer Support`, `Quick Question About ${cleanComp}`, `Quick Question About Support`, `Question About Customer Support`],
+      direct: [`Customer Support Question`, `Support Inquiry`, `${cleanComp} Support Question`],
+      valueFocused: [`${cleanComp} Customer Support`, `Support Team Question`, `Customer Service Inquiry`],
+      conversational: [`Quick Question About Support`, `Question About ${cleanComp}`, `Brief Support Question`]
     },
     recruitment_services: {
-      primary: [`Quick question about hiring`, `Quick question about ${cleanComp}`, `Quick question about recruiting`, `Question about hiring`],
-      direct: [`Hiring question`, `Recruiting inquiry`, `${cleanComp} hiring question`],
-      valueFocused: [`${cleanComp} recruiting`, `Hiring team question`, `Recruiting support inquiry`],
-      conversational: [`Quick question about recruiting`, `Question about ${cleanComp}`, `Brief hiring question`]
+      primary: [`Quick Question About Hiring`, `Quick Question About ${cleanComp}`, `Quick Question About Recruiting`, `Question About Hiring`],
+      direct: [`Hiring Question`, `Recruiting Inquiry`, `${cleanComp} Hiring Question`],
+      valueFocused: [`${cleanComp} Recruiting`, `Hiring Team Question`, `Recruiting Support Inquiry`],
+      conversational: [`Quick Question About Recruiting`, `Question About ${cleanComp}`, `Brief Hiring Question`]
     },
     software_solutions: {
-      primary: [`Quick question about software`, `Quick question about ${cleanComp}`, `Quick question about operations`, `Question about HR systems`],
-      direct: [`Software question`, `Operations inquiry`, `${cleanComp} software question`],
-      valueFocused: [`${cleanComp} operations`, `Software systems inquiry`, `HR systems question`],
-      conversational: [`Quick question about systems`, `Question about ${cleanComp}`, `Brief software question`]
+      primary: [`Quick Question About Software`, `Quick Question About ${cleanComp}`, `Quick Question About Operations`, `Question About HR Systems`],
+      direct: [`Software Question`, `Operations Inquiry`, `${cleanComp} Software Question`],
+      valueFocused: [`${cleanComp} Operations`, `Software Systems Inquiry`, `HR Systems Question`],
+      conversational: [`Quick Question About Systems`, `Question About ${cleanComp}`, `Brief Software Question`]
     },
     ats_crm: {
-      primary: [`Quick question about hiring`, `Quick question about ${cleanComp}`, `Quick question about recruiting`, `Question about candidate screening`],
-      direct: [`Hiring question`, `Recruiting inquiry`, `${cleanComp} hiring question`],
-      valueFocused: [`${cleanComp} recruiting`, `Candidate screening question`, `Hiring support inquiry`],
-      conversational: [`Quick question about screening`, `Question about ${cleanComp}`, `Brief recruiting question`]
+      primary: [`Quick Question About Hiring`, `Quick Question About ${cleanComp}`, `Quick Question About Recruiting`, `Question About Candidate Screening`],
+      direct: [`Hiring Question`, `Recruiting Inquiry`, `${cleanComp} Hiring Question`],
+      valueFocused: [`${cleanComp} Recruiting`, `Candidate Screening Question`, `Hiring Support Inquiry`],
+      conversational: [`Quick Question About Screening`, `Question About ${cleanComp}`, `Brief Recruiting Question`]
     },
     hrms_crm: {
-      primary: [`Quick question about HR`, `Quick question about ${cleanComp}`, `Quick question about operations`, `Question about HR systems`],
-      direct: [`HR question`, `Operations inquiry`, `${cleanComp} HR question`],
-      valueFocused: [`${cleanComp} HR systems`, `HR operations question`, `Employee systems inquiry`],
-      conversational: [`Quick question about systems`, `Question about ${cleanComp}`, `Brief HR question`]
+      primary: [`Quick Question About HR`, `Quick Question About ${cleanComp}`, `Quick Question About Operations`, `Question About HR Systems`],
+      direct: [`HR Question`, `Operations Inquiry`, `${cleanComp} HR Question`],
+      valueFocused: [`${cleanComp} HR Systems`, `HR Operations Question`, `Employee Systems Inquiry`],
+      conversational: [`Quick Question About Systems`, `Question About ${cleanComp}`, `Brief HR Question`]
     },
     pain_screening_bottleneck: {
-      primary: [`Quick question about hiring`, `Quick question about ${cleanComp}`, `Quick question about recruiting`, `Question about screening`],
-      direct: [`Hiring question`, `Recruiting inquiry`, `${cleanComp} hiring question`],
-      valueFocused: [`${cleanComp} recruiting`, `Screening question`, `Hiring support inquiry`],
-      conversational: [`Quick question about screening`, `Question about ${cleanComp}`, `Brief hiring question`]
+      primary: [`Quick Question About Hiring`, `Quick Question About ${cleanComp}`, `Quick Question About Recruiting`, `Question About Screening`],
+      direct: [`Hiring Question`, `Recruiting Inquiry`, `${cleanComp} Hiring Question`],
+      valueFocused: [`${cleanComp} Recruiting`, `Screening Question`, `Hiring Support Inquiry`],
+      conversational: [`Quick Question About Screening`, `Question About ${cleanComp}`, `Brief Hiring Question`]
     },
     high_volume: {
-      primary: [`Quick question about hiring`, `Quick question about ${cleanComp}`, `Quick question about recruiting`, `Question about volume hiring`],
-      direct: [`Hiring question`, `Recruiting inquiry`, `${cleanComp} hiring question`],
-      valueFocused: [`${cleanComp} recruiting`, `Volume hiring question`, `Recruiting support inquiry`],
-      conversational: [`Quick question about recruiting`, `Question about ${cleanComp}`, `Brief hiring question`]
+      primary: [`Quick Question About Hiring`, `Quick Question About ${cleanComp}`, `Quick Question About Recruiting`, `Question About Volume Hiring`],
+      direct: [`Hiring Question`, `Recruiting Inquiry`, `${cleanComp} Hiring Question`],
+      valueFocused: [`${cleanComp} Recruiting`, `Volume Hiring Question`, `Recruiting Support Inquiry`],
+      conversational: [`Quick Question About Recruiting`, `Question About ${cleanComp}`, `Brief Hiring Question`]
     },
     recruiter_productivity: {
-      primary: [`Quick question about hiring`, `Quick question about ${cleanComp}`, `Quick question about recruiting`, `Question about productivity`],
-      direct: [`Hiring question`, `Recruiting inquiry`, `${cleanComp} hiring question`],
-      valueFocused: [`${cleanComp} recruiting`, `Productivity question`, `Recruiting support inquiry`],
-      conversational: [`Quick question about recruiting`, `Question about ${cleanComp}`, `Brief hiring question`]
+      primary: [`Quick Question About Hiring`, `Quick Question About ${cleanComp}`, `Quick Question About Recruiting`, `Question About Productivity`],
+      direct: [`Hiring Question`, `Recruiting Inquiry`, `${cleanComp} Hiring Question`],
+      valueFocused: [`${cleanComp} Recruiting`, `Productivity Question`, `Recruiting Support Inquiry`],
+      conversational: [`Quick Question About Recruiting`, `Question About ${cleanComp}`, `Brief Hiring Question`]
     },
     time_saving: {
-      primary: [`Quick question about hiring`, `Quick question about ${cleanComp}`, `Quick question about recruiting`, `Question about efficiency`],
-      direct: [`Hiring question`, `Recruiting inquiry`, `${cleanComp} hiring question`],
-      valueFocused: [`${cleanComp} recruiting`, `Efficiency question`, `Recruiting support inquiry`],
-      conversational: [`Quick question about recruiting`, `Question about ${cleanComp}`, `Brief hiring question`]
+      primary: [`Quick Question About Hiring`, `Quick Question About ${cleanComp}`, `Quick Question About Recruiting`, `Question About Efficiency`],
+      direct: [`Hiring Question`, `Recruiting Inquiry`, `${cleanComp} Hiring Question`],
+      valueFocused: [`${cleanComp} Recruiting`, `Efficiency Question`, `Recruiting Support Inquiry`],
+      conversational: [`Quick Question About Recruiting`, `Question About ${cleanComp}`, `Brief Hiring Question`]
     },
     soft_cta_curiosity: {
-      primary: [`Quick question about ${cleanComp}`, `Quick question about business`, `Question about collaboration`, `Quick question about partnership`],
-      direct: [`Business question`, `Partnership inquiry`, `${cleanComp} question`],
-      valueFocused: [`${cleanComp} partnership`, `Business inquiry`, `Collaboration question`],
-      conversational: [`Quick question about collaboration`, `Question about ${cleanComp}`, `Brief business question`]
+      primary: [`Quick Question About ${cleanComp}`, `Quick Question About Business`, `Question About Collaboration`, `Quick Question About Partnership`],
+      direct: [`Business Question`, `Partnership Inquiry`, `${cleanComp} Question`],
+      valueFocused: [`${cleanComp} Partnership`, `Business Inquiry`, `Collaboration Question`],
+      conversational: [`Quick Question About Collaboration`, `Question About ${cleanComp}`, `Brief Business Question`]
     }
   };
 
-  // Default fallback - using exact "Quick question about" pattern
+  // Default fallback - using exact "Quick Question About" pattern with proper capitalization
   const defaultTemplates = {
-    primary: [`Quick question about ${cleanComp}`, `Quick question about business`, `Question about ${cleanComp}`, `Quick question about partnership`],
-    direct: [`Business question`, `${cleanComp} inquiry`, `Partnership question`],
-    valueFocused: [`${cleanComp} partnership`, `Business inquiry`, `Collaboration question`],
-    conversational: [`Quick question about business`, `Question about ${cleanComp}`, `Brief question`]
+    primary: [`Quick Question About ${cleanComp}`, `Quick Question About Business`, `Question About ${cleanComp}`, `Quick Question About Partnership`],
+    direct: [`Business Question`, `${cleanComp} Inquiry`, `Partnership Question`],
+    valueFocused: [`${cleanComp} Partnership`, `Business Inquiry`, `Collaboration Question`],
+    conversational: [`Quick Question About Business`, `Question About ${cleanComp}`, `Brief Question`]
   };
 
   const templates = (subjectTemplates as Record<string, any>)[intent] || defaultTemplates;

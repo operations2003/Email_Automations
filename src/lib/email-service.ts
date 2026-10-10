@@ -57,13 +57,13 @@ export function optimizeSubjectForDeliverability(
   fallbackCompany?: string
 ): string {
   if (!subject || !subject.trim()) {
-    const fallback = fallbackCompany ? `Quick question about ${fallbackCompany.trim()}` : 'Quick question about business';
+    const fallback = fallbackCompany ? `Quick Question About ${fallbackCompany.trim()}` : 'Quick Question About Business';
     return stage && stage !== 'initial' ? `Re: ${fallback}` : fallback;
   }
 
   let text = subject.trim();
 
-  // PRESERVE "Quick question about" pattern exactly as requested
+  // PRESERVE "Quick Question About" pattern exactly as requested (with proper capitalization)
   if (text.toLowerCase().startsWith('quick question about')) {
     // Only apply threading for follow-ups, preserve the rest exactly
     if (stage && stage !== 'initial') {
