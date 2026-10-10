@@ -444,10 +444,83 @@ export async function sendOutreachEmail(
     }
   }
 
-  // 2. Resend API Provider (Official Resend SDK)
+  // 3. SendGrid API Provider (Professional Email Service)
+  const isSendGrid = settings.provider === 'sendgrid' || process.env.SENDGRID_API_KEY;
+
+  if (isSendGrid) {
+    const apiKey = process.env.SENDGRID_API_KEY || settings.sendgridApiKey;
+    if (!apiKey) {
+      throw new Error('SendGrid API key is missing. Add SENDGRID_API_KEY to environment or settings.');
+    }
+
+    const fromEmail = settings.senderEmail;
+    const toEmails = [{ email: payload.to }];
+    
+    if (cleanCcEmails.length > 0) {
+      toEmails.push(...cleanCcEmails.map(email => ({ email })));
+    }
+
+    const sendGridPayload = {
+      personalizations: [{
+        to: [{ email: payload.to }],
+        cc: cleanCcEmails.length > 0 ? cleanCcEmails.map(email => ({ email })) : undefined,
+        subject: optimizedSubject
+      }],
+      from: { 
+        email: fromEmail, 
+        name: settings.senderName 
+      },
+      content: [
+        {
+          type: 'text/plain',
+          value: fullBody
+        },
+        {
+          type: 'text/html', 
+          value: htmlBody
+        }
+      ],
+      headers: {
+        'X-Mailer': 'TaskNera Email Automation',
+        'List-Unsubscribe': generateUnsubscribeLink(settings),
+        'Reply-To': fromEmail
+      }
+    };
+
+    try {
+      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(sendGridPayload)
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`SendGrid API error: ${response.status} - ${error}`);
+      }
+
+      return {
+        success: true,
+        messageId: response.headers.get('x-message-id') || messageId,
+        timestamp: now,
+        provider: 'sendgrid'
+      };
+    } catch (err) {
+      const e = err as Error;
+      throw new Error(`SendGrid delivery failed: ${e.message}`);
+    }
+  }
+
+  // 4. Resend API Provider (Official Resend SDK)
   const isResend =
     settings.provider === 'resend' ||
-    Boolean(process.env.RESEND_API_KEY && (settings.provider as string) !== 'smtp' && (settings.provider as string) !== 'simulated');
+    Boolean(process.env.RESEND_API_KEY && 
+      (settings.provider as string) !== 'smtp' && 
+      (settings.provider as string) !== 'sendgrid' && 
+      (settings.provider as string) !== 'simulated');
 
   if (isResend) {
     const apiKey = (process.env.RESEND_API_KEY || settings.resendApiKey || '').trim();
