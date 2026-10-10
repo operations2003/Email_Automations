@@ -75,13 +75,22 @@ export function optimizeSubjectForDeliverability(
     .replace(/[!¡?¿$%*~^<>_{}[\]\\"]+/g, '')
     .replace(/['']/g, "'");
 
-  // 4. Strip aggressive spam trigger words and marketing buzzwords
+  // 4. Strip aggressive spam trigger words and marketing buzzwords + hiring/support specific spam patterns
   const spamWords = [
     /\b(100%|free|urgent|guarantee|guaranteed|risk-free|winner|congratulations)\b/gi,
     /\b(act now|apply now|limited time|call now|click here|special offer|special promotion)\b/gi,
     /\b(game-changing|revolutionary|cutting-edge|industry-leading|best-in-class|world-class|10x)\b/gi,
     /\b(supercharge|skyrocket|massive|unbelievable|miracle|magic)\b/gi,
-    /\b(discount|promo|deal|fast cash|make money|earn money)\b/gi
+    /\b(discount|promo|deal|fast cash|make money|earn money)\b/gi,
+    // Hiring/recruitment spam patterns
+    /\b(immediate hire|urgent hire|fast hire|hire now|instant hire)\b/gi,
+    /\b(dream job|perfect job|amazing opportunity|incredible opportunity)\b/gi,
+    /\b(top talent|best candidates|premium candidates|exclusive talent)\b/gi,
+    // Customer support spam patterns  
+    /\b(instant support|immediate help|urgent help|emergency support)\b/gi,
+    /\b(amazing service|incredible support|outstanding service|premium support)\b/gi,
+    // Generic business spam
+    /\b(breakthrough|transform|transformation|disrupt|disruption)\b/gi
   ];
 
   for (const regex of spamWords) {
@@ -89,8 +98,19 @@ export function optimizeSubjectForDeliverability(
   }
 
   // 5. Clean up extra punctuation, slashes, hyphens, and whitespace
+  // Remove problematic patterns that trigger spam filters
   text = text
     .replace(/\s*([/-])\s*/g, ' $1 ')
+    // Remove "quick question -" pattern that's often flagged
+    .replace(/^quick question\s*[-–—]\s*/gi, 'question about ')
+    // Replace spammy hiring phrases
+    .replace(/\bhiring\s+at\b/gi, 'talent at')
+    .replace(/\bresume\s+screening\b/gi, 'candidate review')
+    .replace(/\brecruiting\s+for\b/gi, 'talent for')
+    .replace(/\bhiring\s+support\b/gi, 'talent support')
+    // Replace spammy support phrases
+    .replace(/\bcustomer\s+support\s+for\b/gi, 'support for')
+    .replace(/\bsupport\s+team\s*[-–—]\s*/gi, 'support team ')
     .replace(/\s+/g, ' ')
     .replace(/^[-/,\s]+|[-/,\s]+$/g, '')
     .trim();
