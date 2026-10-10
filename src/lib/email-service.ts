@@ -57,11 +57,20 @@ export function optimizeSubjectForDeliverability(
   fallbackCompany?: string
 ): string {
   if (!subject || !subject.trim()) {
-    const fallback = fallbackCompany ? `quick question - ${fallbackCompany.trim()}` : 'quick question';
+    const fallback = fallbackCompany ? `Quick question about ${fallbackCompany.trim()}` : 'Quick question about business';
     return stage && stage !== 'initial' ? `Re: ${fallback}` : fallback;
   }
 
   let text = subject.trim();
+
+  // PRESERVE "Quick question about" pattern exactly as requested
+  if (text.toLowerCase().startsWith('quick question about')) {
+    // Only apply threading for follow-ups, preserve the rest exactly
+    if (stage && stage !== 'initial') {
+      return `Re: ${text}`;
+    }
+    return text;
+  }
 
   // 1. Detect and normalize existing 'Re:' thread prefix
   const isThreaded = /^(re:\s*)+/i.test(text) || (Boolean(stage) && stage !== 'initial');
@@ -98,18 +107,17 @@ export function optimizeSubjectForDeliverability(
   }
 
   // 5. Clean up extra punctuation, slashes, hyphens, and whitespace
-  // Remove problematic patterns that trigger spam filters
+  // Preserve "Quick question about" pattern as requested
   text = text
     .replace(/\s*([/-])\s*/g, ' $1 ')
-    // Remove "quick question -" pattern that's often flagged
-    .replace(/^quick question\s*[-–—]\s*/gi, 'question about ')
-    // Replace spammy hiring phrases
-    .replace(/\bhiring\s+at\b/gi, 'talent at')
-    .replace(/\bresume\s+screening\b/gi, 'candidate review')
-    .replace(/\brecruiting\s+for\b/gi, 'talent for')
-    .replace(/\bhiring\s+support\b/gi, 'talent support')
+    // DON'T modify "Quick question about" - preserve exactly as is
+    // Replace other spammy hiring phrases
+    .replace(/\bhiring\s+at\b/gi, 'hiring')
+    .replace(/\bresume\s+screening\b/gi, 'candidate review')  
+    .replace(/\brecruiting\s+for\b/gi, 'recruiting')
+    .replace(/\bhiring\s+support\b/gi, 'hiring support')
     // Replace spammy support phrases
-    .replace(/\bcustomer\s+support\s+for\b/gi, 'support for')
+    .replace(/\bcustomer\s+support\s+for\b/gi, 'customer support')
     .replace(/\bsupport\s+team\s*[-–—]\s*/gi, 'support team ')
     .replace(/\s+/g, ' ')
     .replace(/^[-/,\s]+|[-/,\s]+$/g, '')
