@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppSettings, OutreachService, DEFAULT_SERVICES, OutreachCampaign } from '@/types/outreach';
-import { CompanyManagement } from './CompanyManagement';
 import { useAuth } from '@/context/AuthContext';
 import {
   Save,
@@ -1975,10 +1974,6 @@ Fintech Hub, partnerships@fintechhub.com, Rahul`}
           )}
         </div>
 
-        {/* Company Management */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
-          <CompanyManagement isAdmin={isAdmin} />
-        </div>
 
         {/* Submit */}
         <div className="flex justify-end pt-2">

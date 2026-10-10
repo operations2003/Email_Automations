@@ -636,60 +636,64 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
     emailType = `followup1_${intent}`;
 
     const followUpOpenings = [
-      `I sent a note last week about how we help companies like ${cleanCompany} with ${intent.replace('_', ' ')}.`,
-      `Wanted to circle back on my message about supporting ${cleanCompany}'s ${intent.replace('_', ' ')} needs.`,
-      `Following up on my message about how we could help streamline operations at ${cleanCompany}.`
+      `I sent a note last week regarding how we help organizations like ${cleanCompany} streamline operations across ${intent.replace(/_/g, ' ')}.`,
+      `Wanted to follow up on my previous note about supporting ${cleanCompany}'s ${intent.replace(/_/g, ' ')} workflows.`,
+      `Reaching out to see if you had a moment to review my earlier note on eliminating operational bottlenecks at ${cleanCompany}.`
     ];
 
-    const followUpValues = {
-      vcs: `Many of our clients find that having dedicated support teams lets them focus on core business growth instead of managing customer service operations.`,
-      recruitment_services: `Most companies we work with see immediate relief once they have a dedicated team handling their recruitment pipeline.`,
-      software_solutions: `The companies we work with typically see better workflow efficiency within the first month of implementation.`,
-      ats_crm: `Teams using HireIQ typically cut their screening time by 60-70% while improving candidate quality.`,
-      hrms_crm: `Our clients usually see streamlined operations and better data visibility within weeks of implementation.`
+    const followUpValues: Record<string, string> = {
+      vcs: `Many expanding businesses find that dedicated support pods provide immediate relief, letting internal leaders focus on core revenue growth while our human pods manage multi-channel customer communications under strict SLAs.`,
+      recruitment_services: `Most organizations we partner with see significant time savings once our dedicated recruitment specialists take over candidate sourcing, screening, and interview coordination across active requisitions.`,
+      software_solutions: `Organizations we work with typically experience smoother workflows within weeks of centralizing their recruitment pipelines, employee records, and business operations into an integrated platform.`,
+      ats_crm: `Recruitment teams using HireIQ typically cut initial resume review time by 60% while improving candidate scoring accuracy and pipeline velocity.`,
+      hrms_crm: `Our clients consistently see fewer administrative errors and clearer operational visibility once their employee lifecycle management and customer workflows are connected.`,
+      pain_screening_bottleneck: `Teams that automate first-level resume screening typically save 8 to 10 hours per recruiter weekly, turning resume backlogs into vetted candidate shortlists.`,
+      high_volume: `When handling high candidate intake, automated parsing and ranking ensures your top talent doesn't get buried under hundreds of incoming applications.`,
+      recruiter_productivity: `Standardized candidate evaluation shortens submittal turnaround from days to hours, giving your team a decisive edge in closing high-demand talent.`,
+      time_saving: `Automating the manual screening drag frees your recruiting staff to focus on direct candidate engagement and hiring manager alignment.`
     };
 
     const followUpCTAs = [
-      `Still worth exploring for ${cleanCompany}?`,
-      `Would a brief conversation make sense for your team?`,
-      `Think this could be relevant for your current priorities?`
+      `Would a brief 10-minute conversation this week make sense to explore if this could benefit ${cleanCompany}?`,
+      `Would you be open to a quick 2-minute overview showing how this works in practice for teams like yours?`,
+      `Is this an initiative ${cleanCompany} is looking to optimize this quarter?`
     ];
 
     bodyContent = [
       greeting,
       followUpOpenings[Math.floor(Math.random() * followUpOpenings.length)],
-      followUpValues[intent as keyof typeof followUpValues] || followUpValues.software_solutions,
+      followUpValues[intent] || followUpValues.software_solutions,
       followUpCTAs[Math.floor(Math.random() * followUpCTAs.length)]
     ].join('\n\n');
   } else if (followUpNumber === 2) {
     emailType = `followup2_${intent}`;
 
-    const insights = {
-      vcs: `Most businesses handle about 30% more customer inquiries during growth phases, but internal teams often struggle to scale support quality consistently.`,
-      recruitment_services: `I've noticed that companies growing quickly often spend 40-50% of their time on recruitment logistics rather than strategic hiring decisions.`,
-      software_solutions: `Many companies we speak with mention that their biggest operational challenge is getting different systems to work together effectively.`,
-      ats_crm: `Most recruitment teams tell us they spend more time reading resumes than actually talking to qualified candidates.`,
-      hrms_crm: `One thing I've learned from our clients is that disconnected HR and CRM systems often create duplicate data entry and missed opportunities.`
+    const insights: Record<string, string> = {
+      vcs: `Most growing businesses experience a 30% surge in customer inquiries during scale, but internal teams often struggle to maintain consistent response speeds across live chat, voice, and WhatsApp. TaskNera's dedicated support pods solve this without the overhead of hiring an in-house call center.`,
+      recruitment_services: `Companies scaling rapidly often spend up to half their team's time managing sourcing logistics rather than conducting strategic interviews. Our specialized recruiters handle the entire sourcing and vetting pipeline so your hiring managers only meet top-tier contenders.`,
+      software_solutions: `A common pattern we see in growing companies is operational drag caused by juggling disconnected HR tools and spreadsheets. Connecting candidate pipelines, employee management, and client records into one digital ecosystem eliminates duplicate work and gives leadership full clarity.`,
+      ats_crm: `Most recruitment teams tell us they spend more time manually cross-referencing resumes against job criteria than engaging with top candidates. HireIQ automates that initial scoring step so your recruiters focus strictly on qualified talent.`,
+      hrms_crm: `Disconnected HR and customer systems frequently create double data entry and administrative bottlenecks. An integrated setup ensures your people operations and business workflows stay aligned seamlessly.`
     };
 
     bodyContent = [
       greeting,
-      insights[intent as keyof typeof insights] || insights.software_solutions,
+      insights[intent] || insights.software_solutions,
       `That's exactly what we help companies like ${cleanCompany} solve.`,
-      `Would it be helpful to see how this works in practice?`
+      `Would it be helpful to see a brief walkthrough of how we implement this for companies like ${cleanCompany}?`
     ].join('\n\n');
   } else if (followUpNumber === 3) {
     emailType = `followup3_${intent}`;
 
     const qualifyingQuestions = [
-      `Is streamlining ${intent.replace('_', ' ')} something ${cleanCompany} is actively working on this quarter?`,
-      `Are you currently looking at solutions to improve your ${intent.replace('_', ' ')} processes?`,
-      `How is ${cleanCompany} handling ${intent.replace('_', ' ')} challenges right now?`
+      `Is streamlining ${intent.replace(/_/g, ' ')} currently on ${cleanCompany}'s roadmap for this quarter, or are your existing workflows already covered?`,
+      `Are you exploring solutions to improve efficiency in your ${intent.replace(/_/g, ' ')} operations right now, or is your current setup meeting all your needs?`,
+      `How is ${cleanCompany} currently approaching ${intent.replace(/_/g, ' ')} challenges, and would an external specialist team provide useful leverage?`
     ];
 
     bodyContent = [
       greeting,
-      `I've reached out a couple times about how we help with ${intent.replace('_', ' ')} at companies like ${cleanCompany}.`,
+      `I've reached out previously regarding how TaskNera supports companies like ${cleanCompany} with ${intent.replace(/_/g, ' ')}.`,
       qualifyingQuestions[Math.floor(Math.random() * qualifyingQuestions.length)]
     ].join('\n\n');
   } else {
@@ -697,9 +701,9 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
 
     bodyContent = [
       greeting,
-      `I know you're busy, so I'll keep this brief.`,
-      `If ${intent.replace('_', ' ')} support becomes a priority for ${cleanCompany} in the future, feel free to reach out.`,
-      `Thanks for your time.`
+      `I know you have a full schedule, so I won't keep following up.`,
+      `If ${intent.replace(/_/g, ' ')} support or operational scaling becomes a priority for ${cleanCompany} down the road, please feel free to reach out anytime.`,
+      `Wishing you and the ${cleanCompany} team continued success.`
     ].join('\n\n');
   }
 
@@ -775,70 +779,105 @@ function analyzeRecipientContext(recipientName?: string, companyName?: string, c
   };
 }
 
-// Natural conversation starters based on context
-function generateContextualOpening(context: any, companyName: string, intent: OutreachIntent) {
-  const { firstName, designation, industry, hasPersonalization } = context;
+// Natural, substantive conversation starters (30-40 words)
+function generateContextualOpening(context: any, companyName: string, intent: OutreachIntent): string {
+  const { designation, hasPersonalization } = context;
   
-  const openings = {
+  const openings: Record<string, string[]> = {
     vcs: [
-      `I came across ${companyName} while looking at VCS hiring and wanted to ask you a quick question: are you planning to build the support team in-house, or would an external team assist with the workload?`,
-      hasPersonalization ? 
-        `I came across your work at ${companyName} and thought you might find this relevant.` :
-        `I wanted to reach out about something that might be relevant for ${companyName}.`,
-      hasPersonalization ? 
-        `I noticed ${companyName}'s growth and wanted to share something that could be helpful.` :
-        `I've been following ${companyName} and wanted to share something that caught my attention.`
+      `I am reaching out regarding customer engagement and operational support at ${companyName}. As customer inquiries scale, managing responsive communications across voice, live chat, email, and WhatsApp often strains internal team bandwidth and increases operational overhead.`,
+      hasPersonalization && designation ?
+        `I noticed your role as ${designation} at ${companyName} and wanted to check how your team currently handles multi-channel customer communications. Scaling support operations internally often brings high hiring friction and rising management costs.` :
+        `I came across ${companyName}'s growth and wanted to ask how your team is managing day-to-day customer inquiries. Providing consistent support coverage across channels can quickly become an operational bottleneck for expanding teams.`,
+      `I wanted to reach out regarding ${companyName}'s customer support workflows. Many expanding teams find that customer communications consume significant internal time that could otherwise be dedicated to core business growth.`
     ],
     recruitment_services: [
-      designation ? 
-        `Saw your role as ${designation} at ${companyName} and thought this might resonate.` :
-        `I wanted to reach out regarding something that might be relevant for your hiring needs.`,
-      hasPersonalization ? 
-        `I've been thinking about the hiring challenges facing companies like ${companyName}.` :
-        `I wanted to discuss something that might help with your talent acquisition efforts.`
+      designation ?
+        `Saw your role as ${designation} at ${companyName} and wanted to reach out regarding your current talent acquisition pipeline. Sourcing and vetting qualified candidates across active requisitions often takes considerable hours away from strategic business priorities.` :
+        `I wanted to reach out regarding ${companyName}'s hiring operations and how your team is managing talent pipelines for upcoming growth requirements. Sourcing and screening qualified candidates can easily become a major drag on internal team bandwidth.`,
+      `I've been following ${companyName}'s trajectory and wanted to discuss your hiring operations. Identifying top talent while managing end-to-end recruitment logistics is often one of the toughest challenges for growing organizations.`
     ],
     software_solutions: [
-      `I wanted to share something that might streamline your operations at ${companyName}.`,
-      hasPersonalization ? 
-        `I noticed how ${companyName} is growing and thought you might find this interesting.` :
-        `I came across ${companyName} and wanted to share something that could be valuable.`
+      `I am reaching out to see how ${companyName} currently approaches operational visibility across people operations and business workflows. Disconnected tools and manual administrative handoffs often introduce friction as teams scale.`,
+      hasPersonalization && designation ?
+        `I noticed your role as ${designation} at ${companyName} and wanted to connect regarding your internal operational workflows. Teams frequently struggle with fragmented software stacks when coordinating human resources, employee records, and business processes.` :
+        `I wanted to reach out regarding operational efficiency at ${companyName}. When business systems are separated across different tools, routine employee administration and pipeline tracking often create unnecessary manual overhead.`
+    ],
+    ats_crm: [
+      designation ?
+        `I noticed your recruitment focus as ${designation} at ${companyName}. When managing active hiring requisitions, recruiters often spend hours each day manually sifting through candidate resumes to evaluate qualifications against role specifications.` :
+        `When managing active hiring requisitions at ${companyName}, manual resume screening often becomes one of the slowest bottlenecks before candidate interviews, with recruiters spending hours evaluating mismatched CVs.`,
+      `I wanted to connect regarding candidate evaluation at ${companyName}. In high-demand hiring, manual resume review creates substantial drag on submittal turnaround and limits recruiter productivity.`
+    ],
+    hrms_crm: [
+      `Managing ${companyName}'s operational growth—coordinating employee records, onboarding, leave, and payroll alongside client relationships often requires toggling between disconnected software tools and manual spreadsheets.`,
+      `I wanted to reach out regarding workforce management at ${companyName}. As organizations expand, managing employee lifecycle workflows and customer relationships across separate platforms creates duplicate work and data blindspots.`
+    ],
+    pain_screening_bottleneck: [
+      `Managing active hiring requisitions at ${companyName} often leads to consultants spending hours filtering through mismatched resumes just to identify a few viable candidates.`,
+      `When applicant volumes surge at ${companyName}, manual screening quickly becomes the biggest operational bottleneck, slowing down submittals and leaving hiring managers waiting.`
+    ],
+    high_volume: [
+      `Curious how your hiring team at ${companyName} currently manages high-volume applicant intake. When candidate volume surges, valuable talent pools often sit underutilized because re-screening past profiles manually takes too long.`,
+      `Managing high-volume recruitment at ${companyName} often requires enormous screening effort just to separate top contenders from hundreds of incoming submissions.`
+    ],
+    recruiter_productivity: [
+      `In fast-moving recruitment, submitting vetted shortlists to hiring managers quickly often determines who secures the best talent for ${companyName}.`,
+      `Recruitment teams at ${companyName} often lose substantial billing time to repetitive administrative screening instead of actively engaging top candidates.`
+    ],
+    time_saving: [
+      `Reaching out regarding ${companyName}'s recruitment operations and how your team handles candidate evaluation. Manual resume review often consumes 8 to 10 hours per recruiter every week.`,
+      `If your team at ${companyName} is spending substantial hours cross-referencing candidate CVs against complex job criteria, that manual administrative drag slows down your entire placement cycle.`
+    ],
+    soft_cta_curiosity: [
+      `I am reaching out regarding how ${companyName} currently coordinates workforce operations and hiring pipelines. Teams often encounter hidden friction when managing disconnected administrative processes.`,
+      `Reaching out regarding ${companyName}'s operational workflows to share how modern organizations are eliminating manual administrative overhead in their hiring and people operations.`
     ]
   };
 
-  const categoryOpenings = openings[intent as keyof typeof openings] || openings.software_solutions;
+  const categoryOpenings = openings[intent] || openings.software_solutions;
   return categoryOpenings[Math.floor(Math.random() * categoryOpenings.length)];
 }
 
-// Natural value propositions without buzzwords
-function generateNaturalValueProp(intent: OutreachIntent, context: any, companyName: string) {
-  const { industry, rolePains } = context;
+// Substantive value propositions with concrete capabilities and business outcomes (55-75 words)
+function generateNaturalValueProp(intent: OutreachIntent, context: any, companyName: string): string {
+  const { industry } = context;
   
-  const valueProp = {
-    vcs: `At TaskNera, we help businesses handle day-to-day customer support, including calls, chats, emails, and follow-ups through dedicated human pods. We essentially become an extension of your team, following your processes and maintaining your service standards while you focus on growing the business.`,
+  const valueProp: Record<string, string> = {
+    vcs: `TaskNera provides Virtual Customer Support (VCS) through dedicated human pods that operate as a direct extension of your team. We handle front-line customer inquiries across phone, live chat, email, and WhatsApp under strict SLAs. Our teams follow your exact brand guidelines and processes, giving you reliable, multi-channel support capacity and rapid resolution times without the overhead of building an in-house support center.`,
     
     recruitment_services: industry === 'technology' ? 
-      `We handle the entire recruitment process for tech companies - from sourcing developers to screening and coordinating interviews. It's like having a dedicated hiring team without the overhead.` :
-      `We take care of end-to-end recruitment - sourcing, screening, and coordinating interviews across all types of roles. Think of it as your external hiring team that knows your standards.`,
+      `TaskNera handles end-to-end recruitment for technology and product organizations—from talent sourcing and deep technical screening to structured shortlisting and interview coordination. We build qualified, pre-vetted candidate pipelines aligned with your hiring bar, effectively serving as your dedicated recruitment arm so your engineering leaders only spend interview time on top-tier candidates.` :
+      `TaskNera manages full-cycle recruitment across permanent, contract, executive, IT, and high-volume hiring. We take care of sourcing, screening, candidate evaluation, and interview scheduling across all departments. Think of our specialists as your external hiring team that understands your quality benchmarks and accelerates your time-to-hire.`,
     
-    software_solutions: `We've built HR technology that actually connects the dots - recruitment, employee management, and client relationships all work together instead of being separate systems.`,
+    software_solutions: `TaskNera delivers comprehensive HR technology and digital solutions designed to unify disconnected operations. Our integrated platform connects recruitment pipelines, employee lifecycle records, workforce dashboards, and customer relationships into one cohesive ecosystem. By automating routine handoffs and centralizing key data, we eliminate duplicate data entry, reduce administrative overhead, and provide leadership with clear real-time operational visibility.`,
     
-    ats_crm: `HireIQ reads through resumes and matches them against your job requirements automatically. Instead of spending hours reviewing CVs, you get ranked lists of qualified candidates in minutes.`,
+    ats_crm: `HireIQ by TaskNera is an AI-powered recruitment intelligence platform that analyzes incoming resumes against your specific job criteria in seconds. Our platform parses key skills, provides transparent candidate matching scores, and automatically ranks applicants so your recruiters can immediately focus on the most qualified profiles. Integrated with candidate CRM tracking, it keeps your requisition pipelines organized without manual spreadsheet drag.`,
     
-    hrms_crm: `Our HRMS handles everything from employee records to payroll, and connects with your customer management. It's designed for businesses that want their people operations and client work to flow together seamlessly.`
+    hrms_crm: `TaskNera's HRMS centralizes essential employee lifecycle workflows—including employee records, onboarding, leave, attendance, payroll, and performance management—and connects directly with customer management. This unified architecture ensures your people operations and business relationships work together seamlessly, eliminating data silos and administrative friction as ${companyName} grows.`,
+
+    pain_screening_bottleneck: `Our recruitment intelligence platform automates first-level screening by matching CVs directly against your exact job specifications. It instantly highlights matching skills, flags missing prerequisites, and ranks top applicants so your team only spends interview time on qualified candidates, reducing screening turnaround from days to minutes.`,
+
+    high_volume: `Our platform processes large batches of resumes in minutes, evaluating candidates against defined criteria and auto-ranking talent pools. This allows your team to reactivate existing candidate databases and surface top applicants before competitors even complete their initial manual review.`,
+
+    recruiter_productivity: `Our recruitment intelligence platform standardizes candidate evaluation against your criteria, giving recruiters consistent matching scores in seconds. This eliminates manual resume reading, shortens submittal turnaround from days to hours, and frees up your team to focus on high-value candidate engagement and placements.`,
+
+    time_saving: `If your team spends significant time manually reviewing CVs against job specifications, our platform automates that initial screening pass. It parses resumes, highlights key skill alignments, and ranks applicants objectively, typically saving recruiters 8 to 10 hours every week.`,
+
+    soft_cta_curiosity: `TaskNera delivers integrated workforce and HR solutions that help growing organizations streamline operations, accelerate talent shortlisting, and maintain clear operational control without administrative bottlenecks.`
   };
 
-  return valueProp[intent as keyof typeof valueProp] || valueProp.software_solutions;
+  return valueProp[intent] || valueProp.software_solutions;
 }
 
-// Natural, conversational CTAs
-function generateNaturalCTA(intent: OutreachIntent, companyName: string, context: any) {
+// Conversational, professional CTAs (15-20 words)
+function generateNaturalCTA(intent: OutreachIntent, companyName: string, context: any): string {
   const ctas = [
-    `If you're already covered, no worries at all. I thought I'd ask in case extra support capacity is useful right now.`,
-    `Worth a quick chat to see if this makes sense for ${companyName}?`,
-    `Would you be open to a brief conversation about how this could work for your team?`,
-    `Interested in seeing how this might fit with what you're building at ${companyName}?`,
-    `Would it be helpful if I showed you how this works in practice?`,
-    `Think this could be relevant for your current priorities?`
+    `Would you be open to a short 10-minute conversation to explore how this could support ${companyName}'s current priorities?`,
+    `Would it be helpful if I shared a brief 2-minute overview showing how we streamline these operations for teams like ${companyName}?`,
+    `Would you be open to a brief call this week to see if our solutions align with what you're building at ${companyName}?`,
+    `If this is something you're looking to optimize this quarter, I'd welcome the chance to share a quick walkthrough. Would you be open to connecting?`,
+    `Worth a brief 10-minute chat to compare notes and see if this makes sense for ${companyName}?`
   ];
   
   return ctas[Math.floor(Math.random() * ctas.length)];
