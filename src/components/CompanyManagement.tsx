@@ -16,7 +16,6 @@ import {
   User,
   Check,
   AlertTriangle,
-  Send,
   Search,
   Sparkles
 } from 'lucide-react';
@@ -584,16 +583,6 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
 
                     {/* Quick action buttons */}
                     <div className="flex items-center gap-1.5">
-                      {onStartOutreach && (
-                        <button
-                          onClick={() => onStartOutreach(company)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-900 text-slate-700 hover:text-white border border-slate-200 text-[11px] font-medium transition-colors cursor-pointer"
-                          title={`Send outreach email to ${company.name}`}
-                        >
-                          <Send className="w-3 h-3" />
-                          <span>Send Mail</span>
-                        </button>
-                      )}
 
                       <button
                         onClick={() => handleStartEdit(company)}
