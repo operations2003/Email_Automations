@@ -160,13 +160,14 @@ export interface AppSettings {
   followUpIntervalDays: number; // default 2
   maxFollowUps: number; // default 3
   openAiApiKey?: string;
-  provider: 'simulated' | 'smtp' | 'resend';
+  provider: 'simulated' | 'smtp' | 'resend' | 'sendgrid';
   smtpHost?: string;
   smtpPort?: number;
   smtpUser?: string;
   smtpPass?: string;
   smtpSecure?: boolean;
   resendApiKey?: string;
+  sendgridApiKey?: string;
   dailySendingLimit?: number; // default 50
   minIntervalSeconds?: number; // default 45
   enableUnsubscribeHeader?: boolean; // default true

@@ -99,11 +99,12 @@ export interface AppSettings {
   followUpIntervalDays: number; // default 2
   maxFollowUps: number; // default 3
   openAiApiKey?: string;
-  provider: 'simulated' | 'smtp' | 'resend';
+  provider: 'simulated' | 'smtp' | 'resend' | 'sendgrid';
   smtpHost?: string;
   smtpPort?: number;
   smtpUser?: string;
   resendApiKey?: string;
+  sendgridApiKey?: string;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {

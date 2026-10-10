@@ -51,6 +51,10 @@ function generateMessageId(): string {
  * 4. Zero marketing punctuation: Strips exclamation marks, question marks, emojis, brackets, quotes.
  * 5. Threading: Automatically ensures follow-ups thread with clean 'Re: ' prefix.
  */
+export function generateUnsubscribeLink(settings: any): string {
+  return settings.unsubscribeUrl || 'mailto:unsubscribe@tasknera.com';
+}
+
 export function optimizeSubjectForDeliverability(
   subject: string,
   stage?: 'initial' | 'followup_1' | 'followup_2' | 'followup_3',
@@ -513,7 +517,7 @@ export async function sendOutreachEmail(
       return {
         success: true,
         messageId: response.headers.get('x-message-id') || messageId,
-        timestamp: now,
+        deliveredAt: now,
         provider: 'sendgrid'
       };
     } catch (err) {
