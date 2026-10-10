@@ -1,3 +1,4 @@
+import { cleanGreeting } from './ai-engine';
 import fs from 'fs/promises';
 import path from 'path';
 import { OutreachCampaign, EmailHistoryEvent } from '@/types/outreach';
@@ -26,7 +27,14 @@ export async function readCampaigns(): Promise<OutreachCampaign[]> {
     if (db) {
       const col = db.collection<OutreachCampaign>('campaigns');
       const docs = await col.find({}).sort({ updatedAt: -1, createdAt: -1 }).toArray();
-      const loaded = docs.map(({ _id, ...rest }: any) => rest as OutreachCampaign);
+      const loaded = docs.map(({ _id, ...rest }: any) => {
+        const c = rest as OutreachCampaign;
+        if (c.initialEmailBody) c.initialEmailBody = cleanGreeting(c.initialEmailBody);
+        if (c.followUp1Body) c.followUp1Body = cleanGreeting(c.followUp1Body);
+        if (c.followUp2Body) c.followUp2Body = cleanGreeting(c.followUp2Body);
+        if (c.followUp3Body) c.followUp3Body = cleanGreeting(c.followUp3Body);
+        return c;
+      });
       inMemoryCampaigns = loaded;
       return loaded;
     }

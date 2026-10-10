@@ -450,6 +450,14 @@ export function validateEmailQuality(
 }
 
 // Sanitizes and formats clean text (strips markdown bold, quotes, and json wrappers)
+// Normalizes awkward greetings (e.g. "Hi there [Name]," -> "Hi [Name],") into clean B2B standards
+export function cleanGreeting(raw?: string): string {
+  if (!raw) return raw || '';
+  return raw
+    .replace(/^Hi there\s+([^,\n\r]+),/im, 'Hi $1,')
+    .replace(/^Hi there,/im, 'Hello,');
+}
+
 function sanitizeEmailBody(raw: string): string {
   let cleaned = raw
     .replace(/```[a-z]*\n?([\s\S]*?)```/gi, '$1')
@@ -459,6 +467,7 @@ function sanitizeEmailBody(raw: string): string {
 
   // Normalize paragraph breaks
   cleaned = cleaned.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+  cleaned = cleanGreeting(cleaned);
   return cleaned;
 }
 
@@ -590,14 +599,13 @@ function generateLocalEmail(payload: EmailGenerationPayload): GeneratedEmailResu
   const seed = `${cleanCompany}_${context.firstName || 'team'}_${followUpNumber}_${Math.random()}`;
 
   // Natural, varied greetings
-  const greetings = context.firstName ? [
+    const greetings = context.firstName ? [
     `Hi ${context.firstName},`,
-    `Hello ${context.firstName},`,
-    `Hi there ${context.firstName},`
+    `Hello ${context.firstName},`
   ] : [
-    `Hi there,`,
-    `Hello,`,
-    `Hi ${cleanCompany} team,`
+    `Hi ${cleanCompany} team,`,
+    `Hello ${cleanCompany} team,`,
+    `Hi team,`
   ];
 
   const greeting = selectVariant(greetings, seed + '_greet');
@@ -937,6 +945,7 @@ NATURAL WRITING PRINCIPLES:
 
 STRICT GUIDELINES:
 - Length: Initial 85-135 words, follow-ups 35-80 words
+- Greeting: Begin with a clean, professional greeting like "Hi [First Name]," or "Hello [First Name],". Never use awkward phrasing like "Hi there [First Name],". If no recipient name is available, address them as "Hi [Company] team," or "Hello [Company] team,".
 - Never use: "Hope this finds you well", "touching base", "circling back", "just checking in", "revolutionize", "game-changing", "industry-leading", artificial urgency
 - Never invent facts about their company, achievements, or previous interactions
 - No placeholders, signature blocks, or markdown formatting
@@ -1059,21 +1068,30 @@ ${previousEmails.length > 0 ? `Previous emails in thread for context: ${JSON.str
 }
 
 // Master email generation service with automatic quality validation and fallback
+let openAiQuotaExhausted = false;
+
 export async function generateOutreachEmail(
   payload: EmailGenerationPayload,
   openAiApiKey?: string
 ): Promise<GeneratedEmailResult> {
+    const useLocal = process.env.USE_LOCAL_AI === 'true' || openAiQuotaExhausted;
   const key = openAiApiKey || process.env.OPENAI_API_KEY;
 
-  if (key && key.trim().startsWith('sk-')) {
+  if (!useLocal && key && key.trim().startsWith('sk-')) {
     try {
       const openAiResult = await generateWithOpenAI(payload, key.trim());
       if (openAiResult.qualityPassed) {
         return openAiResult;
       }
       console.warn('OpenAI result had quality warnings, attempting local fallback:', openAiResult.qualityNotes);
-    } catch (err) {
-      console.warn('OpenAI generation failed or errored, falling back to local engine:', err);
+        } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      if (errMsg.includes('insufficient_quota') || errMsg.includes('credit_balance_exhausted') || errMsg.includes('429')) {
+        openAiQuotaExhausted = true;
+        console.warn('⚠️ [AI Engine] OpenAI credit balance exhausted (429) — switched to built-in local engine.');
+      } else {
+        console.warn('⚠️ [AI Engine] OpenAI generation failed, using local engine:', errMsg);
+      }
     }
   }
 
