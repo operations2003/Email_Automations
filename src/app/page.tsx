@@ -209,6 +209,28 @@ export default function HomePage() {
     }
   };
 
+  // Handle putting into follow-ups sequence
+  const handleScheduleFollowUp = async (campaign: OutreachCampaign) => {
+    try {
+      showToast(`Queueing ${campaign.companyName} for follow-up...`, 'info');
+      const res = await fetch(`/api/outreach/${campaign.id}/schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intervalDays: settings.followUpIntervalDays || 2 })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message || `Placed in follow-ups pipeline!`, 'success');
+        await fetchCampaigns();
+      } else {
+        showToast(data.error || 'Failed to place in follow-ups', 'error');
+      }
+    } catch (err: unknown) {
+      const e = err as Error;
+      showToast(e.message || 'Error scheduling follow-up', 'error');
+    }
+  };
+
   // Handle manual status changes
   const handleStatusChange = async (campaignId: string, newStatus: OutreachStatus) => {
     try {

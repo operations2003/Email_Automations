@@ -29,6 +29,7 @@ interface OutreachTableProps {
   onPreview: (campaign: OutreachCampaign, stage?: 'initial' | 'followup_1' | 'followup_2' | 'followup_3') => void;
   onRegenerate: (campaign: OutreachCampaign) => void;
   onSend: (campaign: OutreachCampaign) => void;
+  onScheduleFollowUp?: (campaign: OutreachCampaign) => void;
   onViewHistory: (campaign: OutreachCampaign) => void;
   onStatusChange: (campaignId: string, newStatus: OutreachStatus) => void;
   onReplyStatusChange: (campaignId: string, newReplyStatus: ReplyStatus) => void;
@@ -69,6 +70,7 @@ export function OutreachTable({
   onGenerate,
   onPreview,
   onSend,
+  onScheduleFollowUp,
   onViewHistory,
   onStatusChange,
   onSimulateReply,
@@ -82,6 +84,33 @@ export function OutreachTable({
   const { user, isAdmin } = useAuth();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const getFollowUpStatus = (c: OutreachCampaign) => {
+    const isStopped =
+      c.replyStatus === 'Replied' ||
+      c.replyStatus === 'Bounced' ||
+      c.replyStatus === 'Unsubscribed' ||
+      c.status === 'Follow-Up Paused' ||
+      c.status === 'Closed' ||
+      c.status === 'Completed - No Response';
+
+    if (isStopped) return { isPending: false, stage: null, label: '' };
+
+    const now = new Date();
+    if (!c.followUp1SentAt && c.followUp1ScheduledAt && new Date(c.followUp1ScheduledAt) <= now) {
+      return { isPending: true, stage: 'followup_1' as const, label: 'Follow-Up 1 Pending' };
+    }
+    if (c.followUp1SentAt && !c.followUp2SentAt && c.followUp2ScheduledAt && new Date(c.followUp2ScheduledAt) <= now) {
+      return { isPending: true, stage: 'followup_2' as const, label: 'Follow-Up 2 Pending' };
+    }
+    if (c.followUp2SentAt && !c.followUp3SentAt && c.followUp3ScheduledAt && new Date(c.followUp3ScheduledAt) <= now) {
+      return { isPending: true, stage: 'followup_3' as const, label: 'Follow-Up 3 Pending' };
+    }
+
+    return { isPending: false, stage: null, label: '' };
+  };
+
+  const pendingFollowUpsCount = campaigns.filter(c => getFollowUpStatus(c).isPending).length;
 
   const isAtul = Boolean(
     user?.email?.toLowerCase().includes('atul') ||
@@ -107,6 +136,9 @@ export function OutreachTable({
     }
 
     // Status / Assignment filter
+    if (statusFilter === 'followup_pending') {
+      return getFollowUpStatus(c).isPending;
+    }
     if (statusFilter === 'assigned_to_atul' || statusFilter === 'assigned_to_me') {
       return (c.assignedTo && c.assignedTo.toLowerCase().includes('atul')) || (c.assignedTo && c.assignedTo.trim().length > 0);
     }
@@ -256,6 +288,21 @@ export function OutreachTable({
         </div>
 
         <div className="flex items-center gap-2">
+          {pendingFollowUpsCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setStatusFilter(statusFilter === 'followup_pending' ? 'all' : 'followup_pending')}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                statusFilter === 'followup_pending'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100'
+              }`}
+              title="Click to show companies with pending follow-ups"
+            >
+              <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+              <span>{pendingFollowUpsCount} Follow-Up{pendingFollowUpsCount > 1 ? 's' : ''} Pending</span>
+            </button>
+          )}
           <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <span>Filter:</span>
             <select
@@ -264,6 +311,11 @@ export function OutreachTable({
               className="rounded-lg bg-slate-50 border border-slate-200 py-1.5 px-2.5 text-xs text-slate-800 focus:bg-white focus:border-slate-800 focus:outline-none transition-colors cursor-pointer"
             >
               <option value="all">All Records ({campaigns.length})</option>
+              {pendingFollowUpsCount > 0 && (
+                <option value="followup_pending">
+                  ⚡ Follow-Up Pending ({pendingFollowUpsCount})
+                </option>
+              )}
               {assignedLeadsCount > 0 && (
                 <option value="assigned_to_atul">
                   Assigned to {isAtul ? 'Me' : 'Atul'} ({assignedLeadsCount})
@@ -411,19 +463,37 @@ export function OutreachTable({
 
                       {/* Status */}
                       <td className="py-3 px-4" onClick={e => e.stopPropagation()}>
-                        <select
-                          value={c.status}
-                          onChange={e => onStatusChange(c.id, e.target.value as OutreachStatus)}
-                          className={`rounded-md px-2 py-1 text-[11px] border font-medium bg-white focus:outline-none cursor-pointer ${getStatusBadge(
-                            c.status
-                          )}`}
-                        >
-                          {ALL_STATUSES.map(st => (
-                            <option key={st} value={st} className="bg-white text-slate-900">
-                              {st}
-                            </option>
-                          ))}
-                        </select>
+                        {getFollowUpStatus(c).isPending ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs w-fit">
+                              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                              Follow-Up Pending
+                            </span>
+                            <select
+                              value={c.status}
+                              onChange={e => onStatusChange(c.id, e.target.value as OutreachStatus)}
+                              className="rounded px-1.5 py-0.5 text-[10px] border border-slate-200 text-slate-600 bg-white cursor-pointer"
+                            >
+                              {ALL_STATUSES.map(st => (
+                                <option key={st} value={st}>{st}</option>
+                              ))}
+                            </select>
+                          </div>
+                        ) : (
+                          <select
+                            value={c.status}
+                            onChange={e => onStatusChange(c.id, e.target.value as OutreachStatus)}
+                            className={`rounded-md px-2 py-1 text-[11px] border font-medium bg-white focus:outline-none cursor-pointer ${getStatusBadge(
+                              c.status
+                            )}`}
+                          >
+                            {ALL_STATUSES.map(st => (
+                              <option key={st} value={st} className="bg-white text-slate-900">
+                                {st}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </td>
 
                       {/* Next Step */}
@@ -448,8 +518,21 @@ export function OutreachTable({
                       {/* Actions */}
                       <td className="py-3 px-4 text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5 relative">
-                          {/* Write or Send */}
-                          {!c.initialEmailBody ? (
+                          {/* Actions */}
+                          {getFollowUpStatus(c).isPending ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const fu = getFollowUpStatus(c);
+                                if (fu.stage) onPreview(c, fu.stage);
+                              }}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-semibold shadow-xs transition-colors cursor-pointer"
+                              title="Follow-up is pending! Click to send follow-up"
+                            >
+                              <Send className="h-3 w-3" />
+                              Send Follow-Up
+                            </button>
+                          ) : !c.initialEmailBody ? (
                             <button
                               type="button"
                               onClick={() => onGenerate(c)}
@@ -460,15 +543,28 @@ export function OutreachTable({
                               Draft
                             </button>
                           ) : !c.initialSentAt ? (
-                            <button
-                              type="button"
-                              onClick={() => onSend(c)}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-medium shadow-xs transition-colors cursor-pointer"
-                              title="Send email now"
-                            >
-                              <Send className="h-3 w-3" />
-                              Send
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => onSend(c)}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-medium shadow-xs transition-colors cursor-pointer"
+                                title="Send email now"
+                              >
+                                <Send className="h-3 w-3" />
+                                Send
+                              </button>
+                              {onScheduleFollowUp && (
+                                <button
+                                  type="button"
+                                  onClick={() => onScheduleFollowUp(c)}
+                                  className="flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-medium transition-colors cursor-pointer"
+                                  title="Put in Follow-ups queue"
+                                >
+                                  <Clock className="h-3 w-3" />
+                                  Follow-Up
+                                </button>
+                              )}
+                            </div>
                           ) : null}
 
                           {/* View */}
@@ -504,7 +600,20 @@ export function OutreachTable({
 
                             {isMenuOpen && (
                               <div className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-white border border-gray-200 shadow-xl py-1 z-50 text-left">
-                                {c.initialSentAt && c.status !== 'Completed - No Response' && c.replyStatus !== 'Replied' && (
+                                {onScheduleFollowUp && c.status !== 'Completed - No Response' && c.replyStatus !== 'Replied' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenMenuId(null);
+                                        onScheduleFollowUp(c);
+                                      }}
+                                      className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-50 transition-colors cursor-pointer"
+                                    >
+                                      <Clock className="h-3 w-3" />
+                                      Put in Follow-Ups
+                                    </button>
+                                  )}
+                                  {c.initialSentAt && c.status !== 'Completed - No Response' && c.replyStatus !== 'Replied' && (
                                   <button
                                     type="button"
                                     onClick={() => {

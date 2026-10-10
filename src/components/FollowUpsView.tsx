@@ -47,7 +47,7 @@ export function FollowUpsView({
   }> = [];
 
   for (const c of campaigns) {
-    if (!c.initialSentAt) continue;
+    if (!c.initialSentAt && !c.followUp1ScheduledAt) continue;
 
     const isStopped =
       c.replyStatus === 'Replied' ||
@@ -146,7 +146,7 @@ export function FollowUpsView({
                 : 'text-amber-800 hover:bg-amber-50'
             }`}
           >
-            Due Today ({dueCount})
+            Pending / Due Today ({dueCount})
           </button>
           <button
             onClick={() => setFilter('upcoming')}

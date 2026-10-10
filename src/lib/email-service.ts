@@ -168,37 +168,35 @@ export function optimizeSubjectForDeliverability(
 }
 
 function optimizeEmailContentForDeliverability(content: string): string {
+  if (!content) return '';
   return content
-    // Remove excessive exclamation marks
+    // Remove excessive exclamation marks (!!! -> !)
     .replace(/!{2,}/g, '!')
-    // Reduce ALL CAPS sections
+    // Reduce aggressive all-caps words (4+ letters)
     .replace(/\b[A-Z]{4,}\b/g, (match) =>
       match.charAt(0) + match.slice(1).toLowerCase()
     )
-    // Remove common spam phrases
+    // Remove aggressive spam triggers
     .replace(/\b(URGENT|IMMEDIATE|LIMITED TIME|ACT NOW|CLICK HERE)\b/gi, '')
     // Clean up excessive punctuation
     .replace(/[.]{3,}/g, '...')
     .replace(/[?]{2,}/g, '?')
-    // Normalize spacing
-    .replace(/\s+/g, ' ')
+    // Standardize line breaks
+    .replace(/\r\n/g, '\n')
+    // Clean up multiple horizontal spaces on each line without touching newlines
+    .replace(/[^\S\r\n]+/g, ' ')
+    .replace(/^[^\S\r\n]+|[^\S\r\n]+$/gm, '')
+    // Ensure clean paragraph separation (normalize 3+ newlines to 2)
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
 function optimizeSignatureForDeliverability(signature: string): string {
   if (!signature || !signature.trim()) return '';
-
   return signature
-    .trim()
-    // Remove multiple URLs (spam trigger)
-    .replace(/(https?:\/\/[^\s]+).*\|(.*)/g, '$1') // Remove "url | email" format
-    // Simplify multiple contact methods
-    .replace(/\|/g, '\n') // Replace | with newlines
-    // Remove excessive contact info
-    .split('\n')
-    .slice(0, 4) // Keep max 4 lines
-    .filter(line => line.trim())
-    .join('\n');
+    .replace(/\r\n/g, '\n')
+    .replace(/[^\S\r\n]+/g, ' ')
+    .trim();
 }
 
 function escapeHtml(text: string): string {
@@ -221,7 +219,7 @@ export function formatProfessionalEmailHtml(
   unsubscribeUrl?: string,
   companyName: string = 'TaskNera Solutions'
 ): string {
-  // Split paragraphs by double newlines
+  // Split paragraphs by double newlines to maintain clean email structure
   const paragraphs = body
     .trim()
     .split(/\n\s*\n/)
@@ -231,16 +229,16 @@ export function formatProfessionalEmailHtml(
   const paragraphsHtml = paragraphs
     .map(p => {
       const formatted = escapeHtml(p).replace(/\n/g, '<br>');
-      return `<p style="margin: 0 0 16px 0; line-height: 1.5; font-size: 14px; color: #333333; font-family: Arial, sans-serif;">${formatted}</p>`;
+      return `<p style="margin: 0 0 16px 0; line-height: 1.6; font-size: 14px; color: #1e293b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">${formatted}</p>`;
     })
     .join('\n');
 
-  // Improved signature formatting - less spam-triggering
+  // Signature formatted naturally as 1:1 email signoff
   let signatureHtml = '';
   if (signature && signature.trim()) {
     const formattedSig = escapeHtml(signature.trim()).replace(/\n/g, '<br>');
     signatureHtml = `
-      <div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid #cccccc; font-size: 12px; line-height: 1.4; color: #666666; font-family: Arial, sans-serif;">
+      <div style="margin-top: 24px; font-size: 13px; line-height: 1.5; color: #334155; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
         ${formattedSig}
       </div>
     `;
@@ -249,23 +247,21 @@ export function formatProfessionalEmailHtml(
   let optOutHtml = '';
   if (unsubscribeUrl) {
     optOutHtml = `
-      <div style="margin-top: 36px; padding-top: 16px; border-top: 1px solid #f1f5f9; font-size: 11px; line-height: 1.5; color: #94a3b8; text-align: left;">
+      <div style="margin-top: 36px; padding-top: 14px; border-top: 1px solid #f1f5f9; font-size: 11px; line-height: 1.5; color: #94a3b8; text-align: left; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
         <p style="margin: 0 0 4px 0;">Sent by ${escapeHtml(companyName)} &bull; Business Operations</p>
         <p style="margin: 0;">If you prefer not to receive future emails regarding these services, you can <a href="${unsubscribeUrl}" style="color: #64748b; text-decoration: underline;">unsubscribe here</a>.</p>
       </div>
     `;
   }
 
-  // Minimal HTML structure to avoid spam filters
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Professional Communication</title>
 </head>
-<body style="margin: 0; padding: 20px; background-color: #ffffff; font-family: Arial, sans-serif; font-size: 14px; color: #333333; line-height: 1.5;">
-  <div style="max-width: 600px; margin: 0 auto;">
+<body style="margin: 0; padding: 16px; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #1e293b; line-height: 1.6;">
+  <div style="max-width: 600px; margin: 0;">
     ${paragraphsHtml}
     ${signatureHtml}
     ${optOutHtml}

@@ -36,6 +36,7 @@ export function EmailPreviewModal({
   const [body, setBody] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
@@ -64,6 +65,51 @@ export function EmailPreviewModal({
   }, [activeStage, campaign]);
 
   if (!isOpen || !campaign) return null;
+
+  const handlePutInFollowUps = async () => {
+    if (isSending || isScheduling || !body) return;
+    setIsScheduling(true);
+    setFeedback(null);
+    try {
+      if (!isSent) {
+        const sendRes = await fetch(`/api/outreach/${campaign.id}/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            stage: activeStage,
+            subject,
+            body
+          })
+        });
+        const sendData = await sendRes.json();
+        if (!sendRes.ok || !sendData.success) {
+          throw new Error(sendData.error || sendData.message || 'Could not send email');
+        }
+      }
+
+      const schedRes = await fetch(`/api/outreach/${campaign.id}/schedule`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intervalDays: settings.followUpIntervalDays || 2 })
+      });
+      const schedData = await schedRes.json();
+      if (!schedRes.ok || !schedData.success) {
+        throw new Error(schedData.error || 'Failed to place in follow-ups pipeline');
+      }
+
+      const days = settings.followUpIntervalDays || 2;
+      setFeedback(`✓ ${isSent ? 'Queued' : 'Sent and queued'} for follow-up in ${days} days!`);
+      setTimeout(() => {
+        onRefresh();
+        onClose();
+      }, 1800);
+    } catch (err: unknown) {
+      const e = err as Error;
+      setFeedback(`Error: ${e.message}`);
+    } finally {
+      setIsScheduling(false);
+    }
+  };
 
   const handleSend = async () => {
     if (isSending) return;
@@ -398,8 +444,27 @@ export function EmailPreviewModal({
               Close
             </button>
             <button
+              type="button"
+              onClick={handlePutInFollowUps}
+              disabled={isSending || isScheduling || !body}
+              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
+              title={`Send this email and automatically schedule Follow-Up 1 in ${settings.followUpIntervalDays || 2} days`}
+            >
+              {isScheduling ? (
+                <>
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  <span>Queueing...</span>
+                </>
+              ) : (
+                <>
+                  <Clock className="h-3 w-3" />
+                  <span>{isSent ? 'Put in Follow-Ups' : 'Send & Put in Follow-Ups'}</span>
+                </>
+              )}
+            </button>
+            <button
               onClick={handleSend}
-              disabled={isSending || !body}
+              disabled={isSending || isScheduling || !body}
               className="flex items-center gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
             >
               {isSending ? (
@@ -410,7 +475,7 @@ export function EmailPreviewModal({
               ) : (
                 <>
                   <Send className="h-3 w-3" />
-                  <span>{isSent ? 'Send Again' : 'Send Email'}</span>
+                  <span>{isSent ? 'Send Again' : 'Send Only'}</span>
                 </>
               )}
             </button>
