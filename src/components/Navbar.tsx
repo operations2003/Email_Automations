@@ -106,19 +106,7 @@ export function Navbar({
                 </span>
               )}
             </button>
-            <button
-              onClick={onOpenNotifications}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 transition-colors cursor-pointer"
-              title="Employee Notifications for Follow-ups at Particular Day"
-            >
-              <Bell className="h-3.5 w-3.5 text-amber-600" />
-              <span>Notifications</span>
-              {notificationCount > 0 && (
-                <span className="ml-0.5 rounded-full bg-rose-600 text-white px-1.5 py-0.2 text-[10px] font-bold animate-pulse">
-                  {notificationCount}
-                </span>
-              )}
-            </button>
+
             <button
               onClick={() => setActiveTab('dashboard')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${

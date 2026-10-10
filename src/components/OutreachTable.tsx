@@ -28,7 +28,7 @@ interface OutreachTableProps {
   onGenerate: (campaign: OutreachCampaign) => void;
   onPreview: (campaign: OutreachCampaign, stage?: 'initial' | 'followup_1' | 'followup_2' | 'followup_3') => void;
   onRegenerate: (campaign: OutreachCampaign) => void;
-  onSend: (campaign: OutreachCampaign) => void;
+  onSend?: (campaign: OutreachCampaign) => void;
   onScheduleFollowUp?: (campaign: OutreachCampaign) => void;
   onViewHistory: (campaign: OutreachCampaign) => void;
   onStatusChange: (campaignId: string, newStatus: OutreachStatus) => void;
@@ -539,29 +539,16 @@ export function OutreachTable({
                               <PenTool className="h-3 w-3" />
                               Draft
                             </button>
-                          ) : !c.initialSentAt ? (
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => onSend(c)}
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-medium shadow-xs transition-colors cursor-pointer"
-                                title="Send email now"
-                              >
-                                <Send className="h-3 w-3" />
-                                Send
-                              </button>
-                              {onScheduleFollowUp && (
-                                <button
-                                  type="button"
-                                  onClick={() => onScheduleFollowUp(c)}
-                                  className="flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-medium transition-colors cursor-pointer"
-                                  title="Put in Follow-ups queue"
-                                >
-                                  <Clock className="h-3 w-3" />
-                                  Follow-Up
-                                </button>
-                              )}
-                            </div>
+                          ) : !c.initialSentAt && onScheduleFollowUp ? (
+                            <button
+                              type="button"
+                              onClick={() => onScheduleFollowUp(c)}
+                              className="flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-medium transition-colors cursor-pointer"
+                              title="Put in Follow-ups queue"
+                            >
+                              <Clock className="h-3 w-3" />
+                              Follow-Up
+                            </button>
                           ) : null}
 
                           {/* View */}

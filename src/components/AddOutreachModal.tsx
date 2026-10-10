@@ -734,42 +734,22 @@ export function AddOutreachModal({
             </div>
 
             {!generatedResult && (
-              <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <div className="pt-1">
                 <button
                   type="button"
                   onClick={() => handleGenerate(false)}
                   disabled={isGenerating || isSending}
-                  className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 py-2.5 px-3 text-xs font-medium text-slate-800 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                  className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 py-2.5 px-3 text-xs font-medium text-white transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                 >
                   {isGenerating ? (
                     <>
-                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-slate-600" />
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-white" />
                       <span>Composing draft...</span>
                     </>
                   ) : (
                     <>
-                      <PenTool className="h-3.5 w-3.5 text-slate-600" />
+                      <PenTool className="h-3.5 w-3.5 text-white" />
                       <span>Draft &amp; Review</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleGenerateAndSend}
-                  disabled={isGenerating || isSending}
-                  className="flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 py-2.5 px-3 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
-                  title="Compose draft and send email immediately"
-                >
-                  {isSending ? (
-                    <>
-                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                      <span>Sending...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-3.5 w-3.5" />
-                      <span>Send Immediately</span>
                     </>
                   )}
                 </button>
