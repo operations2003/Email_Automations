@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth';
-import { getCompanies, createCompany } from '@/lib/companies';
+import { getCompanies, createCompany, deleteCompanies } from '@/lib/companies';
 import { CreateCompanyRequest } from '@/types/company';
 
 // GET /api/companies - List all companies
@@ -78,6 +78,43 @@ export async function POST(req: NextRequest) {
       );
     }
     
+    return NextResponse.json(
+      { success: false, error: err.message },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/companies - Bulk delete companies
+export async function DELETE(req: NextRequest) {
+  try {
+    const user = getUserFromRequest(req);
+    if (!user || user.role !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json();
+    const ids: string[] = body?.ids;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Array of company IDs is required' },
+        { status: 400 }
+      );
+    }
+
+    const deletedCount = await deleteCompanies(ids);
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully deleted ${deletedCount} ${deletedCount === 1 ? 'company' : 'companies'}`
+    });
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error('[Companies API] Bulk DELETE error:', err);
     return NextResponse.json(
       { success: false, error: err.message },
       { status: 500 }

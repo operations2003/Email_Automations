@@ -354,6 +354,70 @@ export async function deleteCompany(id: string): Promise<void> {
   await writeCompaniesToFile(companies);
 }
 
+export async function deleteCompanies(ids: string[]): Promise<number> {
+  if (!ids || ids.length === 0) return 0;
+  const now = new Date().toISOString();
+  const idSet = new Set(ids);
+
+  try {
+    const db = await getDb();
+    if (db) {
+      const objectIds: ObjectId[] = [];
+      const stringIds: string[] = [];
+
+      for (const id of ids) {
+        stringIds.push(id);
+        if (ObjectId.isValid(id) && id.length === 24) {
+          try {
+            objectIds.push(new ObjectId(id));
+          } catch {}
+        }
+      }
+
+      const orConditions: any[] = [{ id: { $in: stringIds } }];
+      if (objectIds.length > 0) {
+        orConditions.push({ _id: { $in: objectIds } });
+      }
+
+      const result = await db.collection('companies').updateMany(
+        { $or: orConditions },
+        {
+          $set: {
+            isActive: false,
+            updatedAt: now
+          }
+        }
+      );
+
+      const companies = await readCompaniesFromFile();
+      for (const comp of companies) {
+        if (idSet.has(comp.id)) {
+          comp.isActive = false;
+          comp.updatedAt = now;
+        }
+      }
+      await writeCompaniesToFile(companies);
+
+      return result.modifiedCount || ids.length;
+    }
+  } catch (error) {
+    console.warn('[Companies Service] MongoDB deleteCompanies failed, using fallback:', error);
+  }
+
+  // Fallback to local file storage
+  const companies = await readCompaniesFromFile();
+  let count = 0;
+  for (const comp of companies) {
+    if (idSet.has(comp.id) && comp.isActive !== false) {
+      comp.isActive = false;
+      comp.updatedAt = now;
+      count++;
+    }
+  }
+  await writeCompaniesToFile(companies);
+  return count;
+}
+
 export async function getActiveCompaniesForEmployee(): Promise<Pick<Company, 'id' | 'name' | 'email'>[]> {
   try {
     const db = await getDb();

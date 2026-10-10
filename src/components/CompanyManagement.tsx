@@ -33,6 +33,9 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const selectAllRef = React.useRef<HTMLInputElement | null>(null);
   
   // Form state
   const [showForm, setShowForm] = useState(false);
@@ -188,6 +191,11 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
 
       if (data.success) {
         setSuccess(data.message || 'Company deleted successfully');
+        setSelectedIds(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
         await fetchCompanies();
       } else {
         setError(data.error || 'Failed to delete company');
@@ -196,6 +204,45 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
       setError('Network error deleting company');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!isAdmin) {
+      setError('Only administrators can delete companies from the directory.');
+      return;
+    }
+
+    const count = selectedIds.size;
+    if (count === 0) return;
+
+    if (!confirm(`Are you sure you want to delete ${count} selected ${count === 1 ? 'company' : 'companies'}? This action cannot be undone.`)) {
+      return;
+    }
+
+    setIsDeletingBulk(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/companies', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selectedIds) })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setSuccess(data.message || `Successfully deleted ${count} ${count === 1 ? 'company' : 'companies'}`);
+        setSelectedIds(new Set());
+        await fetchCompanies();
+      } else {
+        setError(data.error || 'Failed to delete selected companies');
+      }
+    } catch {
+      setError('Network error deleting companies');
+    } finally {
+      setIsDeletingBulk(false);
     }
   };
 
@@ -209,6 +256,37 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
       (c.description && c.description.toLowerCase().includes(q))
     );
   });
+
+  const allFilteredSelected = filteredCompanies.length > 0 && filteredCompanies.every(c => selectedIds.has(c.id));
+  const someFilteredSelected = filteredCompanies.some(c => selectedIds.has(c.id)) && !allFilteredSelected;
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate = someFilteredSelected;
+    }
+  }, [someFilteredSelected]);
+
+  const handleToggleSelectAll = () => {
+    if (allFilteredSelected) {
+      const next = new Set(selectedIds);
+      filteredCompanies.forEach(c => next.delete(c.id));
+      setSelectedIds(next);
+    } else {
+      const next = new Set(selectedIds);
+      filteredCompanies.forEach(c => next.add(c.id));
+      setSelectedIds(next);
+    }
+  };
+
+  const handleToggleSelect = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedIds(next);
+  };
 
   return (
     <div className="space-y-6">
@@ -420,29 +498,89 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {filteredCompanies.map((company) => (
-              <div
-                key={company.id}
-                className="group relative p-5 bg-white border border-slate-200 hover:border-slate-300 rounded-xl transition-all shadow-xs flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-9 w-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shrink-0 shadow-xs">
-                        <Building2 className="w-4.5 h-4.5" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-900 transition-colors">
-                          {company.name}
-                        </h4>
-                        {company.industry && (
-                          <span className="inline-block text-[10px] uppercase font-semibold text-slate-500 tracking-wider">
-                            {company.industry}
-                          </span>
+          <>
+            {/* Selection & Bulk Actions Toolbar */}
+            {filteredCompanies.length > 0 && isAdmin && (
+              <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                <div className="flex items-center gap-3">
+                  <label className="flex items-center gap-2 font-medium text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      ref={selectAllRef}
+                      checked={allFilteredSelected}
+                      onChange={handleToggleSelectAll}
+                      className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-800 cursor-pointer"
+                    />
+                    <span>Select All</span>
+                    <span className="text-slate-400 font-normal">({filteredCompanies.length})</span>
+                  </label>
+
+                  {selectedIds.size > 0 && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-900 text-white shadow-xs">
+                      {selectedIds.size} selected
+                    </span>
+                  )}
+                </div>
+
+                {selectedIds.size > 0 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedIds(new Set())}
+                      className="px-2.5 py-1 text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                    >
+                      Deselect All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleBulkDelete}
+                      disabled={saving || isDeletingBulk}
+                      className="flex items-center gap-1.5 px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-medium transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>{isDeletingBulk ? 'Deleting...' : `Delete Selected (${selectedIds.size})`}</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {filteredCompanies.map((company) => (
+                <div
+                  key={company.id}
+                  className={`group relative p-5 bg-white border ${
+                    selectedIds.has(company.id)
+                      ? 'border-slate-800 ring-1 ring-slate-800/10 bg-slate-50/50'
+                      : 'border-slate-200 hover:border-slate-300'
+                  } rounded-xl transition-all shadow-xs flex flex-col justify-between`}
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="flex items-center gap-2.5">
+                        {isAdmin && (
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(company.id)}
+                            onChange={() => handleToggleSelect(company.id)}
+                            aria-label={`Select ${company.name}`}
+                            className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-800 cursor-pointer shrink-0 transition"
+                          />
                         )}
+                        <div className="h-9 w-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shrink-0 shadow-xs">
+                          <Building2 className="w-4.5 h-4.5" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-900 transition-colors">
+                            {company.name}
+                          </h4>
+                          {company.industry && (
+                            <span className="inline-block text-[10px] uppercase font-semibold text-slate-500 tracking-wider">
+                              {company.industry}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
 
                     {/* Quick action buttons */}
                     <div className="flex items-center gap-1.5">
@@ -520,8 +658,9 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
                   )}
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
