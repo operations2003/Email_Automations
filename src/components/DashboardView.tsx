@@ -118,16 +118,6 @@ export function DashboardView({
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-slate-700' : ''}`} />
           </button>
-          {s.followUpsDueToday > 0 && (
-            <button
-              onClick={onRunScheduler}
-              disabled={isSchedulerRunning}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
-            >
-              <Play className="h-3 w-3 fill-amber-800" />
-              <span>Send Due Follow-ups ({s.followUpsDueToday})</span>
-            </button>
-          )}
           <button
             onClick={onOpenNewModal}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium shadow-xs transition-colors cursor-pointer"

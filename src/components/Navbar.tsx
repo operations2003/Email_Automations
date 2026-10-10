@@ -16,7 +16,8 @@ import {
   LogOut,
   ChevronDown,
   Building2,
-  Sparkles
+  Sparkles,
+  Bell
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -26,6 +27,8 @@ interface NavbarProps {
   onRunScheduler: () => void;
   isSchedulerRunning: boolean;
   dueTodayCount: number;
+  onOpenNotifications: () => void;
+  notificationCount?: number;
 }
 
 export function Navbar({
@@ -34,7 +37,9 @@ export function Navbar({
   onOpenNewModal,
   onRunScheduler,
   isSchedulerRunning,
-  dueTodayCount
+  dueTodayCount,
+  onOpenNotifications,
+  notificationCount = 0
 }: NavbarProps) {
   const { user, isAdmin, logout, switchRoleDemo } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -102,6 +107,19 @@ export function Navbar({
               )}
             </button>
             <button
+              onClick={onOpenNotifications}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 transition-colors cursor-pointer"
+              title="Employee Notifications for Follow-ups at Particular Day"
+            >
+              <Bell className="h-3.5 w-3.5 text-amber-600" />
+              <span>Notifications</span>
+              {notificationCount > 0 && (
+                <span className="ml-0.5 rounded-full bg-rose-600 text-white px-1.5 py-0.2 text-[10px] font-bold animate-pulse">
+                  {notificationCount}
+                </span>
+              )}
+            </button>
+            <button
               onClick={() => setActiveTab('dashboard')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                 activeTab === 'dashboard'
@@ -130,20 +148,20 @@ export function Navbar({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          {dueTodayCount > 0 && (
-            <button
-              onClick={onRunScheduler}
-              disabled={isSchedulerRunning}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-medium transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {isSchedulerRunning ? (
-                <RefreshCw className="h-3 w-3 animate-spin text-amber-700" />
-              ) : (
-                <Play className="h-3 w-3 fill-amber-700 text-amber-700" />
-              )}
-              <span>Send Due ({dueTodayCount})</span>
-            </button>
-          )}
+          {/* Notifications Quick Bell */}
+          <button
+            onClick={onOpenNotifications}
+            className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors cursor-pointer shadow-xs"
+            title="Employee Follow-up Notifications"
+          >
+            <Bell className="h-3.5 w-3.5 text-slate-600" />
+            <span className="hidden sm:inline">Notifications</span>
+            {notificationCount > 0 && (
+              <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white">
+                {notificationCount}
+              </span>
+            )}
+          </button>
 
           <button
             onClick={onOpenNewModal}

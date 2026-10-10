@@ -169,21 +169,6 @@ export function FollowUpsView({
             Sent
           </button>
         </div>
-
-        {dueCount > 0 && (
-          <button
-            onClick={onRunScheduler}
-            disabled={isSchedulerRunning}
-            className="flex items-center gap-1.5 rounded-lg bg-amber-700 hover:bg-amber-600 text-white px-3.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
-          >
-            {isSchedulerRunning ? (
-              <RefreshCw className="h-3 w-3 animate-spin" />
-            ) : (
-              <Play className="h-3 w-3 fill-white" />
-            )}
-            <span>Send Due Follow-ups ({dueCount})</span>
-          </button>
-        )}
       </div>
 
       {/* List */}

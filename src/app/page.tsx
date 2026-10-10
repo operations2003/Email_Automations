@@ -11,6 +11,7 @@ import { CompanyManagement } from '@/components/CompanyManagement';
 import { AddOutreachModal } from '@/components/AddOutreachModal';
 import { EmailPreviewModal } from '@/components/EmailPreviewModal';
 import { HistoryModal } from '@/components/HistoryModal';
+import { EmployeeNotificationsModal } from '@/components/EmployeeNotificationsModal';
 import { LoginScreen } from '@/components/LoginScreen';
 import { useAuth } from '@/context/AuthContext';
 import { Company } from '@/types/company';
@@ -31,6 +32,7 @@ export default function HomePage() {
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [previewCampaign, setPreviewCampaign] = useState<OutreachCampaign | null>(null);
   const [previewStage, setPreviewStage] = useState<'initial' | 'followup_1' | 'followup_2' | 'followup_3'>('initial');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -367,6 +369,8 @@ export default function HomePage() {
         onRunScheduler={handleRunScheduler}
         isSchedulerRunning={isSchedulerRunning}
         dueTodayCount={dueTodayCount}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
+        notificationCount={dueTodayCount}
       />
 
       {/* Main App Content */}
@@ -518,6 +522,41 @@ export default function HomePage() {
         campaign={historyCampaign}
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
+      />
+
+      {/* Employee Notifications Modal for Follow-ups at Particular Day */}
+      <EmployeeNotificationsModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        campaigns={campaigns}
+        onPreview={(c, stage) => {
+          setPreviewCampaign(c);
+          setPreviewStage(stage);
+          setIsPreviewOpen(true);
+        }}
+        onSendFollowUp={async (c, stage) => {
+          try {
+            showToast(`Sending ${stage} to ${c.companyName}...`, 'info');
+            const res = await fetch(`/api/outreach/${c.id}/send`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ stage })
+            });
+            if (res.ok) {
+              showToast(`${stage} sent successfully!`, 'success');
+              await fetchCampaigns();
+            } else {
+              const data = await res.json().catch(() => ({}));
+              showToast(data.error || 'Failed to send follow-up', 'error');
+            }
+          } catch (err) {
+            console.error(err);
+            showToast('Error sending follow-up', 'error');
+          }
+        }}
+        onFastForward={handleFastForward}
+        onRunScheduler={handleRunScheduler}
+        isSchedulerRunning={isSchedulerRunning}
       />
     </div>
   );
