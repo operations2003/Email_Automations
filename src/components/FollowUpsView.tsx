@@ -26,6 +26,8 @@ interface FollowUpsViewProps {
   onRunScheduler: () => void;
   isSchedulerRunning: boolean;
   onRefresh?: () => void;
+  activeFilter?: 'all' | 'due' | 'upcoming' | 'sent';
+  onFilterChange?: (filter: 'all' | 'due' | 'upcoming' | 'sent') => void;
 }
 
 export function FollowUpsView({
@@ -35,9 +37,16 @@ export function FollowUpsView({
   onFastForward,
   onRunScheduler,
   isSchedulerRunning,
-  onRefresh
+  onRefresh,
+  activeFilter,
+  onFilterChange
 }: FollowUpsViewProps) {
-  const [filter, setFilter] = useState<'all' | 'due' | 'upcoming' | 'sent'>('all');
+  const [internalFilter, setInternalFilter] = useState<'all' | 'due' | 'upcoming' | 'sent'>('all');
+  const filter = activeFilter !== undefined ? activeFilter : internalFilter;
+  const setFilter = (f: 'all' | 'due' | 'upcoming' | 'sent') => {
+    setInternalFilter(f);
+    if (onFilterChange) onFilterChange(f);
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<'all' | 'followup_1' | 'followup_2' | 'followup_3'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -258,43 +267,39 @@ export function FollowUpsView({
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-              filter === 'all'
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filter === 'all'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
+              }`}
           >
             All ({followUpTasks.length})
           </button>
           <button
             onClick={() => setFilter('due')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-              filter === 'due'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filter === 'due'
                 ? 'bg-amber-100 text-amber-900 border border-amber-300 font-semibold shadow-2xs'
                 : 'text-amber-800 hover:bg-amber-50'
-            }`}
+              }`}
           >
             <Clock className="w-3 h-3 text-amber-700" />
             <span>Pending / Due Today ({dueCount})</span>
           </button>
           <button
             onClick={() => setFilter('upcoming')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-              filter === 'upcoming'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filter === 'upcoming'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
+              }`}
           >
             <Calendar className="w-3 h-3 text-slate-400" />
             <span>Upcoming ({upcomingCount})</span>
           </button>
           <button
             onClick={() => setFilter('sent')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-              filter === 'sent'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${filter === 'sent'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
+              }`}
           >
             <CheckCircle2 className="w-3 h-3 text-emerald-600" />
             <span>Sent ({sentCount})</span>
@@ -351,30 +356,28 @@ export function FollowUpsView({
               {filter === 'due'
                 ? 'No follow-up emails are scheduled for today! Check the "Upcoming" tab to view queued messages.'
                 : filter === 'upcoming'
-                ? 'All queued follow-ups have been sent or none are currently scheduled.'
-                : 'Create new campaigns to initiate follow-up sequences.'}
+                  ? 'All queued follow-ups have been sent or none are currently scheduled.'
+                  : 'Create new campaigns to initiate follow-up sequences.'}
             </p>
           </div>
         ) : (
           filteredTasks.map((t, idx) => (
             <div
               key={`${t.campaign.id}-${t.stage}-${idx}`}
-              className={`rounded-xl border p-4 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs ${
-                t.isDue
+              className={`rounded-xl border p-4 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs ${t.isDue
                   ? 'border-amber-200 bg-amber-50/40 hover:bg-amber-50/60'
                   : t.isSent
-                  ? 'border-slate-200 bg-slate-50/60'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
-              }`}
+                    ? 'border-slate-200 bg-slate-50/60'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
             >
               {/* Left Details */}
               <div className="space-y-1 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 ${
-                    t.isSent
+                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 ${t.isSent
                       ? 'text-emerald-800 bg-emerald-50 border-emerald-300'
                       : 'text-slate-700 bg-slate-100 border-slate-200'
-                  }`}>
+                    }`}>
                     {t.isSent && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
                     <span>{t.stageName} (Day {t.dayOffset}){t.isSent ? ' • Done' : ''}</span>
                   </span>

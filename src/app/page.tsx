@@ -15,7 +15,7 @@ import { EmployeeNotificationsModal } from '@/components/EmployeeNotificationsMo
 import { LoginScreen } from '@/components/LoginScreen';
 import { useAuth } from '@/context/AuthContext';
 import { Company } from '@/types/company';
-import { CheckCircle2, AlertCircle, Info, Sparkles, Shield, Bell } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, Sparkles, Shield, Bell, Play, Loader2, Clock } from 'lucide-react';
 
 export default function HomePage() {
   const { user, loading: authLoading, isAdmin } = useAuth();
@@ -29,6 +29,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [replyFilter, setReplyFilter] = useState('all');
+  const [followUpFilter, setFollowUpFilter] = useState<'all' | 'due' | 'upcoming' | 'sent'>('all');
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -384,34 +385,71 @@ export default function HomePage() {
 
       {/* Main App Content */}
       <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full">
-        {/* Real-time Follow-Up Reminder Banner for Today */}
+        {/* Real-time Unified Follow-Up Reminder Banner for Today */}
         {dueTodayCount > 0 && (
-          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/90 p-3.5 shadow-xs flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 text-white shadow-xs">
-                <Bell className="h-4 w-4 animate-bounce" />
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/90 p-3.5 sm:p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3.5">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-xs shrink-0">
+                <Bell className="h-4 w-4 sm:h-5 sm:w-5 animate-bounce" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-xs font-bold text-amber-950">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-xs sm:text-sm font-bold text-amber-950">
                     Follow-Up Notification: Today {dueTodayCount} {dueTodayCount === 1 ? 'company has' : 'companies have'} a follow-up due!
                   </p>
-                  <span className="rounded-full bg-amber-200/80 px-2 py-0.5 text-[10px] font-bold text-amber-900">
+                  <span className="rounded-full bg-amber-200/80 px-2 py-0.5 text-[10px] font-bold text-amber-900 border border-amber-300/60 shadow-2xs">
                     Action Needed
                   </span>
                 </div>
-                <p className="text-[11px] text-amber-800 mt-0.5">
-                  Follow-up cycle is active. Click below to view and auto-draft the tailored follow-up email.
+                <p className="text-[11px] sm:text-xs text-amber-800 mt-0.5">
+                  Follow-up cycle is active. Review tailored AI drafts, filter due leads, or trigger the automated queue runner.
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <button
+                type="button"
+                onClick={() => {
+                  setFollowUpFilter('due');
+                  setActiveTab('followups');
+                }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer border ${
+                  activeTab === 'followups' && followUpFilter === 'due'
+                    ? 'bg-amber-200 text-amber-950 border-amber-300 shadow-2xs'
+                    : 'bg-amber-100/90 hover:bg-amber-200 text-amber-950 border-amber-200/80 shadow-2xs'
+                }`}
+              >
+                <Clock className="h-3.5 w-3.5 text-amber-800" />
+                <span>Filter Due Today ({dueTodayCount})</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setIsNotificationsOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Open Notifications &amp; Draft ({dueTodayCount})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRunScheduler}
+                disabled={isSchedulerRunning}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors shadow-xs cursor-pointer text-xs disabled:opacity-50"
+              >
+                {isSchedulerRunning ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>Run Queue</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -503,6 +541,8 @@ export default function HomePage() {
             onRunScheduler={handleRunScheduler}
             isSchedulerRunning={isSchedulerRunning}
             onRefresh={fetchCampaigns}
+            activeFilter={followUpFilter}
+            onFilterChange={setFollowUpFilter}
           />
         )}
 
