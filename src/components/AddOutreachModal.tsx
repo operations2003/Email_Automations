@@ -106,6 +106,7 @@ export function AddOutreachModal({
   };
 
   const handleCompanySelect = (companyId: string) => {
+    setSuccessBanner(null);
     const company = availableCompanies.find(c => c.id === companyId);
     if (company) {
       setSelectedCompanyId(companyId);
@@ -114,6 +115,10 @@ export function AddOutreachModal({
       if (company.website) {
         setCompanyWebsite(company.website);
       }
+      setGeneratedResult(null);
+      setSubject('');
+      setEmailBody('');
+      setCurrentCampaignId(null);
     } else {
       setSelectedCompanyId('');
     }
@@ -139,6 +144,7 @@ export function AddOutreachModal({
 
   const [isCopied, setIsCopied] = useState(false);
   const [currentCampaignId, setCurrentCampaignId] = useState<string | null>(null);
+  const [successBanner, setSuccessBanner] = useState<{ title: string; desc: string } | null>(null);
 
   if (!isOpen) return null;
 
@@ -334,12 +340,15 @@ export function AddOutreachModal({
           body: genData.generated.body
         })
       });
-      const sendData = await sendRes.json();
-      if (!sendRes.ok) throw new Error(sendData.error || 'Could not send email');
+      const sentTarget = companyName.trim();
+      const sentTargetEmail = email.trim();
 
       onSuccess();
       resetForm();
-      onClose();
+      setSuccessBanner({
+        title: `✓ Email sent successfully to ${sentTarget}!`,
+        desc: `Delivered to ${sentTargetEmail}. Form is cleared and ready for your next company.`
+      });
     } catch (err: unknown) {
       const e = err as Error;
       setError(e.message);
@@ -433,9 +442,15 @@ export function AddOutreachModal({
       const sendData = await sendRes.json();
       if (!sendRes.ok) throw new Error(sendData.error || 'Could not send email');
 
+      const sentTarget = companyName.trim();
+      const sentTargetEmail = email.trim();
+
       onSuccess();
       resetForm();
-      onClose();
+      setSuccessBanner({
+        title: `✓ Email sent successfully to ${sentTarget}!`,
+        desc: `Delivered to ${sentTargetEmail}. Form is cleared and ready for your next company.`
+      });
     } catch (err: unknown) {
       const e = err as Error;
       setError(e.message);
@@ -456,16 +471,54 @@ export function AddOutreachModal({
               Compose tailored B2B outreach across TaskNera workforce &amp; software offerings.
             </p>
           </div>
-          <button
-            onClick={() => {
-              resetForm();
-              onClose();
-            }}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setSuccessBanner(null);
+                onClose();
+              }}
+              className="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer border border-slate-200"
+            >
+              Done / Close
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                resetForm();
+                setSuccessBanner(null);
+                onClose();
+              }}
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+              title="Close modal"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
+
+        {/* Success feedback banner */}
+        {successBanner && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/90 p-3.5 text-xs text-emerald-900 flex items-center justify-between shadow-2xs">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-200 text-emerald-800 shrink-0">
+                <Check className="h-3.5 w-3.5 stroke-[2.5]" />
+              </div>
+              <div>
+                <p className="font-semibold text-emerald-950">{successBanner.title}</p>
+                <p className="text-[11px] text-emerald-800 mt-0.5">{successBanner.desc}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSuccessBanner(null)}
+              className="text-emerald-700 hover:text-emerald-950 text-xs font-semibold px-2 py-1 hover:bg-emerald-100/60 rounded cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Duplicate warning */}
         {duplicateWarning && (

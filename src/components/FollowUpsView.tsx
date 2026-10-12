@@ -216,51 +216,6 @@ export function FollowUpsView({
 
   return (
     <div className="max-w-6xl mx-auto space-y-4">
-      {/* Due Today Banner Notice */}
-      {dueCount > 0 && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-2xs">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
-              <Clock className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-semibold text-slate-900">
-                {dueCount} follow-up {dueCount === 1 ? 'email is' : 'emails are'} due today!
-              </p>
-              <p className="text-amber-800 text-[11px]">
-                These leads reached their scheduled cadence. Send them manually or trigger the automatic queue runner.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setFilter('due')}
-              className="px-3 py-1.5 bg-amber-200/80 hover:bg-amber-200 text-amber-950 font-medium rounded-lg transition-colors cursor-pointer text-xs"
-            >
-              Filter Due Today
-            </button>
-            <button
-              onClick={onRunScheduler}
-              disabled={isSchedulerRunning}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-colors shadow-xs cursor-pointer text-xs disabled:opacity-50"
-            >
-              {isSchedulerRunning ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Processing...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Run Queue</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Filter and Controls Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
         {/* Filter Tab Buttons */}

@@ -7,7 +7,6 @@ import {
   Clock,
   MessageSquare,
   RefreshCw,
-  Play,
   Plus
 } from 'lucide-react';
 
@@ -15,6 +14,7 @@ interface DashboardStats {
   totalCompanies: number;
   totalEmailsSent: number;
   initialSent: number;
+  upcomingFollowUps: number;
   followUpsDueToday: number;
   followUpsSent: number;
   replies: number;
@@ -26,11 +26,13 @@ interface DashboardStats {
   pipelineBreakdown: {
     draft: number;
     initialSent: number;
+    inFollowUps: number;
     followUp1: number;
     followUp2: number;
     replied: number;
     completed: number;
     paused: number;
+    bounced: number;
   };
 }
 
@@ -80,6 +82,7 @@ export function DashboardView({
     totalCompanies: 0,
     totalEmailsSent: 0,
     initialSent: 0,
+    upcomingFollowUps: 0,
     followUpsDueToday: 0,
     followUpsSent: 0,
     replies: 0,
@@ -91,11 +94,13 @@ export function DashboardView({
     pipelineBreakdown: {
       draft: 0,
       initialSent: 0,
+      inFollowUps: 0,
       followUp1: 0,
       followUp2: 0,
       replied: 0,
       completed: 0,
-      paused: 0
+      paused: 0,
+      bounced: 0
     }
   };
 
@@ -130,10 +135,10 @@ export function DashboardView({
 
       {/* 4 Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Contacts */}
+        {/* Total Companies */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold text-slate-600">Total Accounts</span>
+            <span className="text-xs font-semibold text-slate-600">Total Companies</span>
             <Building2 className="h-4 w-4 text-slate-400" />
           </div>
           <div className="mt-3">
@@ -142,19 +147,19 @@ export function DashboardView({
           </div>
         </div>
 
-        {/* Emails Sent */}
+        {/* Total Sent (record of initial email send) */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold text-slate-600">Total Sent</span>
             <Send className="h-4 w-4 text-slate-600" />
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-slate-900 tracking-tight">{s.totalEmailsSent}</span>
-            <p className="text-[11px] text-slate-500 mt-0.5">{s.initialSent} initial · {s.followUpsSent} follow-ups</p>
+            <span className="text-2xl font-bold text-slate-900 tracking-tight">{s.initialSent}</span>
+            <p className="text-[11px] text-slate-500 mt-0.5">{s.initialSent} initial emails sent</p>
           </div>
         </div>
 
-        {/* Replies */}
+        {/* Total Responses (replied records) */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold text-slate-600">Total Responses</span>
@@ -162,19 +167,21 @@ export function DashboardView({
           </div>
           <div className="mt-3">
             <span className="text-2xl font-bold text-emerald-700 tracking-tight">{s.replies}</span>
-            <p className="text-[11px] text-slate-500 mt-0.5">{s.responseRate}% response rate</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">{s.responseRate}% response rate ({s.replies} replied)</p>
           </div>
         </div>
 
-        {/* Follow-Ups Due */}
+        {/* Follow-ups (record of all upcoming followups) */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold text-slate-600">Follow-ups Due</span>
+            <span className="text-xs font-semibold text-slate-600">Follow-ups</span>
             <Clock className="h-4 w-4 text-amber-600" />
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold text-amber-700 tracking-tight">{s.followUpsDueToday}</span>
-            <p className="text-[11px] text-slate-500 mt-0.5">Ready for dispatch</p>
+            <span className="text-2xl font-bold text-amber-700 tracking-tight">{s.upcomingFollowUps}</span>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              {s.followUpsDueToday > 0 ? `${s.followUpsDueToday} due today · ` : ''}{s.upcomingFollowUps} upcoming in queue
+            </p>
           </div>
         </div>
       </div>
@@ -203,7 +210,7 @@ export function DashboardView({
           <div className="rounded-lg border border-blue-200 bg-blue-50/60 p-3.5 text-center">
             <span className="text-xs text-blue-800 block font-semibold">In Follow-ups</span>
             <span className="text-lg font-bold text-blue-900 mt-1 block">
-              {s.pipelineBreakdown.followUp1 + s.pipelineBreakdown.followUp2}
+              {s.pipelineBreakdown.inFollowUps}
             </span>
           </div>
 
@@ -221,10 +228,10 @@ export function DashboardView({
             </span>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-3.5 text-center">
-            <span className="text-xs text-slate-500 block font-medium">Completed</span>
-            <span className="text-lg font-bold text-slate-600 mt-1 block">
-              {s.pipelineBreakdown.completed}
+          <div className="rounded-lg border border-rose-200 bg-rose-50/60 p-3.5 text-center">
+            <span className="text-xs text-rose-800 block font-semibold">Bounced</span>
+            <span className="text-lg font-bold text-rose-900 mt-1 block">
+              {s.pipelineBreakdown.bounced}
             </span>
           </div>
         </div>
