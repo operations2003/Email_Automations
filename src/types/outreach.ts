@@ -1,6 +1,5 @@
 export type OutreachStatus =
   | 'Draft'
-  | 'Ready to Send'
   | 'Initial Email Sent'
   | 'Follow-Up Scheduled'
   | 'Follow-Up Pending'

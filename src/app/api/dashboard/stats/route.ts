@@ -70,7 +70,7 @@ export async function GET() {
         activeSequences,
         responseRate,
         pipelineBreakdown: {
-          draft: campaigns.filter(c => c.status === 'Draft' || c.status === 'Ready to Send').length,
+          draft: campaigns.filter(c => c.status === 'Draft').length,
           initialSent: campaigns.filter(c => c.status === 'Initial Email Sent').length,
           followUp1: campaigns.filter(c => c.status === 'Follow-Up 1 Sent').length,
           followUp2: campaigns.filter(c => c.status === 'Follow-Up 2 Sent').length,

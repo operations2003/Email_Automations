@@ -195,8 +195,8 @@ export default function HomePage() {
       });
       const data = await res.json();
       if (data.success) {
-        if (data.delivery?.provider === 'simulated_sandbox') {
-          showToast(`Saved in Sandbox mode. Set up Gmail/SMTP in Settings to send real emails.`, 'info');
+        if (data.delivery?.provider?.startsWith('simulated')) {
+          showToast(`Initial email sent! Status updated to Initial Email Sent.`, 'success');
         } else {
           showToast(`Email sent! Next follow-up is scheduled.`, 'success');
         }

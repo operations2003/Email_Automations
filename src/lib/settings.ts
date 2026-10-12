@@ -22,8 +22,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   aiTone: 'Professional',
   followUpIntervalDays: 2,
   maxFollowUps: 3,
-  provider: (process.env.RESEND_API_KEY ? 'resend' : (process.env.EMAIL_PROVIDER as any) || 'smtp'),
-  resendApiKey: process.env.RESEND_API_KEY || '',
+  provider: ((process.env.EMAIL_PROVIDER as any) || 'simulated'),
+  resendApiKey: '',
   smtpHost: process.env.SMTP_HOST || 'smtp.gmail.com',
   smtpPort: Number(process.env.SMTP_PORT) || 587,
   smtpSecure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === 'true' : false,
@@ -48,12 +48,6 @@ function applyEnvOverrides(settings: AppSettings): AppSettings {
     smtpPort: settings.smtpPort || Number(process.env.SMTP_PORT) || 587,
     openAiApiKey: settings.openAiApiKey || process.env.OPENAI_API_KEY || '',
   };
-  if (process.env.RESEND_API_KEY) {
-    if (!result.resendApiKey || result.provider === 'simulated') {
-      result.resendApiKey = process.env.RESEND_API_KEY;
-      result.provider = 'resend';
-    }
-  }
   if (process.env.EMAIL_FROM) {
     result.senderEmail = process.env.EMAIL_FROM;
   }

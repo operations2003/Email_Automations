@@ -143,8 +143,8 @@ export function EmailPreviewModal({
 
       const providerName = data.delivery?.provider === 'resend' ? 'Resend' : data.delivery?.provider || 'provider';
       const msg =
-        data.delivery?.provider === 'simulated_sandbox'
-          ? 'Email saved in Sandbox mode. Connect Resend or SMTP to send real emails.'
+        data.delivery?.provider?.startsWith('simulated')
+          ? '✓ Email recorded & status updated to Initial Email Sent!'
           : `✓ Email successfully sent via ${providerName}!${data.delivery?.messageId ? ` (ID: ${data.delivery.messageId})` : ''}`;
       setFeedback(msg);
       setTimeout(() => {

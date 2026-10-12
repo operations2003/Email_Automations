@@ -441,11 +441,6 @@ export function AddOutreachModal({
     }
   };
 
-  const handleSaveDraft = () => {
-    onSuccess();
-    resetForm();
-    onClose();
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
@@ -923,13 +918,6 @@ export function AddOutreachModal({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleSaveDraft}
-                      className="rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-3.5 py-1.5 text-xs font-medium text-slate-700 transition-colors cursor-pointer shadow-xs"
-                    >
-                      Save Draft
-                    </button>
                     <button
                       type="button"
                       onClick={handleSendEmail}

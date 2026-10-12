@@ -67,9 +67,6 @@ export async function POST(
     if (followUpNumber === 0) {
       campaign.initialSubject = generated.subject;
       campaign.initialEmailBody = generated.body;
-      if (campaign.status === 'Draft') {
-        campaign.status = 'Ready to Send';
-      }
     } else if (followUpNumber === 1) {
       campaign.followUp1Subject = generated.subject;
       campaign.followUp1Body = generated.body;

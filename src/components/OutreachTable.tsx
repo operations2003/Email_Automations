@@ -46,7 +46,6 @@ interface OutreachTableProps {
 
 export const ALL_STATUSES: OutreachStatus[] = [
   'Draft',
-  'Ready to Send',
   'Initial Email Sent',
   'Follow-Up 1 Sent',
   'Follow-Up 2 Sent',
@@ -159,8 +158,6 @@ export function OutreachTable({
     switch (status) {
       case 'Draft':
         return 'bg-slate-100 text-slate-700 border-slate-200';
-      case 'Ready to Send':
-        return 'bg-slate-100 text-slate-900 border-slate-300 font-semibold';
       case 'Initial Email Sent':
         return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'Follow-Up Scheduled':
