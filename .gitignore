@@ -58,8 +58,6 @@ next-env.d.ts
 # local database and keys
 data/*.json
 !data/*.example.json
-backend/data/*.json
-!backend/data/*.example.json
 
 
 
