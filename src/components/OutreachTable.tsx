@@ -57,7 +57,8 @@ export const ALL_STATUSES: OutreachStatus[] = [
   'Not Interested',
   'Closed',
   'Completed - No Response',
-  'Bounced'
+  'Bounced',
+  'Blocked'
 ];
 
 export function OutreachTable({
@@ -89,7 +90,8 @@ export function OutreachTable({
       c.replyStatus === 'Unsubscribed' ||
       c.status === 'Follow-Up Paused' ||
       c.status === 'Closed' ||
-      c.status === 'Completed - No Response';
+      c.status === 'Completed - No Response' ||
+      c.status === 'Blocked';
 
     if (isStopped) return { isPending: false, stage: null, label: '' };
 
@@ -174,6 +176,8 @@ export function OutreachTable({
         return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'Bounced':
         return 'bg-rose-50 text-rose-700 border-rose-200 font-semibold';
+      case 'Blocked':
+        return 'bg-red-50 text-red-700 border-red-200 font-semibold';
       case 'Unsubscribed':
         return 'bg-purple-50 text-purple-700 border-purple-200 font-semibold';
       case 'Completed - No Response':
@@ -186,6 +190,9 @@ export function OutreachTable({
   };
 
   const getScheduleSummary = (c: OutreachCampaign) => {
+    if (c.status === 'Blocked') {
+      return <span className="text-red-600 text-xs font-medium">Blocked</span>;
+    }
     if (c.replyStatus === 'Bounced' || c.status === 'Bounced') {
       return <span className="text-rose-600 text-xs font-medium">Bounced (Suppressed)</span>;
     }
@@ -529,7 +536,7 @@ export function OutreachTable({
                               <Send className="h-3 w-3" />
                               Send Follow-Up
                             </button>
-                          ) : !c.initialEmailBody ? (
+                          ) : c.status === 'Blocked' ? null : !c.initialEmailBody ? (
                             <button
                               type="button"
                               onClick={() => onGenerate(c)}
@@ -584,7 +591,7 @@ export function OutreachTable({
 
                             {isMenuOpen && (
                               <div className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-white border border-gray-200 shadow-xl py-1 z-50 text-left">
-                                {onScheduleFollowUp && c.status !== 'Completed - No Response' && c.replyStatus !== 'Replied' && (
+                                {onScheduleFollowUp && c.status !== 'Completed - No Response' && c.status !== 'Blocked' && c.replyStatus !== 'Replied' && (
                                     <button
                                       type="button"
                                       onClick={() => {
@@ -597,7 +604,7 @@ export function OutreachTable({
                                       Put in Follow-Ups
                                     </button>
                                   )}
-                                  {c.initialSentAt && c.status !== 'Completed - No Response' && c.replyStatus !== 'Replied' && (
+                                  {c.initialSentAt && c.status !== 'Completed - No Response' && c.status !== 'Blocked' && c.replyStatus !== 'Replied' && (
                                   <button
                                     type="button"
                                     onClick={() => {

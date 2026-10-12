@@ -39,6 +39,7 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
       campaign.status === 'Draft' ||
       campaign.status === 'Ready to Send' ||
       campaign.status === 'Bounced' ||
+      campaign.status === 'Blocked' ||
       campaign.status === 'Unsubscribed'
     ) {
       continue;

@@ -113,7 +113,10 @@ export function EmployeeNotificationsModal({
         c.replyStatus === 'Replied' ||
         c.status === 'Follow-Up Paused' ||
         c.status === 'Closed' ||
-        c.status === 'Completed - No Response';
+        c.status === 'Completed - No Response' ||
+        c.status === 'Blocked' ||
+        c.status === 'Bounced' ||
+        c.status === 'Unsubscribed';
 
       const assigned = (c.assignedTo && c.assignedTo.trim()) || 'Atul';
 

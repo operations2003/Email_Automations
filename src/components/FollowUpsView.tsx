@@ -53,7 +53,10 @@ export function FollowUpsView({
       c.replyStatus === 'Replied' ||
       c.status === 'Follow-Up Paused' ||
       c.status === 'Closed' ||
-      c.status === 'Completed - No Response';
+      c.status === 'Completed - No Response' ||
+      c.status === 'Blocked' ||
+      c.status === 'Bounced' ||
+      c.status === 'Unsubscribed';
 
     // Follow-up 1
     const fu1Due = Boolean(c.followUp1ScheduledAt && !c.followUp1SentAt && new Date(c.followUp1ScheduledAt) <= now && !isStopped);

@@ -15,6 +15,7 @@ export type OutreachStatus =
   | 'Completed - No Response'
   | 'Follow-Up Paused'
   | 'Bounced'
+  | 'Blocked'
   | 'Unsubscribed';
 
 export type ReplyStatus =

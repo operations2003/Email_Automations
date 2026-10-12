@@ -32,7 +32,10 @@ export async function GET() {
         c.replyStatus === 'Replied' ||
         c.status === 'Follow-Up Paused' ||
         c.status === 'Closed' ||
-        c.status === 'Completed - No Response';
+        c.status === 'Completed - No Response' ||
+        c.status === 'Blocked' ||
+        c.status === 'Bounced' ||
+        c.status === 'Unsubscribed';
 
       if (!isStopped && c.initialSentAt) {
         activeSequences++;

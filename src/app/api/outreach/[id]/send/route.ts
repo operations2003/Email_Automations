@@ -42,6 +42,16 @@ export async function POST(
       );
     }
 
+    if (campaign.status === 'Blocked') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `This lead is marked as Blocked. Email sending aborted.`
+        },
+        { status: 400 }
+      );
+    }
+
     const payload = await req.json().catch(() => ({}));
     const stage = payload.stage || 'initial'; // 'initial' | 'followup_1' | 'followup_2' | 'followup_3'
     const settings = await getSettings();
