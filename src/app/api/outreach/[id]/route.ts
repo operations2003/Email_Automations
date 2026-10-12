@@ -57,7 +57,29 @@ export async function PUT(
     if (updates.followUp3Body !== undefined) campaign.followUp3Body = updates.followUp3Body;
 
     // Status updates
-    if (updates.status !== undefined) campaign.status = updates.status as OutreachStatus;
+    if (updates.status !== undefined) {
+      campaign.status = updates.status as OutreachStatus;
+
+      // If status changed to Initial Email Sent, kick off 2-day follow-up cycle
+      if (updates.status === 'Initial Email Sent') {
+        const now = new Date();
+        const nowIso = now.toISOString();
+        if (!campaign.initialSentAt) {
+          campaign.initialSentAt = nowIso;
+        }
+        const intervalMs = 2 * 24 * 60 * 60 * 1000;
+        if (!campaign.followUp1ScheduledAt) {
+          campaign.followUp1ScheduledAt = new Date(now.getTime() + intervalMs).toISOString();
+        }
+        if (!campaign.followUp2ScheduledAt) {
+          campaign.followUp2ScheduledAt = new Date(now.getTime() + intervalMs * 2).toISOString();
+        }
+        if (!campaign.followUp3ScheduledAt) {
+          campaign.followUp3ScheduledAt = new Date(now.getTime() + intervalMs * 3).toISOString();
+        }
+        campaign.lastActivity = 'Initial email sent. Follow-up cycle started (Follow-Up 1 in 2 days).';
+      }
+    }
     if (updates.replyStatus !== undefined) campaign.replyStatus = updates.replyStatus as ReplyStatus;
 
     campaign.updatedAt = new Date().toISOString();
@@ -70,7 +92,9 @@ export async function PUT(
         description: `Campaign status changed from "${oldStatus}" to "${updates.status}".`,
         timestamp: new Date().toISOString()
       });
-      campaign.lastActivity = `Status: ${updates.status}`;
+      if (updates.status !== 'Initial Email Sent') {
+        campaign.lastActivity = `Status: ${updates.status}`;
+      }
     }
 
     // If reply status changed to Replied, halt follow-ups

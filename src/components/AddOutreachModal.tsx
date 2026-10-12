@@ -15,7 +15,8 @@ import {
   PenTool,
   Copy,
   Check,
-  Tag
+  Tag,
+  Send
 } from 'lucide-react';
 
 interface AddOutreachModalProps {
@@ -384,12 +385,37 @@ export function AddOutreachModal({
     try {
       let targetId = currentCampaignId;
       if (!targetId) {
-        const res = await fetch('/api/outreach?q=' + encodeURIComponent(email));
-        const data = await res.json();
-        targetId = data.campaigns?.[0]?.id;
+        const createRes = await fetch('/api/outreach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            companyName: companyName.trim(),
+            email: email.trim(),
+            ccEmails: ccEmails.trim(),
+            mailTopic: mailTopic.trim(),
+            reason: reason.trim(),
+            recipientName: recipientName.trim(),
+            companyWebsite: companyWebsite.trim(),
+            forceDuplicate: true
+          })
+        });
+        const createData = await createRes.json();
+        if (!createRes.ok) throw new Error(createData.error || 'Could not save outreach target');
+        targetId = createData.campaign.id;
+        setCurrentCampaignId(targetId);
       }
 
       if (!targetId) throw new Error('Email record not found');
+
+      // Update draft content if edited by user
+      await fetch(`/api/outreach/${targetId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          initialSubject: subject,
+          initialEmailBody: emailBody
+        })
+      });
 
       const sendRes = await fetch(`/api/outreach/${targetId}/send`, {
         method: 'POST',
@@ -900,9 +926,28 @@ export function AddOutreachModal({
                     <button
                       type="button"
                       onClick={handleSaveDraft}
-                      className="rounded-lg bg-slate-900 hover:bg-slate-800 px-3.5 py-1.5 text-xs font-medium text-white transition-colors cursor-pointer shadow-xs"
+                      className="rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-3.5 py-1.5 text-xs font-medium text-slate-700 transition-colors cursor-pointer shadow-xs"
                     >
                       Save Draft
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSendEmail}
+                      disabled={isSending || isGenerating}
+                      className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                      title="Send initial email now and start 2-day follow-up cycle"
+                    >
+                      {isSending ? (
+                        <>
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                          <span>Sending &amp; Scheduling...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-3 w-3" />
+                          <span>Send Email</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

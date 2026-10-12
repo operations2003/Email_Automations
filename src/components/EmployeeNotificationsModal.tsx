@@ -587,12 +587,28 @@ export function EmployeeNotificationsModal({
                     {/* Right: Action Buttons */}
                     <div className="flex items-center gap-1.5 self-start sm:self-center shrink-0">
                       <button
+                        onClick={() => {
+                          onClose();
+                          onPreview(item.campaign, item.stage);
+                        }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shadow-xs ${
+                          item.isDue || item.isOverdue
+                            ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                        }`}
+                        title="Click to draft and send follow-up email"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span>Draft Follow-Up</span>
+                      </button>
+
+                      <button
                         onClick={() => onPreview(item.campaign, item.stage)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors cursor-pointer shadow-xs"
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors cursor-pointer shadow-xs"
                         title="Preview Follow-up Email"
                       >
                         <Eye className="h-3.5 w-3.5 text-slate-500" />
-                        <span>Preview Draft</span>
+                        <span className="hidden sm:inline">Preview</span>
                       </button>
 
                       {!item.isDue && !item.isSent && (

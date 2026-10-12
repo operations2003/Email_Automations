@@ -15,7 +15,7 @@ import { EmployeeNotificationsModal } from '@/components/EmployeeNotificationsMo
 import { LoginScreen } from '@/components/LoginScreen';
 import { useAuth } from '@/context/AuthContext';
 import { Company } from '@/types/company';
-import { CheckCircle2, AlertCircle, Info, Sparkles, Shield } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, Sparkles, Shield, Bell } from 'lucide-react';
 
 export default function HomePage() {
   const { user, loading: authLoading, isAdmin } = useAuth();
@@ -378,6 +378,39 @@ export default function HomePage() {
 
       {/* Main App Content */}
       <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full">
+        {/* Real-time Follow-Up Reminder Banner for Today */}
+        {dueTodayCount > 0 && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/90 p-3.5 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 text-white shadow-xs">
+                <Bell className="h-4 w-4 animate-bounce" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-bold text-amber-950">
+                    Follow-Up Notification: Today {dueTodayCount} {dueTodayCount === 1 ? 'company has' : 'companies have'} a follow-up due!
+                  </p>
+                  <span className="rounded-full bg-amber-200/80 px-2 py-0.5 text-[10px] font-bold text-amber-900">
+                    Action Needed
+                  </span>
+                </div>
+                <p className="text-[11px] text-amber-800 mt-0.5">
+                  Follow-up cycle is active. Click below to view and auto-draft the tailored follow-up email.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsNotificationsOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Open Notifications &amp; Draft ({dueTodayCount})</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'outreach' && (
           <OutreachTable
             campaigns={campaigns}

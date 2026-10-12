@@ -88,9 +88,12 @@ export async function POST(
         settings
       );
 
+      const intervalDays = settings.followUpIntervalDays || 2;
       const nextScheduled = new Date(now.getTime() + intervalMs).toISOString();
+      const fu2Scheduled = new Date(now.getTime() + intervalMs * 2).toISOString();
+      const fu3Scheduled = new Date(now.getTime() + intervalMs * 3).toISOString();
 
-      // Pre-synthesize follow-up 1 preview if desired, or set scheduled date
+      // Pre-synthesize follow-up 1 preview so it's drafted and ready
       let fu1Subj = campaign.followUp1Subject;
       let fu1Body = campaign.followUp1Body;
       if (!fu1Subj || !fu1Body) {
@@ -123,8 +126,10 @@ export async function POST(
       campaign.followUp1Subject = fu1Subj || '';
       campaign.followUp1Body = fu1Body || '';
       campaign.followUp1ScheduledAt = nextScheduled;
+      if (!campaign.followUp2ScheduledAt) campaign.followUp2ScheduledAt = fu2Scheduled;
+      if (!campaign.followUp3ScheduledAt) campaign.followUp3ScheduledAt = fu3Scheduled;
       campaign.status = 'Initial Email Sent';
-      campaign.lastActivity = 'Initial email sent. Follow-Up 1 scheduled.';
+      campaign.lastActivity = `Initial email sent. Follow-up cycle started (Follow-Up 1 in ${intervalDays} days).`;
       campaign.lastActivityTimestamp = nowIso;
       campaign.updatedAt = nowIso;
 
@@ -132,8 +137,8 @@ export async function POST(
 
       await addHistoryEvent(campaign.id, {
         type: 'initial_sent',
-        title: 'Initial Email Sent',
-        description: `Delivered to ${campaign.email}${campaign.ccEmails ? ` (CC: ${campaign.ccEmails})` : ''}. Follow-Up 1 scheduled for ${new Date(nextScheduled).toLocaleDateString()}.`,
+        title: 'Initial Email Sent - Follow-up Cycle Started',
+        description: `Delivered to ${campaign.email}${campaign.ccEmails ? ` (CC: ${campaign.ccEmails})` : ''}. Follow-up cadence initiated: Follow-Up 1 scheduled for ${new Date(nextScheduled).toLocaleDateString()} (${intervalDays}-day interval).`,
         subject: subjectToSend,
         body: bodyToSend,
         timestamp: nowIso

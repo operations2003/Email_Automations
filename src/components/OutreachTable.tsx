@@ -209,35 +209,67 @@ export function OutreachTable({
       return <span className="text-slate-500 text-xs">Completed (No reply)</span>;
     }
 
+    // If status is Initial Email Sent or initial email was sent, display follow-up cadence
+    if (c.status === 'Initial Email Sent' || c.initialSentAt) {
+      if (!c.followUp1SentAt) {
+        const targetDate = c.followUp1ScheduledAt
+          ? new Date(c.followUp1ScheduledAt)
+          : new Date(new Date(c.initialSentAt || c.createdAt || Date.now()).getTime() + 2 * 24 * 60 * 60 * 1000);
+        const isDue = targetDate <= new Date();
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className={`text-xs font-semibold flex items-center gap-1 ${isDue ? 'text-amber-700' : 'text-indigo-600'}`}>
+              <Clock className={`h-3 w-3 ${isDue ? 'text-amber-600 animate-pulse' : 'text-indigo-500'}`} />
+              {isDue ? 'Follow-up 1 Due Today' : `Follow-up 1: ${targetDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}`}
+            </span>
+            <span className="text-[10px] text-slate-400">
+              Follow-up cycle started (2-day cadence)
+            </span>
+          </div>
+        );
+      }
+
+      if (!c.followUp2SentAt) {
+        const targetDate = c.followUp2ScheduledAt
+          ? new Date(c.followUp2ScheduledAt)
+          : new Date(new Date(c.followUp1SentAt || Date.now()).getTime() + 2 * 24 * 60 * 60 * 1000);
+        const isDue = targetDate <= new Date();
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className={`text-xs font-semibold flex items-center gap-1 ${isDue ? 'text-amber-700' : 'text-indigo-600'}`}>
+              <Clock className={`h-3 w-3 ${isDue ? 'text-amber-600 animate-pulse' : 'text-indigo-500'}`} />
+              {isDue ? 'Follow-up 2 Due Today' : `Follow-up 2: ${targetDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}`}
+            </span>
+            <span className="text-[10px] text-slate-400">
+              Follow-up 2 (2-day cadence)
+            </span>
+          </div>
+        );
+      }
+
+      if (!c.followUp3SentAt) {
+        const targetDate = c.followUp3ScheduledAt
+          ? new Date(c.followUp3ScheduledAt)
+          : new Date(new Date(c.followUp2SentAt || Date.now()).getTime() + 2 * 24 * 60 * 60 * 1000);
+        const isDue = targetDate <= new Date();
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className={`text-xs font-semibold flex items-center gap-1 ${isDue ? 'text-amber-700' : 'text-indigo-600'}`}>
+              <Clock className={`h-3 w-3 ${isDue ? 'text-amber-600 animate-pulse' : 'text-indigo-500'}`} />
+              {isDue ? 'Follow-up 3 Due Today' : `Follow-up 3: ${targetDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}`}
+            </span>
+            <span className="text-[10px] text-slate-400">
+              Final follow-up
+            </span>
+          </div>
+        );
+      }
+
+      return <span className="text-slate-500 text-xs">All follow-ups sent</span>;
+    }
+
     if (!c.initialSentAt) {
       return <span className="text-slate-400 text-xs">Not sent yet</span>;
-    }
-
-    if (!c.followUp1SentAt && c.followUp1ScheduledAt) {
-      const isDue = new Date(c.followUp1ScheduledAt) <= new Date();
-      return (
-        <span className={`text-xs ${isDue ? 'text-amber-700 font-medium' : 'text-slate-600'}`}>
-          {isDue ? 'Follow-up 1 due' : `Follow-up 1 on ${new Date(c.followUp1ScheduledAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}`}
-        </span>
-      );
-    }
-
-    if (!c.followUp2SentAt && c.followUp2ScheduledAt) {
-      const isDue = new Date(c.followUp2ScheduledAt) <= new Date();
-      return (
-        <span className={`text-xs ${isDue ? 'text-amber-700 font-medium' : 'text-slate-600'}`}>
-          {isDue ? 'Follow-up 2 due' : `Follow-up 2 on ${new Date(c.followUp2ScheduledAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}`}
-        </span>
-      );
-    }
-
-    if (!c.followUp3SentAt && c.followUp3ScheduledAt) {
-      const isDue = new Date(c.followUp3ScheduledAt) <= new Date();
-      return (
-        <span className={`text-xs ${isDue ? 'text-amber-700 font-medium' : 'text-slate-600'}`}>
-          {isDue ? 'Follow-up 3 due' : `Follow-up 3 on ${new Date(c.followUp3ScheduledAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}`}
-        </span>
-      );
     }
 
     return <span className="text-slate-500 text-xs">Initial email delivered</span>;

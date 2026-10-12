@@ -49,20 +49,31 @@ export function EmailPreviewModal({
 
   useEffect(() => {
     if (!campaign) return;
+    let currentSubject = '';
+    let currentBody = '';
+
     if (activeStage === 'initial') {
-      setSubject(campaign.initialSubject || '');
-      setBody(campaign.initialEmailBody || '');
+      currentSubject = campaign.initialSubject || '';
+      currentBody = campaign.initialEmailBody || '';
     } else if (activeStage === 'followup_1') {
-      setSubject(campaign.followUp1Subject || '');
-      setBody(campaign.followUp1Body || '');
+      currentSubject = campaign.followUp1Subject || '';
+      currentBody = campaign.followUp1Body || '';
     } else if (activeStage === 'followup_2') {
-      setSubject(campaign.followUp2Subject || '');
-      setBody(campaign.followUp2Body || '');
+      currentSubject = campaign.followUp2Subject || '';
+      currentBody = campaign.followUp2Body || '';
     } else if (activeStage === 'followup_3') {
-      setSubject(campaign.followUp3Subject || '');
-      setBody(campaign.followUp3Body || '');
+      currentSubject = campaign.followUp3Subject || '';
+      currentBody = campaign.followUp3Body || '';
     }
-  }, [activeStage, campaign]);
+
+    setSubject(currentSubject);
+    setBody(currentBody);
+
+    // Auto-draft if follow-up body is empty when opened
+    if (!currentBody && activeStage !== 'initial' && isOpen) {
+      handleRegenerate(activeStage);
+    }
+  }, [activeStage, campaign, isOpen]);
 
   if (!isOpen || !campaign) return null;
 
@@ -148,28 +159,29 @@ export function EmailPreviewModal({
     }
   };
 
-  const handleRegenerate = async () => {
+  const handleRegenerate = async (stageOverride?: 'initial' | 'followup_1' | 'followup_2' | 'followup_3') => {
+    const stageToDraft = stageOverride || activeStage;
     setIsRegenerating(true);
-    setFeedback(null);
+    setFeedback('AI is drafting tailored follow-up copy...');
     try {
-      const res = await fetch(`/api/outreach/${campaign.id}/regenerate`, {
+      const res = await fetch(`/api/outreach/${campaign.id}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stage: activeStage })
+        body: JSON.stringify({ stage: stageToDraft })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not rewrite email');
+      if (!res.ok) throw new Error(data.error || 'Could not draft email');
 
       setSubject(data.generated.subject);
       setBody(data.generated.body);
       if (data.generated.alternativeSubjects) {
         setAlternativeSubjects(data.generated.alternativeSubjects);
       }
-      setFeedback('New version created.');
+      setFeedback('Follow-up drafted automatically by AI!');
       onRefresh();
     } catch (err: unknown) {
       const e = err as Error;
-      setFeedback(`Error: ${e.message}`);
+      setFeedback(`Drafting note: ${e.message}`);
     } finally {
       setIsRegenerating(false);
     }
@@ -384,14 +396,20 @@ export function EmailPreviewModal({
                   </div>
                 )}
               </div>
+            ) : isRegenerating ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500 text-xs">
+                <RefreshCw className="h-6 w-6 animate-spin text-indigo-600 mb-2" />
+                <p className="font-semibold text-slate-800">Drafting follow-up email with AI...</p>
+                <p className="text-slate-400 text-[11px] mt-0.5">Composing tailored follow-up based on outreach context.</p>
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500 text-xs">
-                <p>This email has not been written yet.</p>
+                <p>This follow-up email has not been drafted yet.</p>
                 <button
-                  onClick={handleRegenerate}
+                  onClick={() => handleRegenerate(activeStage)}
                   className="mt-2.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium cursor-pointer shadow-xs"
                 >
-                  Write this email
+                  Draft Follow-Up Email
                 </button>
               </div>
             )}
@@ -402,7 +420,7 @@ export function EmailPreviewModal({
         <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
           <div className="flex items-center gap-2">
             <button
-              onClick={handleRegenerate}
+              onClick={() => handleRegenerate()}
               disabled={isRegenerating}
               className="px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer font-medium"
             >
