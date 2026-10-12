@@ -85,7 +85,17 @@ export async function POST(
       }
     }
 
-    campaign.status = 'Follow-Up Scheduled';
+    if (campaign.followUp3SentAt) {
+      campaign.status = 'Third Follow-Up Done';
+    } else if (campaign.followUp2SentAt) {
+      campaign.status = 'Second Follow-Up Done';
+    } else if (campaign.followUp1SentAt) {
+      campaign.status = 'First Follow-Up Done';
+    } else if (campaign.initialSentAt) {
+      campaign.status = 'Initial Email Sent';
+    } else {
+      campaign.status = 'Follow-Up Scheduled';
+    }
     campaign.lastActivity = `Placed in follow-up pipeline. Follow-Up ${targetNumber} scheduled for ${new Date(scheduledDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}.`;
     campaign.lastActivityTimestamp = nowIso;
     campaign.updatedAt = nowIso;

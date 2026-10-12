@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { GeneratedEmailResult, OutreachService } from '@/types/outreach';
-import { Company } from '@/types/company';
+import { Company, EmployeeCompanyOption } from '@/types/company';
 import {
   X,
   RefreshCw,
@@ -39,7 +39,7 @@ export function AddOutreachModal({
   initialCompany
 }: AddOutreachModalProps) {
   // Company selection state
-  const [availableCompanies, setAvailableCompanies] = useState<Pick<Company, 'id' | 'name' | 'email'>[]>([]);
+  const [availableCompanies, setAvailableCompanies] = useState<EmployeeCompanyOption[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [saveToDirectory, setSaveToDirectory] = useState(true);
@@ -111,6 +111,9 @@ export function AddOutreachModal({
       setSelectedCompanyId(companyId);
       setCompanyName(company.name);
       setEmail(company.email);
+      if (company.website) {
+        setCompanyWebsite(company.website);
+      }
     } else {
       setSelectedCompanyId('');
     }

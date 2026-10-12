@@ -138,6 +138,11 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [fetchCampaigns, fetchSettings]);
 
+  // Refresh campaigns whenever user switches tabs
+  useEffect(() => {
+    fetchCampaigns();
+  }, [activeTab, fetchCampaigns]);
+
   // Handle single campaign generation
   const handleGenerate = async (campaign: OutreachCampaign) => {
     try {
@@ -319,6 +324,7 @@ export default function HomePage() {
   // Calculate due today count
   const dueTodayCount = campaigns.filter(c => {
     const now = new Date();
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     const isStopped =
       c.replyStatus === 'Replied' ||
       c.status === 'Follow-Up Paused' ||
@@ -330,9 +336,9 @@ export default function HomePage() {
     if (isStopped || !c.initialSentAt) return false;
 
     return (
-      (!c.followUp1SentAt && c.followUp1ScheduledAt && new Date(c.followUp1ScheduledAt) <= now) ||
-      (c.followUp1SentAt && !c.followUp2SentAt && c.followUp2ScheduledAt && new Date(c.followUp2ScheduledAt) <= now) ||
-      (c.followUp2SentAt && !c.followUp3SentAt && c.followUp3ScheduledAt && new Date(c.followUp3ScheduledAt) <= now)
+      (!c.followUp1SentAt && c.followUp1ScheduledAt && new Date(c.followUp1ScheduledAt) <= todayEnd) ||
+      (c.followUp1SentAt && !c.followUp2SentAt && c.followUp2ScheduledAt && new Date(c.followUp2ScheduledAt) <= todayEnd) ||
+      (c.followUp2SentAt && !c.followUp3SentAt && c.followUp3ScheduledAt && new Date(c.followUp3ScheduledAt) <= todayEnd)
     );
   }).length;
 
@@ -472,24 +478,31 @@ export default function HomePage() {
               setIsPreviewOpen(true);
             }}
             onSendFollowUp={async (c, stage) => {
+              const stageLabel = stage === 'followup_1' ? 'Follow-Up 1' : stage === 'followup_2' ? 'Follow-Up 2' : 'Follow-Up 3';
               try {
-                showToast(`Sending ${stage} to ${c.companyName}...`, 'info');
+                showToast(`Sending ${stageLabel} to ${c.companyName}...`, 'info');
                 const res = await fetch(`/api/outreach/${c.id}/send`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ stage })
                 });
-                if (res.ok) {
-                  showToast(`${stage} sent successfully!`, 'success');
+                const data = await res.json();
+                if (res.ok && data.success) {
+                  showToast(`${stageLabel} sent successfully! Status updated to "${data.campaign?.status || 'First Follow-Up Done'}".`, 'success');
                   await fetchCampaigns();
+                } else {
+                  throw new Error(data.error || `Could not send ${stageLabel}`);
                 }
-              } catch (err) {
-                console.error(err);
+              } catch (err: unknown) {
+                const e = err as Error;
+                console.error(e);
+                showToast(e.message || 'Error sending follow-up', 'error');
               }
             }}
             onFastForward={handleFastForward}
             onRunScheduler={handleRunScheduler}
             isSchedulerRunning={isSchedulerRunning}
+            onRefresh={fetchCampaigns}
           />
         )}
 

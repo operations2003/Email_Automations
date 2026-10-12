@@ -125,8 +125,8 @@ export function EmployeeNotificationsModal({
         const schDate = new Date(c.followUp1ScheduledAt);
         const schDateStr = formatDateToIsoString(schDate);
         const isSent = Boolean(c.followUp1SentAt);
-        const isDue = Boolean(!isSent && schDate <= now && !isStopped);
-        const isOverdue = Boolean(!isSent && schDate < now && schDateStr < todayStr && !isStopped);
+        const isDue = Boolean(!isSent && schDateStr <= todayStr && !isStopped);
+        const isOverdue = Boolean(!isSent && schDateStr < todayStr && !isStopped);
 
         items.push({
           id: `${c.id}-fu1`,
@@ -155,8 +155,8 @@ export function EmployeeNotificationsModal({
           const schDate = new Date(sch2);
           const schDateStr = formatDateToIsoString(schDate);
           const isSent = Boolean(c.followUp2SentAt);
-          const isDue = Boolean(!isSent && schDate <= now && !isStopped);
-          const isOverdue = Boolean(!isSent && schDate < now && schDateStr < todayStr && !isStopped);
+          const isDue = Boolean(!isSent && schDateStr <= todayStr && Boolean(c.followUp1SentAt) && !isStopped);
+          const isOverdue = Boolean(!isSent && schDateStr < todayStr && Boolean(c.followUp1SentAt) && !isStopped);
 
           items.push({
             id: `${c.id}-fu2`,
@@ -186,8 +186,8 @@ export function EmployeeNotificationsModal({
           const schDate = new Date(sch3);
           const schDateStr = formatDateToIsoString(schDate);
           const isSent = Boolean(c.followUp3SentAt);
-          const isDue = Boolean(!isSent && schDate <= now && !isStopped);
-          const isOverdue = Boolean(!isSent && schDate < now && schDateStr < todayStr && !isStopped);
+          const isDue = Boolean(!isSent && schDateStr <= todayStr && Boolean(c.followUp2SentAt) && !isStopped);
+          const isOverdue = Boolean(!isSent && schDateStr < todayStr && Boolean(c.followUp2SentAt) && !isStopped);
 
           items.push({
             id: `${c.id}-fu3`,

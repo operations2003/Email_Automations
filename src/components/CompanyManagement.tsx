@@ -17,8 +17,11 @@ import {
   Check,
   AlertTriangle,
   Search,
-  Sparkles
+  Sparkles,
+  FileSpreadsheet,
+  Send
 } from 'lucide-react';
+import { ImportExcelModal } from './ImportExcelModal';
 
 interface CompanyManagementProps {
   isAdmin?: boolean;
@@ -34,6 +37,7 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const selectAllRef = React.useRef<HTMLInputElement | null>(null);
   
   // Form state
@@ -318,6 +322,16 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
           </div>
 
           <button
+            onClick={() => setShowImportModal(true)}
+            disabled={saving}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
+            title="Import companies from Excel (.xlsx, .xls) or CSV"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Import Excel</span>
+          </button>
+
+          <button
             onClick={handleStartAdd}
             disabled={saving}
             className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors shadow-xs disabled:opacity-50 cursor-pointer"
@@ -488,13 +502,22 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
                 ? `No company names or emails match "${searchQuery}". Try a different search term.`
                 : 'Both employees and admins can add target companies here to launch tailored email campaigns.'}
             </p>
-            <button
-              onClick={handleStartAdd}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Your First Company</span>
-            </button>
+            <div className="flex items-center justify-center gap-2.5">
+              <button
+                onClick={handleStartAdd}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Company</span>
+              </button>
+              <button
+                onClick={() => setShowImportModal(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium transition-colors cursor-pointer shadow-xs"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Import from Excel</span>
+              </button>
+            </div>
           </div>
         ) : (
           <>
@@ -583,6 +606,16 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
 
                     {/* Quick action buttons */}
                     <div className="flex items-center gap-1.5">
+                      {onStartOutreach && (
+                        <button
+                          onClick={() => onStartOutreach(company)}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 rounded-md transition-colors cursor-pointer"
+                          title="Start outreach email for this company"
+                        >
+                          <Send className="w-3 h-3 text-slate-500" />
+                          <span>Outreach</span>
+                        </button>
+                      )}
 
                       <button
                         onClick={() => handleStartEdit(company)}
@@ -658,6 +691,16 @@ export function CompanyManagement({ isAdmin = false, onStartOutreach }: CompanyM
           Total: {companies.length} {companies.length === 1 ? 'company' : 'companies'} registered in directory
         </div>
       )}
+
+      {/* Excel / CSV Import Modal */}
+      <ImportExcelModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSuccess={(count) => {
+          setSuccess(`Successfully imported ${count} new companies into directory!`);
+          fetchCompanies();
+        }}
+      />
     </div>
   );
 }

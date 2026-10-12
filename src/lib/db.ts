@@ -33,6 +33,58 @@ export async function readCampaigns(): Promise<OutreachCampaign[]> {
         if (c.followUp1Body) c.followUp1Body = cleanGreeting(c.followUp1Body);
         if (c.followUp2Body) c.followUp2Body = cleanGreeting(c.followUp2Body);
         if (c.followUp3Body) c.followUp3Body = cleanGreeting(c.followUp3Body);
+
+        // Ensure campaigns with sent status always have valid schedules
+        if (
+          c.status === 'Initial Email Sent' ||
+          c.status === 'Follow-Up 1 Sent' ||
+          c.status === 'First Follow-Up Done' ||
+          c.status === 'Follow-Up 2 Sent' ||
+          c.status === 'Second Follow-Up Done' ||
+          c.status === 'Third Follow-Up Done' ||
+          c.status === 'Completed - No Response' ||
+          c.status === 'Replied'
+        ) {
+          if (!c.initialSentAt) {
+            c.initialSentAt = c.lastActivityTimestamp || c.createdAt || new Date().toISOString();
+          }
+          const sentMs = new Date(c.initialSentAt).getTime();
+          const twoDays = 2 * 24 * 60 * 60 * 1000;
+          if (!c.followUp1ScheduledAt) {
+            c.followUp1ScheduledAt = new Date(sentMs + twoDays).toISOString();
+          }
+          if (!c.followUp2ScheduledAt) {
+            c.followUp2ScheduledAt = new Date(sentMs + twoDays * 2).toISOString();
+          }
+          if (!c.followUp3ScheduledAt) {
+            c.followUp3ScheduledAt = new Date(sentMs + twoDays * 3).toISOString();
+          }
+        }
+
+        // Automatically sync status with completed follow-up milestones unless terminal/paused
+        const isTerminalStatus =
+          c.status === 'Replied' ||
+          c.status === 'Interested' ||
+          c.status === 'Meeting Scheduled' ||
+          c.status === 'Not Interested' ||
+          c.status === 'Closed' ||
+          c.status === 'Bounced' ||
+          c.status === 'Blocked' ||
+          c.status === 'Unsubscribed' ||
+          c.status === 'Follow-Up Paused';
+
+        if (!isTerminalStatus) {
+          if (c.followUp3SentAt) {
+            c.status = 'Third Follow-Up Done';
+          } else if (c.followUp2SentAt) {
+            c.status = 'Second Follow-Up Done';
+          } else if (c.followUp1SentAt) {
+            c.status = 'First Follow-Up Done';
+          } else if (c.initialSentAt && (c.status === 'Draft' || !c.status)) {
+            c.status = 'Initial Email Sent';
+          }
+        }
+
         return c;
       });
       inMemoryCampaigns = loaded;
@@ -144,6 +196,29 @@ export async function saveCampaign(campaign: OutreachCampaign): Promise<Outreach
     ...campaign,
     updatedAt: new Date().toISOString()
   };
+
+  const isTerminalStatus =
+    updatedCampaign.status === 'Replied' ||
+    updatedCampaign.status === 'Interested' ||
+    updatedCampaign.status === 'Meeting Scheduled' ||
+    updatedCampaign.status === 'Not Interested' ||
+    updatedCampaign.status === 'Closed' ||
+    updatedCampaign.status === 'Bounced' ||
+    updatedCampaign.status === 'Blocked' ||
+    updatedCampaign.status === 'Unsubscribed' ||
+    updatedCampaign.status === 'Follow-Up Paused';
+
+  if (!isTerminalStatus) {
+    if (updatedCampaign.followUp3SentAt) {
+      updatedCampaign.status = 'Third Follow-Up Done';
+    } else if (updatedCampaign.followUp2SentAt) {
+      updatedCampaign.status = 'Second Follow-Up Done';
+    } else if (updatedCampaign.followUp1SentAt) {
+      updatedCampaign.status = 'First Follow-Up Done';
+    } else if (updatedCampaign.initialSentAt && (updatedCampaign.status === 'Draft' || !updatedCampaign.status)) {
+      updatedCampaign.status = 'Initial Email Sent';
+    }
+  }
 
   try {
     const db = await getDb();

@@ -72,8 +72,8 @@ export async function GET() {
         pipelineBreakdown: {
           draft: campaigns.filter(c => c.status === 'Draft').length,
           initialSent: campaigns.filter(c => c.status === 'Initial Email Sent').length,
-          followUp1: campaigns.filter(c => c.status === 'Follow-Up 1 Sent').length,
-          followUp2: campaigns.filter(c => c.status === 'Follow-Up 2 Sent').length,
+          followUp1: campaigns.filter(c => c.status === 'First Follow-Up Done' || c.status === 'Follow-Up 1 Sent').length,
+          followUp2: campaigns.filter(c => c.status === 'Second Follow-Up Done' || c.status === 'Follow-Up 2 Sent').length,
           replied: replies,
           completed: completed,
           paused: campaigns.filter(c => c.status === 'Follow-Up Paused').length

@@ -47,9 +47,9 @@ interface OutreachTableProps {
 export const ALL_STATUSES: OutreachStatus[] = [
   'Draft',
   'Initial Email Sent',
-  'Follow-Up 1 Sent',
-  'Follow-Up 2 Sent',
-  'Follow-Up 3 Sent',
+  'First Follow-Up Done',
+  'Second Follow-Up Done',
+  'Third Follow-Up Done',
   'Replied',
   'Interested',
   'Meeting Scheduled',
@@ -119,6 +119,35 @@ export function OutreachTable({
     c => (c.assignedTo && c.assignedTo.toLowerCase().includes('atul')) || (c.assignedTo && c.assignedTo.trim().length > 0)
   ).length;
 
+  const getDropdownStatusValue = (status: OutreachStatus): OutreachStatus => {
+    if (status === 'Follow-Up 1 Sent') return 'First Follow-Up Done';
+    if (status === 'Follow-Up 2 Sent') return 'Second Follow-Up Done';
+    if (status === 'Follow-Up 3 Sent') return 'Third Follow-Up Done';
+    return status;
+  };
+
+  const getEffectiveStatus = (c: OutreachCampaign): OutreachStatus => {
+    const isTerminalStatus =
+      c.status === 'Replied' ||
+      c.status === 'Interested' ||
+      c.status === 'Meeting Scheduled' ||
+      c.status === 'Not Interested' ||
+      c.status === 'Closed' ||
+      c.status === 'Bounced' ||
+      c.status === 'Blocked' ||
+      c.status === 'Unsubscribed' ||
+      c.status === 'Follow-Up Paused';
+
+    if (!isTerminalStatus) {
+      if (c.followUp3SentAt) return 'Third Follow-Up Done';
+      if (c.followUp2SentAt) return 'Second Follow-Up Done';
+      if (c.followUp1SentAt) return 'First Follow-Up Done';
+      if (c.initialSentAt && (!c.status || c.status === 'Draft')) return 'Initial Email Sent';
+    }
+
+    return getDropdownStatusValue(c.status);
+  };
+
   const filteredCampaigns = campaigns.filter(c => {
     // Search query
     if (searchQuery.trim()) {
@@ -141,7 +170,8 @@ export function OutreachTable({
       return (c.assignedTo && c.assignedTo.toLowerCase().includes('atul')) || (c.assignedTo && c.assignedTo.trim().length > 0);
     }
     if (statusFilter && statusFilter !== 'all') {
-      return c.status === statusFilter;
+      const eff = getEffectiveStatus(c);
+      return eff === statusFilter;
     }
 
     return true;
@@ -160,10 +190,16 @@ export function OutreachTable({
         return 'bg-slate-100 text-slate-700 border-slate-200';
       case 'Initial Email Sent':
         return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'Follow-Up Scheduled':
       case 'Follow-Up 1 Sent':
+      case 'First Follow-Up Done':
+        return 'bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold';
       case 'Follow-Up 2 Sent':
+      case 'Second Follow-Up Done':
+        return 'bg-teal-50 text-teal-800 border-teal-300 font-semibold';
       case 'Follow-Up 3 Sent':
+      case 'Third Follow-Up Done':
+        return 'bg-cyan-50 text-cyan-800 border-cyan-300 font-semibold';
+      case 'Follow-Up Scheduled':
         return 'bg-indigo-50 text-indigo-700 border-indigo-200';
       case 'Replied':
       case 'Interested':
@@ -520,37 +556,70 @@ export function OutreachTable({
 
                       {/* Status */}
                       <td className="py-3 px-4" onClick={e => e.stopPropagation()}>
-                        {getFollowUpStatus(c).isPending ? (
-                          <div className="flex flex-col gap-1">
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs w-fit">
-                              <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
-                              Follow-Up Pending
-                            </span>
+                        {(() => {
+                          const effStatus = getEffectiveStatus(c);
+                          const isPending = getFollowUpStatus(c).isPending;
+                          const isDoneStage =
+                            effStatus === 'First Follow-Up Done' ||
+                            effStatus === 'Second Follow-Up Done' ||
+                            effStatus === 'Third Follow-Up Done';
+
+                          if (isPending) {
+                            return (
+                              <div className="flex flex-col gap-1">
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs w-fit">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                  Follow-Up Pending
+                                </span>
+                                <select
+                                  value={effStatus}
+                                  onChange={e => onStatusChange(c.id, e.target.value as OutreachStatus)}
+                                  className="rounded px-1.5 py-0.5 text-[10px] border border-slate-200 text-slate-600 bg-white cursor-pointer"
+                                >
+                                  {ALL_STATUSES.map(st => (
+                                    <option key={st} value={st}>{st}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            );
+                          }
+
+                          if (isDoneStage) {
+                            return (
+                              <div className="flex flex-col gap-1">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-xs w-fit">
+                                  <Check className="h-3 w-3 text-emerald-600" />
+                                  <span>{effStatus}</span>
+                                </span>
+                                <select
+                                  value={effStatus}
+                                  onChange={e => onStatusChange(c.id, e.target.value as OutreachStatus)}
+                                  className="rounded px-1.5 py-0.5 text-[10px] border border-slate-200 text-slate-600 bg-white cursor-pointer"
+                                >
+                                  {ALL_STATUSES.map(st => (
+                                    <option key={st} value={st}>{st}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            );
+                          }
+
+                          return (
                             <select
-                              value={c.status}
+                              value={effStatus}
                               onChange={e => onStatusChange(c.id, e.target.value as OutreachStatus)}
-                              className="rounded px-1.5 py-0.5 text-[10px] border border-slate-200 text-slate-600 bg-white cursor-pointer"
+                              className={`rounded-md px-2 py-1 text-[11px] border font-medium bg-white focus:outline-none cursor-pointer ${getStatusBadge(
+                                effStatus
+                              )}`}
                             >
                               {ALL_STATUSES.map(st => (
-                                <option key={st} value={st}>{st}</option>
+                                <option key={st} value={st} className="bg-white text-slate-900">
+                                  {st}
+                                </option>
                               ))}
                             </select>
-                          </div>
-                        ) : (
-                          <select
-                            value={c.status}
-                            onChange={e => onStatusChange(c.id, e.target.value as OutreachStatus)}
-                            className={`rounded-md px-2 py-1 text-[11px] border font-medium bg-white focus:outline-none cursor-pointer ${getStatusBadge(
-                              c.status
-                            )}`}
-                          >
-                            {ALL_STATUSES.map(st => (
-                              <option key={st} value={st} className="bg-white text-slate-900">
-                                {st}
-                              </option>
-                            ))}
-                          </select>
-                        )}
+                          );
+                        })()}
                       </td>
 
                       {/* Next Step */}

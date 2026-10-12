@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { ObjectId, Filter, Document } from 'mongodb';
 import { getDb } from './mongodb';
-import { Company, CreateCompanyRequest, UpdateCompanyRequest } from '@/types/company';
+import { Company, CreateCompanyRequest, UpdateCompanyRequest, EmployeeCompanyOption, ImportCompanyResult } from '@/types/company';
 
 function getCompanyIdFilter(id: string): Filter<Document> {
   if (ObjectId.isValid(id) && id.length === 24) {
@@ -418,14 +418,14 @@ export async function deleteCompanies(ids: string[]): Promise<number> {
   return count;
 }
 
-export async function getActiveCompaniesForEmployee(): Promise<Pick<Company, 'id' | 'name' | 'email'>[]> {
+export async function getActiveCompaniesForEmployee(): Promise<EmployeeCompanyOption[]> {
   try {
     const db = await getDb();
     if (db) {
       const companies = await db.collection('companies')
         .find(
           { isActive: true },
-          { projection: { id: 1, _id: 1, name: 1, email: 1 } }
+          { projection: { id: 1, _id: 1, name: 1, email: 1, website: 1, industry: 1 } }
         )
         .sort({ name: 1 })
         .toArray();
@@ -433,7 +433,9 @@ export async function getActiveCompaniesForEmployee(): Promise<Pick<Company, 'id
       return companies.map(doc => ({
         id: doc.id || doc._id.toString(),
         name: doc.name,
-        email: doc.email
+        email: doc.email,
+        website: doc.website || '',
+        industry: doc.industry || ''
       }));
     }
   } catch (error) {
@@ -446,7 +448,170 @@ export async function getActiveCompaniesForEmployee(): Promise<Pick<Company, 'id
     .map(c => ({
       id: c.id,
       name: c.name,
-      email: c.email
+      email: c.email,
+      website: c.website || '',
+      industry: c.industry || ''
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
+
+export async function importCompanies(
+  incomingCompanies: CreateCompanyRequest[],
+  createdBy: string
+): Promise<ImportCompanyResult> {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const now = new Date().toISOString();
+
+  // 1. Sanitize and validate incoming entries
+  const validEntries: CreateCompanyRequest[] = [];
+  let invalidCount = 0;
+
+  for (const item of incomingCompanies) {
+    const name = item.name?.trim();
+    const email = item.email?.trim().toLowerCase();
+    if (!name || !email || !emailRegex.test(email)) {
+      invalidCount++;
+      continue;
+    }
+    validEntries.push({
+      name,
+      email,
+      website: item.website?.trim() || '',
+      industry: item.industry?.trim() || '',
+      description: item.description?.trim() || ''
+    });
+  }
+
+  // 2. In-batch deduplication (first one wins)
+  const uniqueIncoming: CreateCompanyRequest[] = [];
+  const seenEmails = new Set<string>();
+  const seenNames = new Set<string>();
+
+  for (const item of validEntries) {
+    const lowerEmail = item.email.toLowerCase();
+    const lowerName = item.name.toLowerCase();
+    if (seenEmails.has(lowerEmail) || seenNames.has(lowerName)) {
+      continue;
+    }
+    seenEmails.add(lowerEmail);
+    seenNames.add(lowerName);
+    uniqueIncoming.push(item);
+  }
+
+  // 3. Database check & insertion
+  try {
+    const db = await getDb();
+    if (db) {
+      const incomingEmails = uniqueIncoming.map(c => c.email.toLowerCase());
+      const incomingNames = uniqueIncoming.map(c => c.name);
+
+      const existingDocs = await db.collection('companies').find({
+        isActive: true,
+        $or: [
+          { email: { $in: incomingEmails } },
+          { name: { $in: incomingNames } }
+        ]
+      }).toArray();
+
+      const existingEmails = new Set(existingDocs.map(d => String(d.email || '').toLowerCase()));
+      const existingNames = new Set(existingDocs.map(d => String(d.name || '').toLowerCase()));
+
+      const toInsert: Company[] = [];
+      const skippedNames: string[] = [];
+
+      for (let i = 0; i < uniqueIncoming.length; i++) {
+        const item = uniqueIncoming[i];
+        if (existingEmails.has(item.email.toLowerCase()) || existingNames.has(item.name.toLowerCase())) {
+          skippedNames.push(item.name);
+          continue;
+        }
+
+        const companyId = `comp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}_${i}`;
+        const newComp: Company = {
+          id: companyId,
+          name: item.name,
+          email: item.email.toLowerCase(),
+          description: item.description || '',
+          website: item.website || '',
+          industry: item.industry || '',
+          isActive: true,
+          createdAt: now,
+          updatedAt: now,
+          createdBy
+        };
+        toInsert.push(newComp);
+      }
+
+      if (toInsert.length > 0) {
+        await db.collection('companies').insertMany(
+          toInsert.map(c => ({ ...c, _id: undefined }))
+        );
+
+        // Also sync to file
+        const fileCompanies = await readCompaniesFromFile();
+        fileCompanies.unshift(...toInsert);
+        await writeCompaniesToFile(fileCompanies);
+      }
+
+      return {
+        totalProcessed: incomingCompanies.length,
+        importedCount: toInsert.length,
+        skippedCount: incomingCompanies.length - toInsert.length,
+        existingCount: skippedNames.length,
+        invalidCount,
+        importedCompanies: toInsert,
+        skippedNames
+      };
+    }
+  } catch (error) {
+    console.warn('[Companies Service] MongoDB importCompanies failed, using fallback:', error);
+  }
+
+  // Fallback to local file
+  const fileCompanies = await readCompaniesFromFile();
+  const existingEmails = new Set(fileCompanies.filter(c => c.isActive !== false).map(c => c.email.toLowerCase()));
+  const existingNames = new Set(fileCompanies.filter(c => c.isActive !== false).map(c => c.name.toLowerCase()));
+
+  const toInsert: Company[] = [];
+  const skippedNames: string[] = [];
+
+  for (let i = 0; i < uniqueIncoming.length; i++) {
+    const item = uniqueIncoming[i];
+    if (existingEmails.has(item.email.toLowerCase()) || existingNames.has(item.name.toLowerCase())) {
+      skippedNames.push(item.name);
+      continue;
+    }
+
+    const companyId = `comp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}_${i}`;
+    const newComp: Company = {
+      id: companyId,
+      name: item.name,
+      email: item.email.toLowerCase(),
+      description: item.description || '',
+      website: item.website || '',
+      industry: item.industry || '',
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      createdBy
+    };
+    toInsert.push(newComp);
+    existingEmails.add(item.email.toLowerCase());
+    existingNames.add(item.name.toLowerCase());
+  }
+
+  if (toInsert.length > 0) {
+    fileCompanies.unshift(...toInsert);
+    await writeCompaniesToFile(fileCompanies);
+  }
+
+  return {
+    totalProcessed: incomingCompanies.length,
+    importedCount: toInsert.length,
+    skippedCount: incomingCompanies.length - toInsert.length,
+    existingCount: skippedNames.length,
+    invalidCount,
+    importedCompanies: toInsert,
+    skippedNames
+  };
+}

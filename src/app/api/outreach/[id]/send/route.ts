@@ -178,8 +178,8 @@ export async function POST(
       campaign.followUp1Body = bodyToSend;
       campaign.followUp1SentAt = nowIso;
       campaign.followUp2ScheduledAt = nextScheduled;
-      campaign.status = 'Follow-Up 1 Sent';
-      campaign.lastActivity = 'Follow-Up 1 sent. Follow-Up 2 scheduled.';
+      campaign.status = 'First Follow-Up Done';
+      campaign.lastActivity = 'First follow-up sent (Follow-Up 1 Done). Follow-Up 2 scheduled.';
       campaign.lastActivityTimestamp = nowIso;
       campaign.updatedAt = nowIso;
 
@@ -187,8 +187,8 @@ export async function POST(
 
       await addHistoryEvent(campaign.id, {
         type: 'followup_1_sent',
-        title: 'Follow-Up 1 Sent',
-        description: `Delivered to ${campaign.email}. Follow-Up 2 scheduled for ${new Date(nextScheduled).toLocaleDateString()}.`,
+        title: 'Follow-Up 1 Done',
+        description: `Delivered to ${campaign.email}. Next step (Follow-Up 2) scheduled for ${new Date(nextScheduled).toLocaleDateString()}.`,
         subject: subjectToSend,
         body: bodyToSend,
         timestamp: nowIso
@@ -223,8 +223,8 @@ export async function POST(
       campaign.followUp2Body = bodyToSend;
       campaign.followUp2SentAt = nowIso;
       campaign.followUp3ScheduledAt = nextScheduled;
-      campaign.status = 'Follow-Up 2 Sent';
-      campaign.lastActivity = 'Follow-Up 2 sent. Follow-Up 3 scheduled.';
+      campaign.status = 'Second Follow-Up Done';
+      campaign.lastActivity = 'Second follow-up sent (Follow-Up 2 Done). Follow-Up 3 scheduled.';
       campaign.lastActivityTimestamp = nowIso;
       campaign.updatedAt = nowIso;
 
@@ -265,8 +265,8 @@ export async function POST(
       campaign.followUp3Subject = subjectToSend;
       campaign.followUp3Body = bodyToSend;
       campaign.followUp3SentAt = nowIso;
-      campaign.status = 'Completed - No Response';
-      campaign.lastActivity = 'Follow-Up 3 sent (Sequence completed)';
+      campaign.status = 'Third Follow-Up Done';
+      campaign.lastActivity = 'Third follow-up sent (Third Follow-Up Done - Sequence completed)';
       campaign.lastActivityTimestamp = nowIso;
       campaign.updatedAt = nowIso;
 

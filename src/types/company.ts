@@ -35,3 +35,21 @@ export interface CompanyResponse {
   error?: string;
   message?: string;
 }
+
+export interface EmployeeCompanyOption {
+  id: string;
+  name: string;
+  email: string;
+  website?: string;
+  industry?: string;
+}
+
+export interface ImportCompanyResult {
+  totalProcessed: number;
+  importedCount: number;
+  skippedCount: number;
+  existingCount: number;
+  invalidCount: number;
+  importedCompanies: Company[];
+  skippedNames?: string[];
+}

@@ -60,14 +60,15 @@ export async function PUT(
     if (updates.status !== undefined) {
       campaign.status = updates.status as OutreachStatus;
 
+      const now = new Date();
+      const nowIso = now.toISOString();
+      const intervalMs = 2 * 24 * 60 * 60 * 1000;
+
       // If status changed to Initial Email Sent, kick off 2-day follow-up cycle
       if (updates.status === 'Initial Email Sent') {
-        const now = new Date();
-        const nowIso = now.toISOString();
         if (!campaign.initialSentAt) {
           campaign.initialSentAt = nowIso;
         }
-        const intervalMs = 2 * 24 * 60 * 60 * 1000;
         if (!campaign.followUp1ScheduledAt) {
           campaign.followUp1ScheduledAt = new Date(now.getTime() + intervalMs).toISOString();
         }
@@ -78,6 +79,27 @@ export async function PUT(
           campaign.followUp3ScheduledAt = new Date(now.getTime() + intervalMs * 3).toISOString();
         }
         campaign.lastActivity = 'Initial email sent. Follow-up cycle started (Follow-Up 1 in 2 days).';
+      } else if (updates.status === 'First Follow-Up Done') {
+        if (!campaign.followUp1SentAt) {
+          campaign.followUp1SentAt = nowIso;
+        }
+        if (!campaign.followUp2ScheduledAt) {
+          campaign.followUp2ScheduledAt = new Date(now.getTime() + intervalMs).toISOString();
+        }
+        campaign.lastActivity = 'First follow-up marked done. Follow-Up 2 scheduled.';
+      } else if (updates.status === 'Second Follow-Up Done') {
+        if (!campaign.followUp2SentAt) {
+          campaign.followUp2SentAt = nowIso;
+        }
+        if (!campaign.followUp3ScheduledAt) {
+          campaign.followUp3ScheduledAt = new Date(now.getTime() + intervalMs).toISOString();
+        }
+        campaign.lastActivity = 'Second follow-up marked done. Follow-Up 3 scheduled.';
+      } else if (updates.status === 'Third Follow-Up Done') {
+        if (!campaign.followUp3SentAt) {
+          campaign.followUp3SentAt = nowIso;
+        }
+        campaign.lastActivity = 'Third follow-up marked done (Sequence completed).';
       }
     }
     if (updates.replyStatus !== undefined) campaign.replyStatus = updates.replyStatus as ReplyStatus;

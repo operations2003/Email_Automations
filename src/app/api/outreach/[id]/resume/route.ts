@@ -23,10 +23,10 @@ export async function POST(
       campaign.status = 'Initial Email Sent';
     } else if (!campaign.followUp2SentAt) {
       campaign.followUp2ScheduledAt = nextScheduled;
-      campaign.status = 'Follow-Up 1 Sent';
+      campaign.status = 'First Follow-Up Done';
     } else if (!campaign.followUp3SentAt) {
       campaign.followUp3ScheduledAt = nextScheduled;
-      campaign.status = 'Follow-Up 2 Sent';
+      campaign.status = 'Second Follow-Up Done';
     }
 
     // Reset reply status if resuming

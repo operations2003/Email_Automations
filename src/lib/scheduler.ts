@@ -113,8 +113,8 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
         campaign.followUp1Body = body;
         campaign.followUp1SentAt = sentTimestamp;
         campaign.followUp2ScheduledAt = nextScheduled;
-        campaign.status = 'Follow-Up 1 Sent';
-        campaign.lastActivity = 'Follow-Up 1 automatically sent by scheduler';
+        campaign.status = 'First Follow-Up Done';
+        campaign.lastActivity = 'Follow-Up 1 sent via scheduler (Follow-Up 1 Done)';
         campaign.lastActivityTimestamp = sentTimestamp;
 
         await saveCampaign(campaign);
@@ -192,8 +192,8 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
         campaign.followUp2Body = body;
         campaign.followUp2SentAt = sentTimestamp;
         campaign.followUp3ScheduledAt = nextScheduled;
-        campaign.status = 'Follow-Up 2 Sent';
-        campaign.lastActivity = 'Follow-Up 2 automatically sent by scheduler';
+        campaign.status = 'Second Follow-Up Done';
+        campaign.lastActivity = 'Follow-Up 2 sent via scheduler (Follow-Up 2 Done)';
         campaign.lastActivityTimestamp = sentTimestamp;
 
         await saveCampaign(campaign);
@@ -269,8 +269,8 @@ export async function runDueFollowUps(): Promise<SchedulerExecutionReport> {
         campaign.followUp3Subject = subject;
         campaign.followUp3Body = body;
         campaign.followUp3SentAt = sentTimestamp;
-        campaign.status = 'Completed - No Response';
-        campaign.lastActivity = 'Follow-Up 3 sent (Loop closed - No response)';
+        campaign.status = 'Third Follow-Up Done';
+        campaign.lastActivity = 'Follow-Up 3 sent via scheduler (Third Follow-Up Done)';
         campaign.lastActivityTimestamp = sentTimestamp;
 
         await saveCampaign(campaign);
