@@ -188,85 +188,109 @@ export function OutreachTable({
 
   const getScheduleSummary = (c: OutreachCampaign) => {
     if (c.status === 'Blocked') {
-      return <span className="text-red-600 text-xs font-medium">Blocked</span>;
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
+          Blocked
+        </span>
+      );
     }
     if (c.replyStatus === 'Bounced' || c.status === 'Bounced') {
-      return <span className="text-rose-600 text-xs font-medium">Bounced (Suppressed)</span>;
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
+          Bounced
+        </span>
+      );
     }
     if (c.replyStatus === 'Unsubscribed' || c.status === 'Unsubscribed') {
-      return <span className="text-purple-600 text-xs font-medium">Unsubscribed</span>;
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
+          Unsubscribed
+        </span>
+      );
     }
     if (c.replyStatus === 'Replied') {
-      return <span className="text-emerald-600 text-xs font-medium">Replied (Sequence closed)</span>;
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          Replied
+        </span>
+      );
     }
     if (c.status === 'Follow-Up Paused') {
-      return <span className="text-amber-600 text-xs">Paused</span>;
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+          Paused
+        </span>
+      );
     }
     if (c.status === 'Completed - No Response') {
-      return <span className="text-slate-500 text-xs">Completed (No reply)</span>;
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+          Completed
+        </span>
+      );
     }
 
     // If status is Initial Email Sent or initial email was sent, display follow-up cadence
     if (c.status === 'Initial Email Sent' || c.initialSentAt) {
-      if (!c.followUp1SentAt) {
-        const targetDate = c.followUp1ScheduledAt
-          ? new Date(c.followUp1ScheduledAt)
-          : new Date(new Date(c.initialSentAt || c.createdAt || Date.now()).getTime() + 2 * 24 * 60 * 60 * 1000);
+      const renderFollowUpChip = (targetDateStr: string | null | undefined, fallbackOffset: number, label: string, isFinal = false) => {
+        const targetDate = targetDateStr
+          ? new Date(targetDateStr)
+          : new Date(fallbackOffset);
         const isDue = targetDate <= new Date();
+
         return (
-          <div className="flex flex-col gap-0.5">
-            <span className={`text-xs font-semibold flex items-center gap-1 ${isDue ? 'text-amber-700' : 'text-indigo-600'}`}>
-              <Clock className={`h-3 w-3 ${isDue ? 'text-amber-600 animate-pulse' : 'text-indigo-500'}`} />
-              {isDue ? 'Follow-up 1 Due Today' : `Follow-up 1: ${targetDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}`}
+          <div className="flex flex-col gap-0.5 items-start">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border whitespace-nowrap shadow-xs ${
+                isDue
+                  ? 'bg-amber-50 text-amber-900 border-amber-300 font-semibold'
+                  : 'bg-indigo-50/70 text-indigo-700 border-indigo-200/70'
+              }`}
+            >
+              <Clock className={`h-3 w-3 shrink-0 ${isDue ? 'text-amber-600 animate-pulse' : 'text-indigo-500'}`} />
+              <span>
+                {isDue
+                  ? `${label} Due Today`
+                  : `${label}: ${targetDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+              </span>
             </span>
-            <span className="text-[10px] text-slate-400">
-              Follow-up cycle started (2-day cadence)
+            <span className="text-[10px] text-slate-400 pl-0.5 whitespace-nowrap">
+              {isDue ? 'Action needed' : isFinal ? 'Final scheduled step' : '2-day follow-up cycle'}
             </span>
           </div>
         );
+      };
+
+      if (!c.followUp1SentAt) {
+        const fallback = new Date(c.initialSentAt || c.createdAt || Date.now()).getTime() + 2 * 24 * 60 * 60 * 1000;
+        return renderFollowUpChip(c.followUp1ScheduledAt, fallback, 'Follow-up 1');
       }
 
       if (!c.followUp2SentAt) {
-        const targetDate = c.followUp2ScheduledAt
-          ? new Date(c.followUp2ScheduledAt)
-          : new Date(new Date(c.followUp1SentAt || Date.now()).getTime() + 2 * 24 * 60 * 60 * 1000);
-        const isDue = targetDate <= new Date();
-        return (
-          <div className="flex flex-col gap-0.5">
-            <span className={`text-xs font-semibold flex items-center gap-1 ${isDue ? 'text-amber-700' : 'text-indigo-600'}`}>
-              <Clock className={`h-3 w-3 ${isDue ? 'text-amber-600 animate-pulse' : 'text-indigo-500'}`} />
-              {isDue ? 'Follow-up 2 Due Today' : `Follow-up 2: ${targetDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}`}
-            </span>
-            <span className="text-[10px] text-slate-400">
-              Follow-up 2 (2-day cadence)
-            </span>
-          </div>
-        );
+        const fallback = new Date(c.followUp1SentAt || Date.now()).getTime() + 2 * 24 * 60 * 60 * 1000;
+        return renderFollowUpChip(c.followUp2ScheduledAt, fallback, 'Follow-up 2');
       }
 
       if (!c.followUp3SentAt) {
-        const targetDate = c.followUp3ScheduledAt
-          ? new Date(c.followUp3ScheduledAt)
-          : new Date(new Date(c.followUp2SentAt || Date.now()).getTime() + 2 * 24 * 60 * 60 * 1000);
-        const isDue = targetDate <= new Date();
-        return (
-          <div className="flex flex-col gap-0.5">
-            <span className={`text-xs font-semibold flex items-center gap-1 ${isDue ? 'text-amber-700' : 'text-indigo-600'}`}>
-              <Clock className={`h-3 w-3 ${isDue ? 'text-amber-600 animate-pulse' : 'text-indigo-500'}`} />
-              {isDue ? 'Follow-up 3 Due Today' : `Follow-up 3: ${targetDate.toLocaleDateString([], { month: 'short', day: 'numeric' })}`}
-            </span>
-            <span className="text-[10px] text-slate-400">
-              Final follow-up
-            </span>
-          </div>
-        );
+        const fallback = new Date(c.followUp2SentAt || Date.now()).getTime() + 2 * 24 * 60 * 60 * 1000;
+        return renderFollowUpChip(c.followUp3ScheduledAt, fallback, 'Follow-up 3', true);
       }
 
-      return <span className="text-slate-500 text-xs">All follow-ups sent</span>;
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+          <Check className="h-3 w-3 text-emerald-600 shrink-0" />
+          Sequence finished
+        </span>
+      );
     }
 
     if (!c.initialSentAt) {
-      return <span className="text-slate-400 text-xs">Not sent yet</span>;
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 italic">
+          <Clock className="h-3 w-3 text-slate-300 shrink-0" />
+          Pending send
+        </span>
+      );
     }
 
     return <span className="text-slate-500 text-xs">Initial email delivered</span>;
@@ -382,7 +406,7 @@ export function OutreachTable({
                 <th className="py-2.5 px-4 w-[200px]">Email</th>
                 <th className="py-2.5 px-4 min-w-[200px]">Service &amp; Context</th>
                 <th className="py-2.5 px-4 w-[160px]">Status</th>
-                <th className="py-2.5 px-4 w-[170px]">Next Step</th>
+                <th className="py-2.5 px-4 w-[185px]">Next Step</th>
                 <th className="py-2.5 px-4 min-w-[200px]">Subject</th>
                 <th className="py-2.5 px-4 w-[130px] text-right">Actions</th>
               </tr>
@@ -531,10 +555,7 @@ export function OutreachTable({
 
                       {/* Next Step */}
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-3 w-3 text-slate-400 shrink-0" />
-                          {getScheduleSummary(c)}
-                        </div>
+                        {getScheduleSummary(c)}
                       </td>
 
                       {/* Subject */}
