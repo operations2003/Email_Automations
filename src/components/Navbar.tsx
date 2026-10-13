@@ -209,7 +209,7 @@ export function Navbar({
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-100 pt-1.5">
+                  <div className="pt-0.5">
                     <button
                       onClick={async () => {
                         setUserMenuOpen(false);
