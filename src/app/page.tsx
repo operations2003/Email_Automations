@@ -478,14 +478,26 @@ export default function HomePage() {
         )}
 
         {activeTab === 'dashboard' && (
-          <DashboardView
-            onRunScheduler={handleRunScheduler}
-            isSchedulerRunning={isSchedulerRunning}
-            onOpenNewModal={() => {
-              setSelectedCompanyForOutreach(null);
-              setIsAddModalOpen(true);
-            }}
-          />
+          isAdmin ? (
+            <DashboardView
+              onRunScheduler={handleRunScheduler}
+              isSchedulerRunning={isSchedulerRunning}
+              onOpenNewModal={() => {
+                setSelectedCompanyForOutreach(null);
+                setIsAddModalOpen(true);
+              }}
+            />
+          ) : (
+            <div className="max-w-md mx-auto text-center py-16 space-y-4">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-800 border border-slate-200">
+                <Shield className="h-6 w-6" />
+              </div>
+              <h2 className="text-lg font-bold text-slate-900">Administrator Access Required</h2>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Everyday outreach analytics and employee performance metrics can only be viewed by Sheetal Bedi (Admin).
+              </p>
+            </div>
+          )
         )}
 
         {activeTab === 'followups' && (

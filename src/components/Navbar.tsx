@@ -44,9 +44,9 @@ export function Navbar({
   const { user, isAdmin, logout, switchRoleDemo } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  // Ensure employee cannot remain on settings tab if active
+  // Ensure employee cannot access settings or analytics tabs
   useEffect(() => {
-    if (!isAdmin && activeTab === 'settings') {
+    if (!isAdmin && (activeTab === 'settings' || activeTab === 'dashboard')) {
       setActiveTab('outreach');
     }
   }, [isAdmin, activeTab, setActiveTab]);
@@ -107,17 +107,19 @@ export function Navbar({
               )}
             </button>
 
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                activeTab === 'dashboard'
-                  ? 'bg-white text-slate-900 font-semibold shadow-xs border border-slate-200/60'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-              }`}
-            >
-              <BarChart3 className="h-3.5 w-3.5" />
-              Analytics
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                  activeTab === 'dashboard'
+                    ? 'bg-white text-slate-900 font-semibold shadow-xs border border-slate-200/60'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                }`}
+              >
+                <BarChart3 className="h-3.5 w-3.5" />
+                Analytics
+              </button>
+            )}
             {isAdmin && (
               <button
                 onClick={() => setActiveTab('settings')}

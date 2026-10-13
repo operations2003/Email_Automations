@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { readCampaigns } from '@/lib/db';
+import { getUserFromRequest } from '@/lib/auth';
 import {
   DailyStatRecord,
   DailySentEmailLog,
@@ -7,8 +8,16 @@ import {
   DailySummaryStats
 } from '@/types/outreach';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const user = getUserFromRequest(req);
+    if (user && user.role !== 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Everyday email analytics are restricted to Sheetal Bedi (Admin).' },
+        { status: 403 }
+      );
+    }
+
     const campaigns = await readCampaigns();
     const now = new Date();
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
