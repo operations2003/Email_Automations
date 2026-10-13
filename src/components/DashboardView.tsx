@@ -13,7 +13,6 @@ import {
   TrendingUp,
   Users,
   User,
-  Download,
   Search,
   Filter,
   BarChart2,
@@ -250,38 +249,6 @@ export function DashboardView({
     });
   };
 
-  // CSV Export for Admin
-  const handleExportCSV = () => {
-    const rows: string[] = [];
-    rows.push(['Date', 'Time', 'Employee', 'Company Name', 'Recipient Email', 'Stage', 'Subject', 'Status'].join(','));
-
-    filteredDailyData.forEach(d => {
-      d.emails.forEach(e => {
-        const row = [
-          `"${d.date}"`,
-          `"${e.timeFormatted || ''}"`,
-          `"${e.employee}"`,
-          `"${(e.companyName || '').replace(/"/g, '""')}"`,
-          `"${(e.recipientEmail || '').replace(/"/g, '""')}"`,
-          `"${e.stageLabel}"`,
-          `"${(e.subject || '').replace(/"/g, '""')}"`,
-          `"${e.status || ''}"`
-        ];
-        rows.push(row.join(','));
-      });
-    });
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + rows.join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    const empSuffix = selectedEmployee !== 'all' ? `_${selectedEmployee.toLowerCase()}` : '_all_employees';
-    link.setAttribute('download', `everyday_email_analytics${empSuffix}_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   if (loading && !stats) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-slate-400">
@@ -436,16 +403,6 @@ export function DashboardView({
                 </button>
               ))}
             </div>
-
-            {/* CSV Export Button */}
-            <button
-              onClick={handleExportCSV}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 text-xs font-medium transition-colors cursor-pointer shadow-2xs"
-              title="Download daily analytics report as CSV"
-            >
-              <Download className="h-3.5 w-3.5 text-slate-500" />
-              <span>Export CSV</span>
-            </button>
           </div>
         </div>
 
