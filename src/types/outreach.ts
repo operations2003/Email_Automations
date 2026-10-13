@@ -243,3 +243,72 @@ export interface GeneratedEmailResult {
   qualityNotes: string[];
   alternativeSubjects?: string[];
 }
+
+export interface DailySentEmailLog {
+  id: string;
+  campaignId: string;
+  companyName: string;
+  recipientEmail: string;
+  stage: 'initial' | 'followup_1' | 'followup_2' | 'followup_3';
+  stageLabel: string;
+  subject: string;
+  sentAt: string;
+  timeFormatted: string;
+  employee: string;
+  status: string;
+}
+
+export interface DailyStatRecord {
+  date: string; // YYYY-MM-DD
+  formattedDate: string; // e.g. "Oct 13, 2026"
+  dayName: string; // e.g. "Tuesday"
+  isToday: boolean;
+  isYesterday: boolean;
+  totalSent: number;
+  initialSent: number;
+  followUp1Sent: number;
+  followUp2Sent: number;
+  followUp3Sent: number;
+  repliesCount: number;
+  activeEmployees: string[];
+  employeeStats: Record<
+    string,
+    {
+      total: number;
+      initial: number;
+      fu1: number;
+      fu2: number;
+      fu3: number;
+    }
+  >;
+  emails: DailySentEmailLog[];
+}
+
+export interface EmployeeStatSummary {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  totalSent: number;
+  todaySent: number;
+  yesterdaySent: number;
+  initialSent: number;
+  followUpsSent: number;
+  repliesReceived: number;
+  responseRate: number;
+  lastActive?: string;
+}
+
+export interface DailySummaryStats {
+  todaySent: number;
+  yesterdaySent: number;
+  changeVsYesterdayPercent: number;
+  changeVsYesterdayCount: number;
+  last7DaysSent: number;
+  last14DaysSent: number;
+  last30DaysSent: number;
+  dailyAverageSent: number;
+  peakDay: { date: string; formattedDate: string; count: number };
+  activeSendingDays: number;
+}
+
