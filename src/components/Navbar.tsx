@@ -41,7 +41,7 @@ export function Navbar({
   onOpenNotifications,
   notificationCount = 0
 }: NavbarProps) {
-  const { user, isAdmin, logout, switchRoleDemo } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   // Ensure employee cannot access settings or analytics tabs
@@ -207,40 +207,6 @@ export function Navbar({
                         {isAdmin ? 'Administrator' : 'Team Member'}
                       </span>
                     </div>
-                  </div>
-
-                  {/* Fast Demo Role Switching */}
-                  <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-medium text-slate-400 tracking-wider">
-                      Role Switch (Testing)
-                    </span>
-                    {isAdmin ? (
-                      <button
-                        onClick={async () => {
-                          await switchRoleDemo('employee');
-                          setUserMenuOpen(false);
-                        }}
-                        className="w-full flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 text-left transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2">
-                          <UserCheck className="h-3.5 w-3.5 text-slate-500" />
-                          <span>Switch to Member (Atul)</span>
-                        </div>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={async () => {
-                          await switchRoleDemo('admin');
-                          setUserMenuOpen(false);
-                        }}
-                        className="w-full flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 text-left transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2">
-                          <ShieldCheck className="h-3.5 w-3.5 text-slate-500" />
-                          <span>Switch to Admin (Sheetal)</span>
-                        </div>
-                      </button>
-                    )}
                   </div>
 
                   <div className="border-t border-slate-100 pt-1.5">

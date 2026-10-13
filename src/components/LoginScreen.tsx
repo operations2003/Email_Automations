@@ -9,8 +9,6 @@ import {
   Mail,
   Lock,
   ArrowRight,
-  ShieldCheck,
-  UserCheck,
   CheckCircle2,
   Activity,
   Layers,
@@ -35,19 +33,6 @@ export function LoginScreen() {
     const res = await login(email, password);
     if (!res.success) {
       setError(res.error || 'Authentication failed. Please check your work email and password.');
-    }
-    setLoading(false);
-  };
-
-  const handleQuickLogin = async (targetEmail: string, targetPass: string) => {
-    setEmail(targetEmail);
-    setPassword(targetPass);
-    setError(null);
-    setLoading(true);
-
-    const res = await login(targetEmail, targetPass);
-    if (!res.success) {
-      setError(res.error || 'Authentication failed. Please check credentials.');
     }
     setLoading(false);
   };
@@ -182,45 +167,6 @@ export function LoginScreen() {
               </button>
             </form>
 
-            {/* Quick Role Access Buttons */}
-            <div className="mt-6 pt-5 border-t border-slate-100">
-              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
-                Authorized Team Fast Access
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin('sheetalbedi@tasknera.com', 'tasknera@2003')}
-                  className="flex items-center gap-2.5 p-2.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 text-left transition-colors cursor-pointer group"
-                >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-xs font-semibold text-slate-900 block truncate group-hover:text-slate-950">
-                      Sheetal Bedi
-                    </span>
-                    <span className="text-[10px] text-slate-500 block">Administrator</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin('atul@tasknera.com', 'atul@1010')}
-                  className="flex items-center gap-2.5 p-2.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 text-left transition-colors cursor-pointer group"
-                >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-800 text-white">
-                    <UserCheck className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-xs font-semibold text-slate-900 block truncate group-hover:text-slate-950">
-                      Atul
-                    </span>
-                    <span className="text-[10px] text-slate-500 block">Lead Operations</span>
-                  </div>
-                </button>
-              </div>
-            </div>
           </div>
 
           <div className="mt-8 pt-4 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
