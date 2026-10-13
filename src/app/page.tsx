@@ -15,7 +15,7 @@ import { EmployeeNotificationsModal } from '@/components/EmployeeNotificationsMo
 import { LoginScreen } from '@/components/LoginScreen';
 import { useAuth } from '@/context/AuthContext';
 import { Company } from '@/types/company';
-import { CheckCircle2, AlertCircle, Info, Sparkles, Shield, Bell, Play, Loader2, Clock } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, Sparkles, Shield, Bell, Clock } from 'lucide-react';
 
 export default function HomePage() {
   const { user, loading: authLoading, isAdmin } = useAuth();
@@ -431,25 +431,6 @@ export default function HomePage() {
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Open Notifications &amp; Draft ({dueTodayCount})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleRunScheduler}
-                disabled={isSchedulerRunning}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg transition-colors shadow-xs cursor-pointer text-xs disabled:opacity-50"
-              >
-                {isSchedulerRunning ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-3.5 h-3.5 fill-current" />
-                    <span>Run Queue</span>
-                  </>
-                )}
               </button>
             </div>
           </div>
