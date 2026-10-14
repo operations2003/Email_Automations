@@ -96,44 +96,27 @@ export default function HomePage() {
     }
   };
 
-  // Run Follow-Up Scheduler tick
+  // Refresh campaigns without auto-dispatching follow-ups
   const handleRunScheduler = async () => {
     setIsSchedulerRunning(true);
     try {
-      const res = await fetch('/api/scheduler/tick', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        const processed = data.report.processedCount;
-        if (processed > 0) {
-          showToast(`Sent ${processed} due follow-up email(s)!`, 'success');
-        } else {
-          showToast('All caught up! No follow-ups are due right now.', 'info');
-        }
-        await fetchCampaigns();
-      }
+      await fetchCampaigns();
+      showToast('Follow-ups refreshed. They remain intact until you click Send.', 'info');
     } catch (err) {
       console.error(err);
-      showToast('Could not run follow-ups', 'error');
+      showToast('Could not refresh follow-ups', 'error');
     } finally {
       setIsSchedulerRunning(false);
     }
   };
 
-  // Periodic background check (every 30 seconds)
+  // Periodic campaign refresh (every 30 seconds)
   useEffect(() => {
     fetchCampaigns();
     fetchSettings();
 
     const interval = setInterval(() => {
-      fetch('/api/scheduler/tick', { method: 'POST' })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.report.processedCount > 0) {
-            fetchCampaigns();
-            showToast(`Sent ${data.report.processedCount} due follow-up(s).`, 'success');
-          }
-        })
-        .catch(() => {});
+      fetchCampaigns();
     }, 30000);
 
     return () => clearInterval(interval);
