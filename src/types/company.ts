@@ -42,6 +42,7 @@ export interface EmployeeCompanyOption {
   email: string;
   website?: string;
   industry?: string;
+  createdAt?: string;
 }
 
 export interface ImportCompanyResult {

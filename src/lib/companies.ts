@@ -425,9 +425,9 @@ export async function getActiveCompaniesForEmployee(): Promise<EmployeeCompanyOp
       const companies = await db.collection('companies')
         .find(
           { isActive: true },
-          { projection: { id: 1, _id: 1, name: 1, email: 1, website: 1, industry: 1 } }
+          { projection: { id: 1, _id: 1, name: 1, email: 1, website: 1, industry: 1, createdAt: 1 } }
         )
-        .sort({ name: 1 })
+        .sort({ createdAt: -1, _id: -1 })
         .toArray();
 
       return companies.map(doc => ({
@@ -435,7 +435,8 @@ export async function getActiveCompaniesForEmployee(): Promise<EmployeeCompanyOp
         name: doc.name,
         email: doc.email,
         website: doc.website || '',
-        industry: doc.industry || ''
+        industry: doc.industry || '',
+        createdAt: doc.createdAt
       }));
     }
   } catch (error) {
@@ -445,14 +446,15 @@ export async function getActiveCompaniesForEmployee(): Promise<EmployeeCompanyOp
   const companies = await readCompaniesFromFile();
   return companies
     .filter(c => c.isActive !== false)
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
     .map(c => ({
       id: c.id,
       name: c.name,
       email: c.email,
       website: c.website || '',
-      industry: c.industry || ''
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+      industry: c.industry || '',
+      createdAt: c.createdAt
+    }));
 }
 
 export async function importCompanies(
