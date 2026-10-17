@@ -83,8 +83,17 @@ export function FollowUpsView({
   }> = [];
 
   for (const c of campaigns) {
-    // Exclude Blocked and Not Interested campaigns from follow-ups
-    if (c.status === 'Blocked' || c.status === 'Not Interested') continue;
+    // Exclude Blocked, Not Interested, Bounced, and Unsubscribed campaigns from follow-ups
+    if (
+      c.status === 'Blocked' ||
+      c.status === 'Not Interested' ||
+      c.status === 'Bounced' ||
+      c.status === 'Unsubscribed' ||
+      c.replyStatus === 'Bounced' ||
+      c.replyStatus === 'Unsubscribed'
+    ) {
+      continue;
+    }
 
     const initialSent = c.initialSentAt || (c.status === 'Initial Email Sent' || c.status === 'Follow-Up 1 Sent' || c.status === 'Follow-Up 2 Sent' ? (c.lastActivityTimestamp || c.createdAt) : null);
     if (!initialSent && !c.followUp1ScheduledAt) continue;
@@ -93,9 +102,7 @@ export function FollowUpsView({
       c.replyStatus === 'Replied' ||
       c.status === 'Follow-Up Paused' ||
       c.status === 'Closed' ||
-      c.status === 'Completed - No Response' ||
-      c.status === 'Bounced' ||
-      c.status === 'Unsubscribed';
+      c.status === 'Completed - No Response';
 
     const sentTime = new Date(initialSent || c.createdAt).getTime();
     const fu1Scheduled = c.followUp1ScheduledAt || new Date(sentTime + twoDays).toISOString();

@@ -310,14 +310,16 @@ export default function HomePage() {
     const now = new Date();
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     const isStopped =
-      c.replyStatus === 'Replied' ||
-      c.status === 'Follow-Up Paused' ||
-      c.status === 'Closed' ||
-      c.status === 'Completed - No Response' ||
       c.status === 'Blocked' ||
       c.status === 'Not Interested' ||
       c.status === 'Bounced' ||
-      c.status === 'Unsubscribed';
+      c.status === 'Unsubscribed' ||
+      c.status === 'Closed' ||
+      c.status === 'Follow-Up Paused' ||
+      c.status === 'Completed - No Response' ||
+      c.replyStatus === 'Replied' ||
+      c.replyStatus === 'Bounced' ||
+      c.replyStatus === 'Unsubscribed';
     if (isStopped || !c.initialSentAt) return false;
 
     return (

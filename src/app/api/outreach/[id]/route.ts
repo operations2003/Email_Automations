@@ -101,15 +101,22 @@ export async function PUT(
           campaign.followUp3SentAt = nowIso;
         }
         campaign.lastActivity = 'Third follow-up marked done (Sequence completed).';
-      } else if (updates.status === 'Blocked' || updates.status === 'Not Interested') {
+      } else if (
+        updates.status === 'Blocked' ||
+        updates.status === 'Not Interested' ||
+        updates.status === 'Bounced' ||
+        updates.status === 'Unsubscribed' ||
+        updates.status === 'Closed'
+      ) {
         // Halt and clear any pending follow-ups
         if (!campaign.followUp1SentAt) campaign.followUp1ScheduledAt = null;
         if (!campaign.followUp2SentAt) campaign.followUp2ScheduledAt = null;
         if (!campaign.followUp3SentAt) campaign.followUp3ScheduledAt = null;
         campaign.lastActivity = `Status set to ${updates.status}. Follow-up sequences terminated.`;
 
-        if (updates.status === 'Blocked') {
-          await addToSuppression(campaign.email, 'manual', campaign.id, 'Marked as Blocked');
+        if (updates.status === 'Blocked' || updates.status === 'Bounced' || updates.status === 'Unsubscribed') {
+          const reason = updates.status === 'Bounced' ? 'bounced' : updates.status === 'Unsubscribed' ? 'unsubscribed' : 'manual';
+          await addToSuppression(campaign.email, reason, campaign.id, `Marked as ${updates.status}`);
         }
       }
 

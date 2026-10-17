@@ -107,16 +107,23 @@ export function EmployeeNotificationsModal({
     const items: FollowUpItem[] = [];
 
     for (const c of campaigns) {
-      if (c.status === 'Blocked' || c.status === 'Not Interested') continue;
+      if (
+        c.status === 'Blocked' ||
+        c.status === 'Not Interested' ||
+        c.status === 'Bounced' ||
+        c.status === 'Unsubscribed' ||
+        c.replyStatus === 'Bounced' ||
+        c.replyStatus === 'Unsubscribed'
+      ) {
+        continue;
+      }
       if (!c.initialSentAt && !c.followUp1ScheduledAt) continue;
 
       const isStopped =
         c.replyStatus === 'Replied' ||
         c.status === 'Follow-Up Paused' ||
         c.status === 'Closed' ||
-        c.status === 'Completed - No Response' ||
-        c.status === 'Bounced' ||
-        c.status === 'Unsubscribed';
+        c.status === 'Completed - No Response';
 
       const assigned = (c.assignedTo && c.assignedTo.trim()) || 'Atul';
 

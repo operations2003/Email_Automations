@@ -84,14 +84,21 @@ export function OutreachTable({
 
   const getFollowUpStatus = (c: OutreachCampaign) => {
     const isStopped =
+      c.status === 'Blocked' ||
+      c.status === 'Not Interested' ||
+      c.status === 'Bounced' ||
+      c.status === 'Unsubscribed' ||
+      c.status === 'Closed' ||
+      c.status === 'Follow-Up Paused' ||
+      c.status === 'Completed - No Response' ||
+      c.status === 'Replied' ||
+      c.status === 'Interested' ||
+      c.status === 'Meeting Scheduled' ||
       c.replyStatus === 'Replied' ||
       c.replyStatus === 'Bounced' ||
       c.replyStatus === 'Unsubscribed' ||
-      c.status === 'Follow-Up Paused' ||
-      c.status === 'Closed' ||
-      c.status === 'Completed - No Response' ||
-      c.status === 'Blocked' ||
-      c.status === 'Not Interested';
+      c.replyStatus === 'Interested' ||
+      c.replyStatus === 'Meeting Requested';
 
     if (isStopped) return { isPending: false, stage: null, label: '' };
 
@@ -663,7 +670,7 @@ export function OutreachTable({
                               <Send className="h-3 w-3" />
                               Send Follow-Up
                             </button>
-                          ) : c.status === 'Blocked' || c.status === 'Not Interested' ? null : !c.initialEmailBody ? (
+                          ) : c.status === 'Blocked' || c.status === 'Not Interested' || c.status === 'Bounced' || c.status === 'Unsubscribed' || c.status === 'Closed' ? null : !c.initialEmailBody ? (
                             <button
                               type="button"
                               onClick={() => onGenerate(c)}

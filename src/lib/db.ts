@@ -85,7 +85,16 @@ export async function readCampaigns(): Promise<OutreachCampaign[]> {
           }
         }
 
-        if (c.status === 'Blocked' || c.status === 'Not Interested') {
+        if (
+          c.status === 'Blocked' ||
+          c.status === 'Not Interested' ||
+          c.status === 'Bounced' ||
+          c.status === 'Unsubscribed' ||
+          c.status === 'Closed' ||
+          c.status === 'Follow-Up Paused' ||
+          c.replyStatus === 'Bounced' ||
+          c.replyStatus === 'Unsubscribed'
+        ) {
           if (!c.followUp1SentAt) c.followUp1ScheduledAt = null;
           if (!c.followUp2SentAt) c.followUp2ScheduledAt = null;
           if (!c.followUp3SentAt) c.followUp3ScheduledAt = null;
@@ -226,7 +235,16 @@ export async function saveCampaign(campaign: OutreachCampaign): Promise<Outreach
     }
   }
 
-  if (updatedCampaign.status === 'Blocked' || updatedCampaign.status === 'Not Interested') {
+  if (
+    updatedCampaign.status === 'Blocked' ||
+    updatedCampaign.status === 'Not Interested' ||
+    updatedCampaign.status === 'Bounced' ||
+    updatedCampaign.status === 'Unsubscribed' ||
+    updatedCampaign.status === 'Closed' ||
+    updatedCampaign.status === 'Follow-Up Paused' ||
+    updatedCampaign.replyStatus === 'Bounced' ||
+    updatedCampaign.replyStatus === 'Unsubscribed'
+  ) {
     if (!updatedCampaign.followUp1SentAt) updatedCampaign.followUp1ScheduledAt = null;
     if (!updatedCampaign.followUp2SentAt) updatedCampaign.followUp2ScheduledAt = null;
     if (!updatedCampaign.followUp3SentAt) updatedCampaign.followUp3ScheduledAt = null;
