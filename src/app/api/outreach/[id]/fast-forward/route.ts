@@ -12,6 +12,13 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Campaign not found' }, { status: 404 });
     }
 
+    if (campaign.status === 'Blocked' || campaign.status === 'Not Interested') {
+      return NextResponse.json(
+        { success: false, error: `Cannot fast-forward follow-ups: lead is marked as "${campaign.status}".` },
+        { status: 400 }
+      );
+    }
+
     // Fast-forward scheduled dates by 2.5 days backwards so they become immediately due
     const timeShiftMs = 2.5 * 24 * 60 * 60 * 1000;
 

@@ -32,6 +32,7 @@ const FALSE_POSITIVES = [
   /work with your team/i,
   /your team will feel/i,
   /slow down this week/i,
+  /read file from disk/i,
   /abcd efgh ijkl mnop/i,
   /••••••••/
 ];

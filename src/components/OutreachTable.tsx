@@ -90,7 +90,8 @@ export function OutreachTable({
       c.status === 'Follow-Up Paused' ||
       c.status === 'Closed' ||
       c.status === 'Completed - No Response' ||
-      c.status === 'Blocked';
+      c.status === 'Blocked' ||
+      c.status === 'Not Interested';
 
     if (isStopped) return { isPending: false, stage: null, label: '' };
 
@@ -227,6 +228,13 @@ export function OutreachTable({
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
           Blocked
+        </span>
+      );
+    }
+    if (c.status === 'Not Interested') {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+          Not Interested
         </span>
       );
     }
@@ -655,7 +663,7 @@ export function OutreachTable({
                               <Send className="h-3 w-3" />
                               Send Follow-Up
                             </button>
-                          ) : c.status === 'Blocked' ? null : !c.initialEmailBody ? (
+                          ) : c.status === 'Blocked' || c.status === 'Not Interested' ? null : !c.initialEmailBody ? (
                             <button
                               type="button"
                               onClick={() => onGenerate(c)}

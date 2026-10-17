@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findCampaignById, saveCampaign, deleteCampaign, addHistoryEvent } from '@/lib/db';
+import { addToSuppression, removeFromSuppression } from '@/lib/suppression';
 import { OutreachStatus, ReplyStatus } from '@/types/outreach';
 
 export async function GET(
@@ -100,6 +101,20 @@ export async function PUT(
           campaign.followUp3SentAt = nowIso;
         }
         campaign.lastActivity = 'Third follow-up marked done (Sequence completed).';
+      } else if (updates.status === 'Blocked' || updates.status === 'Not Interested') {
+        // Halt and clear any pending follow-ups
+        if (!campaign.followUp1SentAt) campaign.followUp1ScheduledAt = null;
+        if (!campaign.followUp2SentAt) campaign.followUp2ScheduledAt = null;
+        if (!campaign.followUp3SentAt) campaign.followUp3ScheduledAt = null;
+        campaign.lastActivity = `Status set to ${updates.status}. Follow-up sequences terminated.`;
+
+        if (updates.status === 'Blocked') {
+          await addToSuppression(campaign.email, 'manual', campaign.id, 'Marked as Blocked');
+        }
+      }
+
+      if (oldStatus === 'Blocked' && updates.status !== 'Blocked') {
+        await removeFromSuppression(campaign.email);
       }
     }
     if (updates.replyStatus !== undefined) campaign.replyStatus = updates.replyStatus as ReplyStatus;

@@ -107,6 +107,7 @@ export function EmployeeNotificationsModal({
     const items: FollowUpItem[] = [];
 
     for (const c of campaigns) {
+      if (c.status === 'Blocked' || c.status === 'Not Interested') continue;
       if (!c.initialSentAt && !c.followUp1ScheduledAt) continue;
 
       const isStopped =
@@ -114,7 +115,6 @@ export function EmployeeNotificationsModal({
         c.status === 'Follow-Up Paused' ||
         c.status === 'Closed' ||
         c.status === 'Completed - No Response' ||
-        c.status === 'Blocked' ||
         c.status === 'Bounced' ||
         c.status === 'Unsubscribed';
 

@@ -14,6 +14,16 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Campaign not found' }, { status: 404 });
     }
 
+    if (campaign.status === 'Blocked' || campaign.status === 'Not Interested') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Cannot schedule follow-up: lead is marked as "${campaign.status}".`
+        },
+        { status: 400 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const settings = await getSettings();
     const intervalDays = body.intervalDays || settings.followUpIntervalDays || 2;

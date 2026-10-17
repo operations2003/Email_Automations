@@ -315,6 +315,7 @@ export default function HomePage() {
       c.status === 'Closed' ||
       c.status === 'Completed - No Response' ||
       c.status === 'Blocked' ||
+      c.status === 'Not Interested' ||
       c.status === 'Bounced' ||
       c.status === 'Unsubscribed';
     if (isStopped || !c.initialSentAt) return false;

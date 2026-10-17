@@ -85,6 +85,12 @@ export async function readCampaigns(): Promise<OutreachCampaign[]> {
           }
         }
 
+        if (c.status === 'Blocked' || c.status === 'Not Interested') {
+          if (!c.followUp1SentAt) c.followUp1ScheduledAt = null;
+          if (!c.followUp2SentAt) c.followUp2ScheduledAt = null;
+          if (!c.followUp3SentAt) c.followUp3ScheduledAt = null;
+        }
+
         return c;
       });
       inMemoryCampaigns = loaded;
@@ -218,6 +224,12 @@ export async function saveCampaign(campaign: OutreachCampaign): Promise<Outreach
     } else if (updatedCampaign.initialSentAt && (updatedCampaign.status === 'Draft' || !updatedCampaign.status)) {
       updatedCampaign.status = 'Initial Email Sent';
     }
+  }
+
+  if (updatedCampaign.status === 'Blocked' || updatedCampaign.status === 'Not Interested') {
+    if (!updatedCampaign.followUp1SentAt) updatedCampaign.followUp1ScheduledAt = null;
+    if (!updatedCampaign.followUp2SentAt) updatedCampaign.followUp2ScheduledAt = null;
+    if (!updatedCampaign.followUp3SentAt) updatedCampaign.followUp3ScheduledAt = null;
   }
 
   try {

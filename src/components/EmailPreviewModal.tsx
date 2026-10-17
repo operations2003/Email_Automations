@@ -9,7 +9,8 @@ import {
   FileEdit,
   Check,
   Clock,
-  Copy
+  Copy,
+  Ban
 } from 'lucide-react';
 
 interface EmailPreviewModalProps {
@@ -252,6 +253,20 @@ export function EmailPreviewModal({
             </button>
           </div>
 
+          {/* Blocked / Not Interested warning banner */}
+          {(campaign.status === 'Blocked' || campaign.status === 'Not Interested') && (
+            <div className={`mt-2.5 rounded-lg border p-2 text-xs font-medium flex items-center gap-2 ${
+              campaign.status === 'Blocked'
+                ? 'border-red-200 bg-red-50 text-red-800'
+                : 'border-slate-200 bg-slate-100 text-slate-700'
+            }`}>
+              <Ban className="h-4 w-4 shrink-0 text-red-600" />
+              <span>
+                This lead is currently marked as <strong>{campaign.status}</strong>. Follow-up sequences and sending are disabled.
+              </span>
+            </div>
+          )}
+
           {/* Feedback alert */}
           {feedback && (
             <div className="mt-2.5 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs text-slate-800 font-medium">
@@ -427,7 +442,8 @@ export function EmailPreviewModal({
             </button>
             <button
               onClick={handleSend}
-              disabled={isSending || !body}
+              disabled={isSending || !body || campaign.status === 'Blocked' || campaign.status === 'Not Interested'}
+              title={campaign.status === 'Blocked' || campaign.status === 'Not Interested' ? `Lead is marked as ${campaign.status} - email sending disabled` : undefined}
               className="flex items-center gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 px-3.5 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 shadow-xs cursor-pointer"
             >
               {isSending ? (

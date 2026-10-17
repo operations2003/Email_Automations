@@ -13,6 +13,13 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Campaign not found' }, { status: 404 });
     }
 
+    if (campaign.status === 'Blocked' || campaign.status === 'Not Interested') {
+      return NextResponse.json(
+        { success: false, error: `Cannot resume follow-ups: lead is marked as "${campaign.status}".` },
+        { status: 400 }
+      );
+    }
+
     const settings = await getSettings();
     const intervalDays = settings.followUpIntervalDays || 2;
     const nextScheduled = new Date(Date.now() + intervalDays * 24 * 60 * 60 * 1000).toISOString();

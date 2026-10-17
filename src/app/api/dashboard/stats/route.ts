@@ -109,6 +109,7 @@ export async function GET(req: NextRequest) {
         c.status === 'Closed' ||
         c.status === 'Completed - No Response' ||
         c.status === 'Blocked' ||
+        c.status === 'Not Interested' ||
         c.status === 'Bounced' ||
         c.replyStatus === 'Bounced' ||
         c.status === 'Unsubscribed';
