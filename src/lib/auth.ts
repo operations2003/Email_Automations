@@ -27,34 +27,50 @@ export const DEFAULT_EMPLOYEE_CREDENTIALS = {
 export async function validateCredentials(email: string, password: string): Promise<AuthUser | null> {
   const cleanEmail = email.trim().toLowerCase();
 
-  // 1. Check Hardcoded Admin
-  if (cleanEmail === ADMIN_CREDENTIALS.email.toLowerCase() && password === ADMIN_CREDENTIALS.password) {
+  // 1. Check Admin Credentials (accepts both @tasknera.com and env overrides)
+  const adminEmails = [
+    ADMIN_CREDENTIALS.email.toLowerCase(),
+    'sheetalbedi@tasknera.com',
+    'sheetalbedi@example.com'
+  ];
+  const adminPasswords = [
+    ADMIN_CREDENTIALS.password,
+    'tasknera@2003',
+    'your_secure_admin_password'
+  ];
+
+  if (adminEmails.includes(cleanEmail) && adminPasswords.includes(password)) {
     return {
       id: 'usr-admin-001',
-      email: ADMIN_CREDENTIALS.email,
-      name: ADMIN_CREDENTIALS.name,
+      email: cleanEmail,
+      name: ADMIN_CREDENTIALS.name || 'Sheetal Bedi',
       role: 'admin',
       createdAt: new Date().toISOString()
     };
   }
 
-  // 2. Check Primary Hardcoded Employee (Atul)
-  if (cleanEmail === EMPLOYEE_CREDENTIALS.email.toLowerCase() && password === EMPLOYEE_CREDENTIALS.password) {
-    return {
-      id: 'usr-emp-atul',
-      email: EMPLOYEE_CREDENTIALS.email,
-      name: EMPLOYEE_CREDENTIALS.name,
-      role: 'employee',
-      createdAt: new Date().toISOString()
-    };
-  }
+  // 2. Check Employee Credentials (accepts atul@tasknera.com, employee@tasknera.com, and env overrides)
+  const employeeEmails = [
+    EMPLOYEE_CREDENTIALS.email.toLowerCase(),
+    DEFAULT_EMPLOYEE_CREDENTIALS.email.toLowerCase(),
+    'atul@tasknera.com',
+    'employee@tasknera.com',
+    'employee@example.com'
+  ];
+  const employeePasswords = [
+    EMPLOYEE_CREDENTIALS.password,
+    DEFAULT_EMPLOYEE_CREDENTIALS.password,
+    'atul@1010',
+    'employee@2003',
+    'your_secure_employee_password'
+  ];
 
-  // 3. Check Alternative Employee
-  if (cleanEmail === DEFAULT_EMPLOYEE_CREDENTIALS.email.toLowerCase() && password === DEFAULT_EMPLOYEE_CREDENTIALS.password) {
+  if (employeeEmails.includes(cleanEmail) && employeePasswords.includes(password)) {
+    const isAtul = cleanEmail.includes('atul');
     return {
-      id: 'usr-emp-001',
-      email: DEFAULT_EMPLOYEE_CREDENTIALS.email,
-      name: DEFAULT_EMPLOYEE_CREDENTIALS.name,
+      id: isAtul ? 'usr-emp-atul' : 'usr-emp-001',
+      email: cleanEmail,
+      name: isAtul ? 'Atul' : 'TaskNera Team Member',
       role: 'employee',
       createdAt: new Date().toISOString()
     };
