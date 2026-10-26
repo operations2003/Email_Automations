@@ -12,6 +12,7 @@ import { AddOutreachModal } from '@/components/AddOutreachModal';
 import { EmailPreviewModal } from '@/components/EmailPreviewModal';
 import { HistoryModal } from '@/components/HistoryModal';
 import { EmployeeNotificationsModal } from '@/components/EmployeeNotificationsModal';
+import { InboxAutomationView } from '@/components/InboxAutomationView';
 import { LoginScreen } from '@/components/LoginScreen';
 import { useAuth } from '@/context/AuthContext';
 import { Company } from '@/types/company';
@@ -19,7 +20,8 @@ import { CheckCircle2, AlertCircle, Info, Sparkles, Shield, Bell, Clock } from '
 
 export default function HomePage() {
   const { user, loading: authLoading, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState<'outreach' | 'companies' | 'dashboard' | 'followups' | 'settings'>('outreach');
+  const [activeTab, setActiveTab] = useState<'outreach' | 'companies' | 'dashboard' | 'followups' | 'inbox' | 'settings'>('outreach');
+  const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
   const [campaigns, setCampaigns] = useState<OutreachCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
@@ -110,22 +112,38 @@ export default function HomePage() {
     }
   };
 
+  // Fetch inbox stats (unread count)
+  const fetchInboxStats = useCallback(async () => {
+    try {
+      const res = await fetch('/api/inbox/conversations');
+      const data = await res.json();
+      if (data.success && data.stats) {
+        setInboxUnreadCount(data.stats.unread || 0);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Periodic campaign refresh (every 30 seconds)
   useEffect(() => {
     fetchCampaigns();
     fetchSettings();
+    fetchInboxStats();
 
     const interval = setInterval(() => {
       fetchCampaigns();
+      fetchInboxStats();
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [fetchCampaigns, fetchSettings]);
+  }, [fetchCampaigns, fetchSettings, fetchInboxStats]);
 
   // Refresh campaigns whenever user switches tabs
   useEffect(() => {
     fetchCampaigns();
-  }, [activeTab, fetchCampaigns]);
+    fetchInboxStats();
+  }, [activeTab, fetchCampaigns, fetchInboxStats]);
 
   // Handle single campaign generation
   const handleGenerate = async (campaign: OutreachCampaign) => {
@@ -367,6 +385,7 @@ export default function HomePage() {
         dueTodayCount={dueTodayCount}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
         notificationCount={dueTodayCount}
+        inboxUnreadCount={inboxUnreadCount}
       />
 
       {/* Main App Content */}
@@ -523,6 +542,10 @@ export default function HomePage() {
             activeFilter={followUpFilter}
             onFilterChange={setFollowUpFilter}
           />
+        )}
+
+        {activeTab === 'inbox' && (
+          <InboxAutomationView onToast={showToast} />
         )}
 
         {activeTab === 'settings' && (

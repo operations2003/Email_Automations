@@ -9,7 +9,8 @@
     "lint": "eslint",
     "security:scan": "node scripts/scan-secrets.mjs",
     "test:security": "node tests/security-email.test.mjs",
-    "test:deliverability": "npx tsx tests/deliverability.test.mjs"
+    "test:deliverability": "npx tsx tests/deliverability.test.mjs",
+    "test:inbox": "npx tsx tests/inbox-automation.test.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.53.0",

@@ -105,11 +105,25 @@ export async function POST(req: NextRequest) {
     const emailMatch = senderEmail.match(/<([^>]+)>/) || [null, senderEmail];
     const cleanEmail = (emailMatch[1] || senderEmail).trim().toLowerCase();
 
+    // Ingest into Inbox Automation & Auto-Acknowledgment Engine
+    try {
+      const { processIncomingEmail } = await import('@/lib/inbox-engine');
+      await processIncomingEmail({
+        from: cleanEmail,
+        to: payload.to || payload.recipient || 'operations@tasknera.com',
+        subject,
+        text: typeof text === 'string' ? text : JSON.stringify(text),
+        messageId: payload.messageId || payload.id
+      });
+    } catch (inboxErr) {
+      console.warn('[Webhook] Inbox processing non-fatal error:', inboxErr);
+    }
+
     const campaign = await findCampaignByEmail(cleanEmail);
     if (!campaign) {
       return NextResponse.json({
         success: true,
-        message: `Webhook received, but sender ${cleanEmail} is not in outreach list.`
+        message: `Webhook received and ingested into Inbox. Sender ${cleanEmail} is not in cold outreach list.`
       });
     }
 

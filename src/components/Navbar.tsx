@@ -17,18 +17,20 @@ import {
   ChevronDown,
   Building2,
   Sparkles,
+  Inbox,
   Bell
 } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'outreach' | 'companies' | 'dashboard' | 'followups' | 'settings';
-  setActiveTab: (tab: 'outreach' | 'companies' | 'dashboard' | 'followups' | 'settings') => void;
+  activeTab: 'outreach' | 'companies' | 'dashboard' | 'followups' | 'inbox' | 'settings';
+  setActiveTab: (tab: 'outreach' | 'companies' | 'dashboard' | 'followups' | 'inbox' | 'settings') => void;
   onOpenNewModal: () => void;
   onRunScheduler: () => void;
   isSchedulerRunning: boolean;
   dueTodayCount: number;
   onOpenNotifications: () => void;
   notificationCount?: number;
+  inboxUnreadCount?: number;
 }
 
 export function Navbar({
@@ -39,7 +41,8 @@ export function Navbar({
   isSchedulerRunning,
   dueTodayCount,
   onOpenNotifications,
-  notificationCount = 0
+  notificationCount = 0,
+  inboxUnreadCount = 0
 }: NavbarProps) {
   const { user, isAdmin, logout } = useAuth();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -103,6 +106,23 @@ export function Navbar({
               {dueTodayCount > 0 && (
                 <span className="ml-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 px-1.5 py-0.2 text-[10px] font-semibold">
                   {dueTodayCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab('inbox')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                activeTab === 'inbox'
+                  ? 'bg-white text-slate-900 font-semibold shadow-xs border border-slate-200/60'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              <Inbox className="h-3.5 w-3.5" />
+              Inbox
+              {inboxUnreadCount !== undefined && inboxUnreadCount > 0 && (
+                <span className="ml-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.2 text-[10px] font-semibold">
+                  {inboxUnreadCount}
                 </span>
               )}
             </button>
