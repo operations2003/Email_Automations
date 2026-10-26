@@ -587,15 +587,40 @@ export async function getInboxLogs(limit = 50): Promise<InboxActivityLog[]> {
 
 // ----------------- MAILBOX OVERVIEWS -----------------
 
+const MAILBOXES_FILE = path.join(DATA_DIR, 'inbox_mailboxes.json');
+let inMemoryMailboxSettings: Record<string, Partial<MailboxOverview>> = {};
+
 export async function getMailboxOverviews(): Promise<MailboxOverview[]> {
   const conversations = await readConversations();
   const deptList: Department[] = ['operations', 'careers', 'hr', 'recruitment', 'support'];
+
+  // Load custom settings
+  try {
+    const db = await getDb();
+    if (db) {
+      const col = db.collection('inbox_mailboxes');
+      const docs = await col.find({}).toArray();
+      for (const d of docs) {
+        inMemoryMailboxSettings[(d as any).department] = d as any;
+      }
+    } else {
+      const data = await fs.readFile(MAILBOXES_FILE, 'utf-8').catch(() => '');
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (typeof parsed === 'object') {
+          inMemoryMailboxSettings = parsed;
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
 
   return deptList.map(dept => {
     const info = DEPARTMENTS[dept];
     const deptConvs = conversations.filter(c => c.department === dept);
     const unreadCount = deptConvs.filter(c => c.isUnread).length;
-    const pendingHumanCount = deptConvs.filter(c => c.status === 'pending_human').length;
+    const pendingHumanCount = deptConvs.filter(c => c.status === 'pending_human' || c.status === 'awaiting_team_response').length;
     const autoAckCount = deptConvs.filter(c => c.acknowledgmentStatus === 'sent').length;
 
     let lastReceivedAt: string | null = null;
@@ -606,17 +631,66 @@ export async function getMailboxOverviews(): Promise<MailboxOverview[]> {
       lastReceivedAt = sorted[0].lastMessageTimestamp;
     }
 
+    const custom = inMemoryMailboxSettings[dept] || {};
+
     return {
       department: dept,
-      name: info.name,
-      email: info.email,
-      description: info.description,
-      status: 'connected',
+      name: custom.name || info.name,
+      email: custom.email || info.email,
+      description: custom.description || info.description,
+      status: (custom.status as any) || 'connected',
+      autoAckEnabled: custom.autoAckEnabled !== false,
       totalConversations: deptConvs.length,
       unreadCount,
       pendingHumanCount,
       autoAckCount,
-      lastReceivedAt
+      lastReceivedAt,
+      lastSyncedAt: custom.lastSyncedAt || new Date().toISOString(),
+      assignedEmployees: custom.assignedEmployees || []
     };
   });
+}
+
+export async function updateMailboxSetting(
+  dept: Department,
+  updates: Partial<MailboxOverview>
+): Promise<MailboxOverview> {
+  const current = (await getMailboxOverviews()).find(m => m.department === dept);
+  if (!current) {
+    throw new Error(`Mailbox for department ${dept} not found`);
+  }
+
+  const updated: MailboxOverview = {
+    ...current,
+    ...updates,
+    department: dept
+  };
+
+  inMemoryMailboxSettings[dept] = updated;
+
+  try {
+    const db = await getDb();
+    if (db) {
+      const col = db.collection('inbox_mailboxes');
+      await col.updateOne({ department: dept }, { $set: updated }, { upsert: true });
+    }
+  } catch (err) {
+    console.warn('[InboxDB] MongoDB save mailbox failed:', err);
+  }
+
+  try {
+    await ensureDataDir();
+    await fs.writeFile(MAILBOXES_FILE, JSON.stringify(inMemoryMailboxSettings, null, 2), 'utf-8');
+  } catch (err) {
+    // ignore
+  }
+
+  await addInboxLog({
+    department: dept,
+    action: 'department_changed',
+    title: `Mailbox Settings Updated: ${DEPARTMENTS[dept].name}`,
+    description: `Connection status: ${updated.status}, Auto-Ack: ${updated.autoAckEnabled ? 'Enabled' : 'Disabled'}`
+  });
+
+  return updated;
 }

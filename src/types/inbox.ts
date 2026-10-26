@@ -2,7 +2,23 @@ export type Department = 'operations' | 'careers' | 'hr' | 'recruitment' | 'supp
 
 export type AcknowledgmentStatus = 'sent' | 'pending' | 'skipped' | 'failed';
 
-export type ConversationStatus = 'pending_human' | 'resolved' | 'waiting_on_customer' | 'spam';
+export type ConversationStatus =
+  | 'new'
+  | 'acknowledged'
+  | 'awaiting_team_response'
+  | 'pending_human'
+  | 'responded'
+  | 'resolved'
+  | 'waiting_on_customer'
+  | 'spam'
+  | 'ack_failed';
+
+export type InboxSubView =
+  | 'overview'
+  | 'departments'
+  | 'conversations'
+  | 'templates'
+  | 'settings';
 
 export interface DepartmentInfo {
   id: Department;
@@ -120,6 +136,13 @@ export interface InboxConversation {
   createdAt: string;
   updatedAt: string;
   messages?: InboxMessage[];
+  // Convenience helpers
+  senderName?: string;
+  senderEmail?: string;
+  companyName?: string;
+  previewText?: string;
+  ackStatus?: AcknowledgmentStatus;
+  receivedAt?: string;
 }
 
 export interface AcknowledgmentTemplate {
@@ -131,6 +154,7 @@ export interface AcknowledgmentTemplate {
   subjectTemplate: string;
   bodyTemplate: string;
   isActive: boolean;
+  isEnabled?: boolean;
   estimatedTurnaroundHours: number;
   updatedAt: string;
 }
@@ -140,12 +164,16 @@ export interface MailboxOverview {
   name: string;
   email: string;
   description: string;
-  status: 'connected' | 'idle' | 'syncing';
+  status: 'connected' | 'disconnected' | 'syncing' | 'idle';
+  isConnected?: boolean;
+  autoAckEnabled: boolean;
   totalConversations: number;
   unreadCount: number;
   pendingHumanCount: number;
   autoAckCount: number;
   lastReceivedAt?: string | null;
+  lastSyncedAt?: string | null;
+  assignedEmployees?: string[];
 }
 
 export interface InboxActivityLog {

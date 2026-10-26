@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 
 interface SimulateInboundModalProps {
+  isOpen?: boolean;
   onClose: () => void;
   onSuccess: () => void;
   onToast: (message: string, type: 'success' | 'info' | 'error') => void;

@@ -119,7 +119,7 @@ export function Navbar({
               }`}
             >
               <Inbox className="h-3.5 w-3.5" />
-              Inbox
+              Inbox Automation
               {inboxUnreadCount !== undefined && inboxUnreadCount > 0 && (
                 <span className="ml-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.2 text-[10px] font-semibold">
                   {inboxUnreadCount}
